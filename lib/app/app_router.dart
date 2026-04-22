@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../application/state/session_editor_controller.dart';
 import '../domain/entities/workout_models.dart';
+import '../presentation/pages/personal_info_page.dart';
 import '../presentation/pages/session_editor_page.dart';
 
 class AppRouter {
@@ -21,6 +22,12 @@ class AppRouter {
       );
       return MaterialPageRoute<void>(
         builder: (_) => SessionEditorPage(args: fallback),
+        settings: settings,
+      );
+    }
+    if (settings.name == PersonalInfoPage.routeName) {
+      return MaterialPageRoute<void>(
+        builder: (_) => const PersonalInfoPage(),
         settings: settings,
       );
     }

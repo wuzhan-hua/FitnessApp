@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../application/providers/providers.dart';
+import '../../application/state/app_settings.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/snackbar_helper.dart';
+import 'personal_info_page.dart';
 import '../widgets/section_card.dart';
 
 class ProfilePage extends ConsumerWidget {
@@ -23,7 +25,13 @@ class ProfilePage extends ConsumerWidget {
         padding: const EdgeInsets.all(AppSpacing.md),
         child: ListView(
           children: [
-            _ProfileHeaderCard(colors: colors),
+            _ProfileHeaderCard(
+              colors: colors,
+              settings: settings,
+              onOpenPersonalInfo: () {
+                Navigator.of(context).pushNamed(PersonalInfoPage.routeName);
+              },
+            ),
             const SizedBox(height: AppSpacing.md),
             SectionCard(
               title: '主题设置',
@@ -137,9 +145,15 @@ class ProfilePage extends ConsumerWidget {
 }
 
 class _ProfileHeaderCard extends StatelessWidget {
-  const _ProfileHeaderCard({required this.colors});
+  const _ProfileHeaderCard({
+    required this.colors,
+    required this.settings,
+    required this.onOpenPersonalInfo,
+  });
 
   final AppPalette colors;
+  final AppSettings settings;
+  final VoidCallback onOpenPersonalInfo;
 
   @override
   Widget build(BuildContext context) {
@@ -152,7 +166,9 @@ class _ProfileHeaderCard extends StatelessWidget {
               radius: 28,
               backgroundColor: colors.accent.withValues(alpha: 0.2),
               child: Text(
-                '林',
+                settings.profileName.trim().isEmpty
+                    ? '我'
+                    : settings.profileName.trim().substring(0, 1),
                 style: Theme.of(
                   context,
                 ).textTheme.headlineSmall?.copyWith(color: colors.accent),
@@ -163,15 +179,39 @@ class _ProfileHeaderCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    '林泽宇',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          settings.profileName,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.titleLarge
+                              ?.copyWith(fontWeight: FontWeight.w700),
+                        ),
+                      ),
+                      const SizedBox(width: AppSpacing.xs),
+                      TextButton.icon(
+                        onPressed: onOpenPersonalInfo,
+                        icon: const Icon(Icons.edit_outlined, size: 16),
+                        label: const Text('修改信息'),
+                        style: TextButton.styleFrom(
+                          foregroundColor: colors.accent,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          minimumSize: Size.zero,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 4,
+                          ),
+                          textStyle: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(fontWeight: FontWeight.w700),
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    '中高级训练者 · 力量增肌',
+                    '训练目标 · ${settings.trainingGoal ?? '未设置'}',
                     style: Theme.of(
                       context,
                     ).textTheme.bodySmall?.copyWith(color: colors.textMuted),
@@ -180,9 +220,17 @@ class _ProfileHeaderCard extends StatelessWidget {
                   Wrap(
                     spacing: AppSpacing.sm,
                     runSpacing: AppSpacing.xs,
-                    children: const [
-                      _InfoBadge(label: '入门', value: '2022.03'),
-                      _InfoBadge(label: '本周训练', value: '4天'),
+                    children: [
+                      _InfoBadge(
+                        label: '训练年限',
+                        value: settings.trainingYears ?? '未设置',
+                      ),
+                      _InfoBadge(
+                        label: '体重',
+                        value: settings.weightKg == null
+                            ? '未设置'
+                            : '${settings.weightKg!.toStringAsFixed(1)}kg',
+                      ),
                     ],
                   ),
                 ],

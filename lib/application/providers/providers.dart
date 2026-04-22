@@ -1,7 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../data/services/workout_service.dart';
-import '../../data/repositories/mock_workout_repository.dart';
+import '../../data/repositories/supabase_workout_repository.dart';
 import '../../data/repositories/workout_repository.dart';
 import '../../domain/entities/workout_models.dart';
 import '../state/app_settings.dart';
@@ -10,7 +11,7 @@ import '../state/session_editor_state.dart';
 import '../state/settings_controller.dart';
 
 final workoutRepositoryProvider = Provider<WorkoutRepository>((ref) {
-  return MockWorkoutRepository();
+  return SupabaseWorkoutRepository(Supabase.instance.client);
 });
 
 final workoutServiceProvider = Provider<WorkoutService>((ref) {

@@ -1,11 +1,15 @@
 import 'package:flutter/foundation.dart';
 
+/// 训练会话状态。
 enum SessionStatus { draft, inProgress, completed }
 
+/// 训练会话创建模式。
 enum SessionMode { newSession, continueSession, backfill }
 
+/// 训练组类型（力量/有氧）。
 enum ExerciseSetType { strength, cardio }
 
+/// 训练组类型与字符串值的映射扩展。
 extension ExerciseSetTypeX on ExerciseSetType {
   String get value {
     switch (this) {
@@ -16,6 +20,7 @@ extension ExerciseSetTypeX on ExerciseSetType {
     }
   }
 
+  /// 从持久化字符串恢复训练组类型，未知值默认返回力量组。
   static ExerciseSetType from(String? raw) {
     switch (raw) {
       case 'cardio':
@@ -27,6 +32,7 @@ extension ExerciseSetTypeX on ExerciseSetType {
   }
 }
 
+/// 会话状态与字符串值的映射扩展。
 extension SessionStatusX on SessionStatus {
   String get value {
     switch (this) {
@@ -39,6 +45,7 @@ extension SessionStatusX on SessionStatus {
     }
   }
 
+  /// 从持久化字符串恢复会话状态，未知值默认返回草稿态。
   static SessionStatus from(String raw) {
     switch (raw) {
       case 'draft':
@@ -54,6 +61,7 @@ extension SessionStatusX on SessionStatus {
 }
 
 @immutable
+/// 动作目录项实体，用于选择训练动作基础信息。
 class ExerciseCatalogItem {
   const ExerciseCatalogItem({
     required this.id,
@@ -62,11 +70,19 @@ class ExerciseCatalogItem {
     required this.equipment,
   });
 
+  /// 动作唯一标识。
   final String id;
+
+  /// 动作名称。
   final String name;
+
+  /// 主要目标肌群。
   final String muscleGroup;
+
+  /// 所需器械信息。
   final String equipment;
 
+  /// 从 JSON 构建动作目录项，缺失字段使用空字符串兜底。
   factory ExerciseCatalogItem.fromJson(Map<String, dynamic> json) {
     return ExerciseCatalogItem(
       id: json['id'] as String? ?? '',
@@ -76,6 +92,7 @@ class ExerciseCatalogItem {
     );
   }
 
+  /// 序列化为 JSON，保持与数据层约定键名一致。
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -87,6 +104,7 @@ class ExerciseCatalogItem {
 }
 
 @immutable
+/// 单组训练数据实体，兼容力量与有氧两种记录方式。
 class ExerciseSet {
   const ExerciseSet({
     required this.index,
@@ -99,17 +117,34 @@ class ExerciseSet {
     this.distanceKm,
   });
 
+  /// 当前组序号（从 0 或 1 开始由上层决定）。
   final int index;
+
+  /// 重量（kg），有氧组通常为 0。
   final double weight;
+
+  /// 次数，有氧组可为 0。
   final int reps;
+
+  /// 组间休息时长（秒）。
   final int restSeconds;
+
+  /// 当前组是否已完成。
   final bool isCompleted;
+
+  /// 训练组类型（力量/有氧）。
   final ExerciseSetType setType;
+
+  /// 有氧时长（分钟），力量组通常为空。
   final int? durationMinutes;
+
+  /// 有氧距离（公里），力量组通常为空。
   final double? distanceKm;
 
+  /// 训练容量（力量组=重量*次数；有氧组固定为 0）。
   double get volume => setType == ExerciseSetType.cardio ? 0 : weight * reps;
 
+  /// 从 JSON 构建训练组，兼容旧数据并在必要时推断有氧类型。
   factory ExerciseSet.fromJson(Map<String, dynamic> json) {
     final parsedSetType = ExerciseSetTypeX.from(json['setType'] as String?);
     final inferredSetType =
@@ -129,6 +164,7 @@ class ExerciseSet {
     );
   }
 
+  /// 序列化为 JSON，保留可选字段以支持完整回写。
   Map<String, dynamic> toJson() {
     return {
       'index': index,
@@ -170,6 +206,7 @@ class ExerciseSet {
 }
 
 @immutable
+/// 会话中的单个训练动作，包含目标组数与实际组列表。
 class SessionExercise {
   const SessionExercise({
     required this.id,
@@ -180,17 +217,31 @@ class SessionExercise {
     required this.sets,
   });
 
+  /// 会话内动作记录唯一标识。
   final String id;
+
+  /// 对应动作目录 ID。
   final String exerciseId;
+
+  /// 动作展示名称。
   final String exerciseName;
+
+  /// 目标组数。
   final int targetSets;
+
+  /// 在会话中的排序序号。
   final int order;
+
+  /// 当前动作下的训练组明细。
   final List<ExerciseSet> sets;
 
+  /// 已完成训练组数量。
   int get completedSetCount => sets.where((set) => set.isCompleted).length;
 
+  /// 当前动作总训练容量（仅累计力量组容量）。
   double get totalVolume => sets.fold(0, (sum, set) => sum + set.volume);
 
+  /// 从 JSON 构建会话动作，缺失组数据时返回空列表。
   factory SessionExercise.fromJson(Map<String, dynamic> json) {
     final rawSets = json['sets'] as List<dynamic>? ?? const [];
     return SessionExercise(
@@ -205,6 +256,7 @@ class SessionExercise {
     );
   }
 
+  /// 序列化为 JSON，包含动作基础信息与组明细。
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -236,6 +288,7 @@ class SessionExercise {
 }
 
 @immutable
+/// 单次训练会话实体，聚合当天训练动作与统计信息。
 class WorkoutSession {
   const WorkoutSession({
     required this.id,
@@ -247,28 +300,46 @@ class WorkoutSession {
     this.notes,
   });
 
+  /// 会话唯一标识。
   final String id;
+
+  /// 会话日期时间。
   final DateTime date;
+
+  /// 会话标题。
   final String title;
+
+  /// 会话状态。
   final SessionStatus status;
+
+  /// 会话总时长（分钟）。
   final int durationMinutes;
+
+  /// 会话中的动作列表。
   final List<SessionExercise> exercises;
+
+  /// 可选备注。
   final String? notes;
 
+  /// 会话总组数。
   int get totalSets =>
       exercises.fold(0, (sum, exercise) => sum + exercise.sets.length);
 
+  /// 会话已完成组数。
   int get completedSets =>
       exercises.fold(0, (sum, exercise) => sum + exercise.completedSetCount);
 
+  /// 会话总训练容量（仅累计力量组容量）。
   double get totalVolume =>
       exercises.fold(0, (sum, exercise) => sum + exercise.totalVolume);
 
+  /// 会话最大重量（无数据时为 0）。
   double get maxWeight => exercises
       .expand((exercise) => exercise.sets)
       .map((set) => set.weight)
       .fold(0.0, (previous, next) => previous > next ? previous : next);
 
+  /// 从 JSON 构建训练会话，异常或缺失日期时回退为当前时间。
   factory WorkoutSession.fromJson(Map<String, dynamic> json) {
     final rawExercises = json['exercises'] as List<dynamic>? ?? const [];
     return WorkoutSession(
@@ -284,6 +355,7 @@ class WorkoutSession {
     );
   }
 
+  /// 序列化为 JSON，日期使用 ISO8601 字符串。
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -318,6 +390,7 @@ class WorkoutSession {
 }
 
 @immutable
+/// 日维度训练摘要，用于首页与日历概览展示。
 class DailySummary {
   const DailySummary({
     required this.date,
@@ -327,12 +400,22 @@ class DailySummary {
     required this.durationMinutes,
   });
 
+  /// 摘要对应日期。
   final DateTime date;
+
+  /// 当日是否有训练。
   final bool hasTraining;
+
+  /// 当日总组数。
   final int totalSets;
+
+  /// 当日总容量（仅力量组）。
   final double totalVolume;
+
+  /// 当日总时长（分钟）。
   final int durationMinutes;
 
+  /// 从 JSON 构建日摘要，缺失字段使用默认值兜底。
   factory DailySummary.fromJson(Map<String, dynamic> json) {
     return DailySummary(
       date: DateTime.tryParse(json['date'] as String? ?? '') ?? DateTime.now(),
@@ -343,6 +426,7 @@ class DailySummary {
     );
   }
 
+  /// 序列化为 JSON，日期使用 ISO8601 字符串。
   Map<String, dynamic> toJson() {
     return {
       'date': date.toIso8601String(),
@@ -355,6 +439,7 @@ class DailySummary {
 }
 
 @immutable
+/// 首页快照数据，聚合今日状态、周统计与近期训练信息。
 class HomeSnapshot {
   const HomeSnapshot({
     required this.date,
@@ -369,17 +454,37 @@ class HomeSnapshot {
     required this.recoveryHint,
   });
 
+  /// 快照生成日期时间。
   final DateTime date;
+
+  /// 今日训练摘要。
   final DailySummary todaySummary;
+
+  /// 当前进行中的训练会话（若存在）。
   final WorkoutSession? inProgressSession;
+
+  /// 首页快捷建议文案列表。
   final List<String> quickSuggestions;
+
+  /// 本周训练天数。
   final int weekTrainingDays;
+
+  /// 本周总组数。
   final int weekTotalSets;
+
+  /// 本周总容量（仅力量组）。
   final double weekTotalVolume;
+
+  /// 本周平均时长（分钟）。
   final int weekAverageDuration;
+
+  /// 近期训练会话列表。
   final List<WorkoutSession> recentSessions;
+
+  /// 恢复建议文案。
   final String recoveryHint;
 
+  /// 从 JSON 构建首页快照，缺失嵌套对象时使用默认空对象/空列表。
   factory HomeSnapshot.fromJson(Map<String, dynamic> json) {
     final rawSessions = json['recentSessions'] as List<dynamic>? ?? const [];
     return HomeSnapshot(
@@ -407,6 +512,7 @@ class HomeSnapshot {
     );
   }
 
+  /// 序列化为 JSON，保持首页所需字段结构不变。
   Map<String, dynamic> toJson() {
     return {
       'date': date.toIso8601String(),
@@ -424,12 +530,17 @@ class HomeSnapshot {
 }
 
 @immutable
+/// 时序图表数据点。
 class TimeSeriesPoint {
   const TimeSeriesPoint({required this.label, required this.value});
 
+  /// 横轴标签（如日期、周次）。
   final String label;
+
+  /// 对应数值。
   final double value;
 
+  /// 从 JSON 构建时序点，缺失字段使用默认值。
   factory TimeSeriesPoint.fromJson(Map<String, dynamic> json) {
     return TimeSeriesPoint(
       label: json['label'] as String? ?? '',
@@ -437,12 +548,14 @@ class TimeSeriesPoint {
     );
   }
 
+  /// 序列化为 JSON，输出 label/value 键对。
   Map<String, dynamic> toJson() {
     return {'label': label, 'value': value};
   }
 }
 
 @immutable
+/// 训练分析快照，提供周/月容量、PR 趋势与训练频率。
 class AnalyticsSnapshot {
   const AnalyticsSnapshot({
     required this.weeklyVolume,
@@ -451,11 +564,19 @@ class AnalyticsSnapshot {
     required this.trainingFrequency,
   });
 
+  /// 周维度容量时序。
   final List<TimeSeriesPoint> weeklyVolume;
+
+  /// 月维度容量时序。
   final List<TimeSeriesPoint> monthlyVolume;
+
+  /// PR 趋势时序。
   final List<TimeSeriesPoint> prTrend;
+
+  /// 训练频率（如每周次数）。
   final int trainingFrequency;
 
+  /// 从 JSON 构建分析快照，缺失序列时回退为空列表。
   factory AnalyticsSnapshot.fromJson(Map<String, dynamic> json) {
     final weekly = json['weeklyVolume'] as List<dynamic>? ?? const [];
     final monthly = json['monthlyVolume'] as List<dynamic>? ?? const [];
@@ -475,6 +596,7 @@ class AnalyticsSnapshot {
     );
   }
 
+  /// 序列化为 JSON，输出各统计序列与频率字段。
   Map<String, dynamic> toJson() {
     return {
       'weeklyVolume': weeklyVolume.map((item) => item.toJson()).toList(),

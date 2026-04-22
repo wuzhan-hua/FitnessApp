@@ -33,7 +33,7 @@ class HomeLeftColumn extends StatelessWidget {
     return Column(
       children: [
         SectionCard(
-          title: 'A. 今日状态',
+          title: '今日状态',
           trailing: StatusBadge(
             text: snapshot.todaySummary.hasTraining ? '有训练' : '未训练',
           ),
@@ -68,103 +68,167 @@ class HomeLeftColumn extends StatelessWidget {
           ),
         ),
         SectionCard(
-          title: 'B. 主操作区',
-          child: Wrap(
-            spacing: AppSpacing.sm,
-            runSpacing: AppSpacing.sm,
-            children: [
-              FilledButton.icon(
-                onPressed: () => openEditor(
-                  context,
-                  date: DateTime.now(),
-                  mode: SessionMode.newSession,
-                ),
-                icon: const Icon(Icons.play_arrow),
-                label: const Text('开始今日训练'),
+          title: '主操作区',
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(AppSpacing.md),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  colors.panelAlt,
+                  Color.lerp(colors.panelAlt, colors.accent, 0.08)!,
+                ],
               ),
-              FilledButton.tonalIcon(
-                onPressed: snapshot.inProgressSession == null
-                    ? null
-                    : () => openEditor(
-                        context,
-                        date: snapshot.date,
-                        mode: SessionMode.continueSession,
-                        sessionId: snapshot.inProgressSession?.id,
-                      ),
-                icon: const Icon(Icons.restart_alt),
-                label: Text(
-                  snapshot.inProgressSession == null
+              borderRadius: const BorderRadius.all(Radius.circular(22)),
+              border: Border.all(
+                color: colors.accent.withValues(alpha: 0.22),
+                width: 1,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: colors.accent.withValues(alpha: 0.08),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '今天要做什么',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    color: colors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.xs),
+                Text(
+                  '开练入口就在这里，保持强度，保持节奏。',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: colors.textMuted,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                Wrap(
+                  spacing: AppSpacing.sm,
+                  runSpacing: AppSpacing.xs,
+                  children: [
+                    _HeroBadge(
+                      text: snapshot.todaySummary.hasTraining
+                          ? '今日：已训练'
+                          : '今日：待开始',
+                    ),
+                    _HeroBadge(
+                      text: snapshot.inProgressSession == null
+                          ? '进行中：0组'
+                          : '进行中：${snapshot.inProgressSession!.completedSets}组',
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.md),
+                _HeroActionButton(
+                  icon: Icons.play_arrow_rounded,
+                  label: '开始训练',
+                  isPrimary: true,
+                  onTap: () => openEditor(
+                    context,
+                    date: DateTime.now(),
+                    mode: SessionMode.newSession,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                _HeroActionButton(
+                  icon: Icons.restart_alt_rounded,
+                  label: snapshot.inProgressSession == null
                       ? '无进行中训练'
-                      : '继续上次训练(${snapshot.inProgressSession!.completedSets} 组)',
+                      : '继续上次训练 (${snapshot.inProgressSession!.completedSets} 组)',
+                  isPrimary: false,
+                  onTap: snapshot.inProgressSession == null
+                      ? null
+                      : () => openEditor(
+                          context,
+                          date: snapshot.date,
+                          mode: SessionMode.continueSession,
+                          sessionId: snapshot.inProgressSession?.id,
+                        ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
         SectionCard(
-          title: 'C. 快捷动作',
-          child: Wrap(
-            spacing: AppSpacing.sm,
-            runSpacing: AppSpacing.sm,
+          title: '快捷动作',
+          child: Row(
             children: [
-              QuickActionBadge(
-                text: '快速补录(昨日)',
-                onTap: () => openEditor(
-                  context,
-                  date: DateTime.now().subtract(const Duration(days: 1)),
-                  mode: SessionMode.backfill,
+              Expanded(
+                child: _QuickPillAction(
+                  icon: Icons.history_rounded,
+                  text: '快补昨日',
+                  onTap: () => openEditor(
+                    context,
+                    date: DateTime.now().subtract(const Duration(days: 1)),
+                    mode: SessionMode.backfill,
+                  ),
                 ),
               ),
-              QuickActionBadge(
-                text: '复制最近一次训练',
-                onTap: () => openEditor(
-                  context,
-                  date: DateTime.now(),
-                  mode: SessionMode.newSession,
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: _QuickPillAction(
+                  icon: Icons.content_copy_rounded,
+                  text: '复制上次',
+                  onTap: () => openEditor(
+                    context,
+                    date: DateTime.now(),
+                    mode: SessionMode.newSession,
+                  ),
                 ),
               ),
-              QuickActionBadge(
-                text: '新增空白训练',
-                onTap: () => openEditor(
-                  context,
-                  date: DateTime.now(),
-                  mode: SessionMode.newSession,
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: _QuickPillAction(
+                  icon: Icons.add_box_rounded,
+                  text: '新建空白',
+                  onTap: () => openEditor(
+                    context,
+                    date: DateTime.now(),
+                    mode: SessionMode.newSession,
+                  ),
                 ),
               ),
             ],
           ),
         ),
         SectionCard(
-          title: 'D. 今日计划 / 推荐',
+          title: '今日计划 / 推荐',
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: snapshot.quickSuggestions
-                .map(
-                  (tip) => Padding(
-                    padding: const EdgeInsets.only(bottom: AppSpacing.xs),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.only(top: 5),
-                          child: Icon(
-                            Icons.bolt,
-                            size: 14,
-                            color: colors.accent,
-                          ),
+            children: [
+              ...snapshot.quickSuggestions.map(
+                (tip) => Padding(
+                  padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(top: 5),
+                        child: Icon(Icons.bolt, size: 14, color: colors.accent),
+                      ),
+                      const SizedBox(width: AppSpacing.xs),
+                      Expanded(
+                        child: Text(
+                          tip,
+                          style: TextStyle(color: colors.textPrimary),
                         ),
-                        const SizedBox(width: AppSpacing.xs),
-                        Expanded(
-                          child: Text(
-                            tip,
-                            style: TextStyle(color: colors.textPrimary),
-                          ),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                )
-                .toList(),
+                ),
+              ),
+            ],
           ),
         ),
       ],
@@ -210,9 +274,63 @@ class StatusBadge extends StatelessWidget {
   }
 }
 
-class QuickActionBadge extends StatelessWidget {
-  const QuickActionBadge({super.key, required this.text, required this.onTap});
+class _HeroActionButton extends StatelessWidget {
+  const _HeroActionButton({
+    required this.icon,
+    required this.label,
+    required this.isPrimary,
+    required this.onTap,
+  });
 
+  final IconData icon;
+  final String label;
+  final bool isPrimary;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
+    return SizedBox(
+      width: double.infinity,
+      child: isPrimary
+          ? FilledButton.icon(
+              onPressed: onTap,
+              style: FilledButton.styleFrom(
+                minimumSize: const Size.fromHeight(50),
+                shape: RoundedRectangleBorder(borderRadius: AppRadius.chip),
+                textStyle: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+              ),
+              icon: const Icon(Icons.play_arrow_rounded, size: 20),
+              label: Text(label),
+            )
+          : OutlinedButton.icon(
+              onPressed: onTap,
+              style: OutlinedButton.styleFrom(
+                minimumSize: const Size.fromHeight(50),
+                shape: RoundedRectangleBorder(borderRadius: AppRadius.chip),
+                side: BorderSide(color: colors.accent.withValues(alpha: 0.35)),
+                foregroundColor: colors.textPrimary,
+                textStyle: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+              ),
+              icon: const Icon(Icons.restart_alt_rounded, size: 20),
+              label: Text(label),
+            ),
+    );
+  }
+}
+
+class _QuickPillAction extends StatelessWidget {
+  const _QuickPillAction({
+    required this.icon,
+    required this.text,
+    required this.onTap,
+  });
+
+  final IconData icon;
   final String text;
   final VoidCallback onTap;
 
@@ -223,21 +341,52 @@ class QuickActionBadge extends StatelessWidget {
       borderRadius: AppRadius.chip,
       onTap: onTap,
       child: Container(
-        constraints: const BoxConstraints(minHeight: 42),
-        padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 10),
+        constraints: const BoxConstraints(minHeight: 44),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
         decoration: BoxDecoration(
           color: colors.panelAlt,
           borderRadius: AppRadius.chip,
-          border: Border.all(color: colors.textMuted.withValues(alpha: 0.35)),
+          border: Border.all(color: colors.accent.withValues(alpha: 0.28)),
         ),
-        child: Text(
-          text,
-          maxLines: 1,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            height: 1.2,
-            fontWeight: FontWeight.w700,
-            color: colors.textPrimary,
-          ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 16, color: colors.accent),
+            const SizedBox(width: 6),
+            Text(
+              text,
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.w800,
+                fontSize: 13,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _HeroBadge extends StatelessWidget {
+  const _HeroBadge({required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: colors.panel.withValues(alpha: 0.72),
+        borderRadius: AppRadius.chip,
+        border: Border.all(color: colors.accent.withValues(alpha: 0.24)),
+      ),
+      child: Text(
+        text,
+        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+          color: colors.textPrimary,
+          fontWeight: FontWeight.w700,
         ),
       ),
     );
@@ -256,7 +405,7 @@ class HomeRightColumn extends StatelessWidget {
     return Column(
       children: [
         SectionCard(
-          title: 'E. 近7天概览',
+          title: '近7天概览',
           child: GridView.count(
             crossAxisCount: 2,
             shrinkWrap: true,
@@ -279,7 +428,7 @@ class HomeRightColumn extends StatelessWidget {
           ),
         ),
         SectionCard(
-          title: 'F. 最近2次训练',
+          title: '最近2次训练',
           child: Column(
             children: snapshot.recentSessions
                 .map(
@@ -296,7 +445,7 @@ class HomeRightColumn extends StatelessWidget {
           ),
         ),
         SectionCard(
-          title: 'G. 恢复提醒',
+          title: '恢复提醒',
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

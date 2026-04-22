@@ -260,10 +260,7 @@ class NumericStepper extends StatelessWidget {
                     fontWeight: FontWeight.w700,
                     height: 1.15,
                     fontFeatures: const [FontFeature.tabularFigures()],
-                    decoration: onValueTap != null
-                        ? TextDecoration.underline
-                        : TextDecoration.none,
-                    decorationThickness: 1.2,
+                    decoration: TextDecoration.none,
                   ),
                 ),
               ),

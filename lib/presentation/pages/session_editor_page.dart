@@ -513,25 +513,50 @@ class _SessionEditorPageState extends ConsumerState<SessionEditorPage> {
                                 )
                                 .toList(),
                           ),
-                          const SizedBox(height: AppSpacing.sm),
-                          Align(
-                            alignment: Alignment.centerLeft,
-                            child: FilledButton.icon(
-                              onPressed: _isRestDay
-                                  ? null
-                                  : () => _showAddExerciseDialog(controller),
-                              icon: const Icon(Icons.add),
-                              label: Text(_isRestDay ? '休息日无需新增动作' : '新增动作'),
+                          const SizedBox(height: AppSpacing.md),
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.only(top: AppSpacing.sm),
+                            decoration: BoxDecoration(
+                              border: Border(
+                                top: BorderSide(
+                                  color: colors.textMuted.withValues(
+                                    alpha: 0.16,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                FilledButton.icon(
+                                  onPressed: _isRestDay
+                                      ? null
+                                      : () =>
+                                            _showAddExerciseDialog(controller),
+                                  icon: const Icon(Icons.add, size: 18),
+                                  style: FilledButton.styleFrom(
+                                    minimumSize: const Size(122, 42),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 10,
+                                    ),
+                                  ),
+                                  label: Text(
+                                    _isRestDay ? '休息日无需新增动作' : '新增动作',
+                                  ),
+                                ),
+                                if (_isRestDay) ...[
+                                  const SizedBox(height: AppSpacing.sm),
+                                  Text(
+                                    '恢复建议：轻度拉伸、泡沫轴放松、轻松散步、呼吸训练。',
+                                    style: Theme.of(context).textTheme.bodySmall
+                                        ?.copyWith(color: colors.textMuted),
+                                  ),
+                                ],
+                              ],
                             ),
                           ),
-                          if (_isRestDay) ...[
-                            const SizedBox(height: AppSpacing.sm),
-                            Text(
-                              '恢复建议：轻度拉伸、泡沫轴放松、轻松散步、呼吸训练。',
-                              style: Theme.of(context).textTheme.bodySmall
-                                  ?.copyWith(color: colors.textMuted),
-                            ),
-                          ],
                         ],
                       ),
                     ),
@@ -574,12 +599,6 @@ class _SessionEditorPageState extends ConsumerState<SessionEditorPage> {
                                     ?.copyWith(color: colors.textMuted),
                               )
                             else ...[
-                              Text(
-                                '${exercise.targetSets}组',
-                                style: Theme.of(context).textTheme.bodySmall
-                                    ?.copyWith(color: colors.textMuted),
-                              ),
-                              const SizedBox(width: 8),
                               FilledButton.tonal(
                                 onPressed: () {
                                   controller.addSet(exerciseId: exercise.id);
