@@ -136,11 +136,19 @@ class AuthService {
           'password': password,
         },
       );
-      await _client.auth.refreshSession();
-      await setGuestSoftSignedOut(false);
     } catch (error, stackTrace) {
       AppLogger.error('游客升级邮箱账号失败', error: error, stackTrace: stackTrace);
       throw AppError.from(error, fallbackMessage: '游客升级失败，请稍后重试。');
+    }
+
+    try {
+      await signInWithEmail(normalizedEmail, password);
+    } catch (error, stackTrace) {
+      AppLogger.error('游客升级成功后自动登录失败', error: error, stackTrace: stackTrace);
+      throw const AppError(
+        message: '账号已升级成功，但自动登录失败，请直接用邮箱登录。',
+        code: 'guest_upgrade_auto_sign_in_failed',
+      );
     }
   }
 

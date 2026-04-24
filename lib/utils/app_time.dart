@@ -19,6 +19,29 @@ class AppTime {
     return parsed.toLocal();
   }
 
+  static DateTime toUtc(DateTime value) {
+    return value.isUtc ? value : value.toUtc();
+  }
+
+  static String toUtcIsoString(DateTime value) {
+    return toUtc(value).toIso8601String();
+  }
+
+  static DateTime parseToLocalDateTime(Object? value, {DateTime? fallback}) {
+    if (value is DateTime) {
+      return value.isUtc ? value.toLocal() : value;
+    }
+
+    if (value is String) {
+      final parsed = DateTime.tryParse(value.trim());
+      if (parsed != null) {
+        return parsed.isUtc ? parsed.toLocal() : parsed;
+      }
+    }
+
+    return fallback ?? DateTime.now();
+  }
+
   static String formatUtcStringToBeijing(
     String? value, {
     String fallback = '--',

@@ -113,7 +113,7 @@ export async function readVerificationCodeRow(
 ) {
   return await supabase
     .from("signup_verification_codes")
-    .select("id, code_hash, expires_at, consumed_at, created_at, last_sent_at, send_count")
+    .select("id, purpose, code_hash, expires_at, consumed_at, created_at, last_sent_at, send_count")
     .ilike("email", email)
     .eq("purpose", purpose)
     .maybeSingle();

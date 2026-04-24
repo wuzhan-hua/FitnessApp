@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../domain/entities/workout_models.dart';
 import '../../utils/app_error.dart';
+import '../../utils/app_time.dart';
 import 'workout_repository.dart';
 
 class SupabaseWorkoutRepository implements WorkoutRepository {
@@ -177,10 +178,7 @@ class SupabaseWorkoutRepository implements WorkoutRepository {
 
     if (existingSession != null &&
         (existingSession['status'] as String?) == 'completed') {
-      throw const AppError(
-        message: '该训练已完成归档，不能再次覆盖。',
-        code: 'session_locked',
-      );
+      throw const AppError(message: '该训练已完成归档，不能再次覆盖。', code: 'session_locked');
     }
 
     String persistedSessionId = session.id;
@@ -188,7 +186,7 @@ class SupabaseWorkoutRepository implements WorkoutRepository {
     if (existingSession == null) {
       final insertPayload = {
         'user_id': userId,
-        'date': session.date.toIso8601String(),
+        'date': AppTime.toUtcIsoString(session.date),
         'title': session.title,
         'status': session.status.value,
         'duration_minutes': session.durationMinutes,
@@ -199,18 +197,17 @@ class SupabaseWorkoutRepository implements WorkoutRepository {
         insertPayload['id'] = session.id;
       }
 
-      final created =
-          await _client
-              .from('workout_sessions')
-              .insert(insertPayload)
-              .select('id')
-              .single();
+      final created = await _client
+          .from('workout_sessions')
+          .insert(insertPayload)
+          .select('id')
+          .single();
       persistedSessionId = '${created['id']}';
     } else {
       await _client
           .from('workout_sessions')
           .update({
-            'date': session.date.toIso8601String(),
+            'date': AppTime.toUtcIsoString(session.date),
             'title': session.title,
             'status': session.status.value,
             'duration_minutes': session.durationMinutes,
@@ -237,19 +234,18 @@ class SupabaseWorkoutRepository implements WorkoutRepository {
       ..sort((a, b) => a.order.compareTo(b.order));
 
     for (final exercise in orderedExercises) {
-      final createdExercise =
-          await _client
-              .from('workout_exercises')
-              .insert({
-                'user_id': userId,
-                'session_id': persistedSessionId,
-                'exercise_id': exercise.exerciseId,
-                'exercise_name': exercise.exerciseName,
-                'target_sets': exercise.targetSets,
-                'sort_order': exercise.order,
-              })
-              .select('id')
-              .single();
+      final createdExercise = await _client
+          .from('workout_exercises')
+          .insert({
+            'user_id': userId,
+            'session_id': persistedSessionId,
+            'exercise_id': exercise.exerciseId,
+            'exercise_name': exercise.exerciseName,
+            'target_sets': exercise.targetSets,
+            'sort_order': exercise.order,
+          })
+          .select('id')
+          .single();
       final exerciseRowId = '${createdExercise['id']}';
 
       final setPayloads = exercise.sets
@@ -284,13 +280,12 @@ class SupabaseWorkoutRepository implements WorkoutRepository {
     }
 
     if (session.status == SessionStatus.completed) {
-      final existingRecords =
-          await _client
-              .from('workout_records')
-              .select('id')
-              .eq('user_id', userId)
-              .eq('session_id', persistedSessionId)
-              .limit(1);
+      final existingRecords = await _client
+          .from('workout_records')
+          .select('id')
+          .eq('user_id', userId)
+          .eq('session_id', persistedSessionId)
+          .limit(1);
 
       final existingRecordRows = List<Map<String, dynamic>>.from(
         existingRecords as List<dynamic>,
@@ -395,19 +390,18 @@ class SupabaseWorkoutRepository implements WorkoutRepository {
     required bool withTemplate,
   }) async {
     final normalizedDate = _day(date);
-    final created =
-        await _client
-            .from('workout_sessions')
-            .insert({
-              'user_id': userId,
-              'date': normalizedDate.toIso8601String(),
-              'title': withTemplate ? '推训练日' : '新训练日',
-              'status': SessionStatus.draft.value,
-              'duration_minutes': 0,
-              'notes': withTemplate ? '保持肩胛稳定，最后一组可接近力竭。' : null,
-            })
-            .select()
-            .single();
+    final created = await _client
+        .from('workout_sessions')
+        .insert({
+          'user_id': userId,
+          'date': AppTime.toUtcIsoString(normalizedDate),
+          'title': withTemplate ? '推训练日' : '新训练日',
+          'status': SessionStatus.draft.value,
+          'duration_minutes': 0,
+          'notes': withTemplate ? '保持肩胛稳定，最后一组可接近力竭。' : null,
+        })
+        .select()
+        .single();
 
     final sessionId = '${created['id']}';
     if (!withTemplate) {
@@ -417,19 +411,18 @@ class SupabaseWorkoutRepository implements WorkoutRepository {
     final templateExercises = _buildTemplateExercises();
     final persistedExercises = <SessionExercise>[];
     for (final exercise in templateExercises) {
-      final exerciseRow =
-          await _client
-              .from('workout_exercises')
-              .insert({
-                'user_id': userId,
-                'session_id': sessionId,
-                'exercise_id': exercise.exerciseId,
-                'exercise_name': exercise.exerciseName,
-                'target_sets': exercise.targetSets,
-                'sort_order': exercise.order,
-              })
-              .select()
-              .single();
+      final exerciseRow = await _client
+          .from('workout_exercises')
+          .insert({
+            'user_id': userId,
+            'session_id': sessionId,
+            'exercise_id': exercise.exerciseId,
+            'exercise_name': exercise.exerciseName,
+            'target_sets': exercise.targetSets,
+            'sort_order': exercise.order,
+          })
+          .select()
+          .single();
 
       final exerciseRowId = '${exerciseRow['id']}';
       final setRows = exercise.sets
@@ -452,12 +445,11 @@ class SupabaseWorkoutRepository implements WorkoutRepository {
 
       List<ExerciseSet> persistedSets = const [];
       if (setRows.isNotEmpty) {
-        final insertedSetRows =
-            await _client
-                .from('workout_sets')
-                .insert(setRows)
-                .select()
-                .order('set_index');
+        final insertedSetRows = await _client
+            .from('workout_sets')
+            .insert(setRows)
+            .select()
+            .order('set_index');
         persistedSets = List<Map<String, dynamic>>.from(
           insertedSetRows as List<dynamic>,
         ).map(_mapSetRow).toList();
@@ -530,10 +522,10 @@ class SupabaseWorkoutRepository implements WorkoutRepository {
       query = query.eq('id', sessionId);
     }
     if (fromInclusive != null) {
-      query = query.gte('date', fromInclusive.toIso8601String());
+      query = query.gte('date', AppTime.toUtcIsoString(fromInclusive));
     }
     if (toExclusive != null) {
-      query = query.lt('date', toExclusive.toIso8601String());
+      query = query.lt('date', AppTime.toUtcIsoString(toExclusive));
     }
     query = query.order('date', ascending: !descendingByDate);
     if (limit != null) {
@@ -549,13 +541,12 @@ class SupabaseWorkoutRepository implements WorkoutRepository {
     }
 
     final sessionIds = sessionRows.map((row) => '${row['id']}').toList();
-    final exerciseRowsRaw =
-        await _client
-            .from('workout_exercises')
-            .select()
-            .eq('user_id', userId)
-            .inFilter('session_id', sessionIds)
-            .order('sort_order');
+    final exerciseRowsRaw = await _client
+        .from('workout_exercises')
+        .select()
+        .eq('user_id', userId)
+        .inFilter('session_id', sessionIds)
+        .order('sort_order');
     final exerciseRows = List<Map<String, dynamic>>.from(
       exerciseRowsRaw as List<dynamic>,
     );
@@ -563,13 +554,12 @@ class SupabaseWorkoutRepository implements WorkoutRepository {
     List<Map<String, dynamic>> setRows = const [];
     if (exerciseRows.isNotEmpty) {
       final exerciseIds = exerciseRows.map((row) => '${row['id']}').toList();
-      final setRowsRaw =
-          await _client
-              .from('workout_sets')
-              .select()
-              .eq('user_id', userId)
-              .inFilter('exercise_row_id', exerciseIds)
-              .order('set_index');
+      final setRowsRaw = await _client
+          .from('workout_sets')
+          .select()
+          .eq('user_id', userId)
+          .inFilter('exercise_row_id', exerciseIds)
+          .order('set_index');
       setRows = List<Map<String, dynamic>>.from(setRowsRaw as List<dynamic>);
     }
 
@@ -607,7 +597,7 @@ class SupabaseWorkoutRepository implements WorkoutRepository {
   ) {
     return WorkoutSession(
       id: '${row['id']}',
-      date: DateTime.tryParse('${row['date']}') ?? DateTime.now(),
+      date: AppTime.parseToLocalDateTime(row['date']),
       title: row['title'] as String? ?? '',
       status: SessionStatusX.from(row['status'] as String? ?? 'draft'),
       durationMinutes: (row['duration_minutes'] as num? ?? 0).toInt(),
@@ -656,7 +646,9 @@ class SupabaseWorkoutRepository implements WorkoutRepository {
     if (_profileEnsured && _profileEnsuredForUserId == userId) {
       return;
     }
-    await _client.from('users').upsert({'user_id': userId}, onConflict: 'user_id');
+    await _client.from('users').upsert({
+      'user_id': userId,
+    }, onConflict: 'user_id');
     _profileEnsured = true;
     _profileEnsuredForUserId = userId;
   }

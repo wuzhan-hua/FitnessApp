@@ -79,6 +79,19 @@ serve(async (request) => {
       throw codeRowError;
     }
 
+    console.log(
+      "complete-guest-upgrade verification context",
+      JSON.stringify({
+        normalizedEmail,
+        foundCodeRow: codeRow != null,
+        codePurpose: codeRow?.purpose ?? null,
+        consumedAt: codeRow?.consumed_at ?? null,
+        expiresAt: codeRow?.expires_at ?? null,
+        currentUserId: currentUser.id,
+        isAnonymous: currentUser.is_anonymous,
+      }),
+    );
+
     if (!codeRow) {
       return json(400, {
         code: "code_not_found",
@@ -101,6 +114,16 @@ serve(async (request) => {
     }
 
     const inputCodeHash = await sha256(`${normalizedEmail}:${rawCode}`);
+    console.log(
+      "complete-guest-upgrade hash compare",
+      JSON.stringify({
+        normalizedEmail,
+        inputCodeHash,
+        storedCodeHash: codeRow.code_hash,
+        currentUserId: currentUser.id,
+        isAnonymous: currentUser.is_anonymous,
+      }),
+    );
     if (inputCodeHash != codeRow.code_hash) {
       return json(400, {
         code: "invalid_code",

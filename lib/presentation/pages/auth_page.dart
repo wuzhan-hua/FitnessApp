@@ -37,13 +37,14 @@ class _AuthPageState extends ConsumerState<AuthPage> {
   bool _isSubmitting = false;
   bool _isSendingCode = false;
   int _resendSeconds = 0;
+  String? _lockedUpgradeEmail;
   Timer? _resendTimer;
   late _AuthMode _mode;
 
   @override
   void initState() {
     super.initState();
-    _mode = _AuthMode.signIn;
+    _mode = widget.preferUpgrade ? _AuthMode.signUp : _AuthMode.signIn;
   }
 
   @override
@@ -83,6 +84,7 @@ class _AuthPageState extends ConsumerState<AuthPage> {
       _mode = mode;
       _otpController.clear();
       _passwordController.clear();
+      _lockedUpgradeEmail = null;
       _resendSeconds = 0;
     });
     ref.read(emailSignUpPendingProvider.notifier).state = false;
@@ -105,6 +107,9 @@ class _AuthPageState extends ConsumerState<AuthPage> {
           ref.read(authStatusProvider).valueOrNull ?? AuthStatus.signedOut;
       if (widget.preferUpgrade && authStatus.isGuest) {
         await ref.read(authServiceProvider).sendGuestUpgradeCode(email);
+        setState(() {
+          _lockedUpgradeEmail = email.toLowerCase();
+        });
       } else {
         await ref.read(authServiceProvider).sendEmailCodeForSignUp(email);
       }
@@ -133,20 +138,26 @@ class _AuthPageState extends ConsumerState<AuthPage> {
     final authService = ref.read(authServiceProvider);
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
+    final isUpgradeFlow = widget.preferUpgrade && status.isGuest;
     try {
-      if (_mode == _AuthMode.signIn) {
-        await authService.signInWithEmail(email, password);
-        ref.read(emailSignUpPendingProvider.notifier).state = false;
-        if (!mounted) return;
-        showLatestSnackBar(context, '登录成功');
-      } else if (widget.preferUpgrade && status.isGuest) {
+      if (isUpgradeFlow) {
+        final lockedUpgradeEmail = _lockedUpgradeEmail;
+        if (lockedUpgradeEmail != null &&
+            lockedUpgradeEmail != email.toLowerCase()) {
+          throw const AppError(message: '发送验证码后的邮箱不能修改，请重新发送验证码。');
+        }
         await authService.upgradeGuestToEmail(
           email: email,
           code: _otpController.text.trim(),
           password: password,
         );
         if (!mounted) return;
-        showLatestSnackBar(context, '游客账号已升级为邮箱账号');
+        showLatestSnackBar(context, '邮箱账号升级成功，已切换为正式账号');
+      } else if (_mode == _AuthMode.signIn) {
+        await authService.signInWithEmail(email, password);
+        ref.read(emailSignUpPendingProvider.notifier).state = false;
+        if (!mounted) return;
+        showLatestSnackBar(context, '登录成功');
       } else {
         ref.read(emailSignUpPendingProvider.notifier).state = true;
         await authService.completeEmailSignUp(
@@ -238,12 +249,13 @@ class _AuthPageState extends ConsumerState<AuthPage> {
     final authStatus =
         ref.watch(authStatusProvider).valueOrNull ?? AuthStatus.signedOut;
     final isGuest = authStatus.isGuest;
-    final lockUpgrade = widget.preferUpgrade && isGuest;
+    final isUpgradeFlow = widget.preferUpgrade && isGuest;
     final colors = AppColors.of(context);
     final isOtpFlow =
-        (_mode == _AuthMode.signUp && !lockUpgrade) || lockUpgrade;
+        (_mode == _AuthMode.signUp && !isUpgradeFlow) || isUpgradeFlow;
+    final isUpgradeEmailLocked = isUpgradeFlow && _lockedUpgradeEmail != null;
 
-    final title = lockUpgrade
+    final title = isUpgradeFlow
         ? '升级为邮箱账号'
         : _mode == _AuthMode.signIn
         ? '邮箱登录'
@@ -258,7 +270,7 @@ class _AuthPageState extends ConsumerState<AuthPage> {
       appBar: AppBar(
         title: Text(title),
         actions: [
-          if (!lockUpgrade)
+          if (!isUpgradeFlow)
             TextButton(
               onPressed: _isSubmitting ? null : _guestSignIn,
               child: const Text('游客登录'),
@@ -310,7 +322,7 @@ class _AuthPageState extends ConsumerState<AuthPage> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
-                                if (!lockUpgrade)
+                                if (!isUpgradeFlow)
                                   SegmentedButton<_AuthMode>(
                                     showSelectedIcon: false,
                                     segments: const [
@@ -333,11 +345,12 @@ class _AuthPageState extends ConsumerState<AuthPage> {
                                             _setMode(values.first);
                                           },
                                   ),
-                                if (!lockUpgrade)
+                                if (!isUpgradeFlow)
                                   const SizedBox(height: AppSpacing.md),
                                 TextFormField(
                                   controller: _emailController,
                                   keyboardType: TextInputType.emailAddress,
+                                  readOnly: isUpgradeEmailLocked,
                                   autofillHints: const [AutofillHints.email],
                                   decoration: _fieldDecoration(
                                     context,
@@ -355,6 +368,25 @@ class _AuthPageState extends ConsumerState<AuthPage> {
                                     return null;
                                   },
                                 ),
+                                if (isUpgradeEmailLocked) ...[
+                                  const SizedBox(height: AppSpacing.xs),
+                                  Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: TextButton(
+                                      onPressed: _isSubmitting || _isSendingCode
+                                          ? null
+                                          : () {
+                                              _resendTimer?.cancel();
+                                              setState(() {
+                                                _lockedUpgradeEmail = null;
+                                                _otpController.clear();
+                                                _resendSeconds = 0;
+                                              });
+                                            },
+                                      child: const Text('修改邮箱并重新发送验证码'),
+                                    ),
+                                  ),
+                                ],
                                 if (isOtpFlow) ...[
                                   const SizedBox(height: AppSpacing.sm),
                                   Row(
@@ -372,7 +404,7 @@ class _AuthPageState extends ConsumerState<AuthPage> {
                                           ],
                                           decoration: _fieldDecoration(
                                             context,
-                                            label: lockUpgrade
+                                            label: isUpgradeFlow
                                                 ? '升级验证码'
                                                 : '邮箱验证码',
                                             hint: '请输入 6 位验证码',
@@ -409,7 +441,7 @@ class _AuthPageState extends ConsumerState<AuthPage> {
                                   ),
                                   const SizedBox(height: AppSpacing.xs),
                                   Text(
-                                    lockUpgrade
+                                    isUpgradeFlow
                                         ? '发送验证码后，请前往邮箱查收并输入 6 位验证码，再设置密码完成升级。'
                                         : '发送验证码后，请前往邮箱查收并输入 6 位验证码，再设置密码完成注册。',
                                     style: Theme.of(context).textTheme.bodySmall
@@ -454,14 +486,14 @@ class _AuthPageState extends ConsumerState<AuthPage> {
                                           ),
                                         )
                                       : Text(
-                                          lockUpgrade
+                                          isUpgradeFlow
                                               ? '升级账号'
                                               : _mode == _AuthMode.signIn
                                               ? '登录'
                                               : '注册并自动登录',
                                         ),
                                 ),
-                                if (!lockUpgrade) ...[
+                                if (!isUpgradeFlow) ...[
                                   const SizedBox(height: AppSpacing.xs),
                                   TextButton(
                                     onPressed: _isSubmitting

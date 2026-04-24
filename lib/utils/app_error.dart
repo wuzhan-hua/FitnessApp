@@ -27,6 +27,8 @@ class AppError implements Exception {
     'auth_required': '请先登录后再操作。',
     'guest_upgrade_only': '当前账号状态不支持该操作。',
     'email_already_bound': '该邮箱已绑定当前账号，请直接输入验证码完成升级。',
+    'guest_upgrade_session_not_synced': '账号已升级成功，但登录状态尚未同步，请重新登录。',
+    'guest_upgrade_auto_sign_in_failed': '账号已升级成功，但自动登录失败，请直接用邮箱登录。',
     'duplicate_key': '数据已存在，请勿重复提交。',
     '23505': '数据已存在，请勿重复提交。',
     '23503': '关联数据不存在，无法完成当前操作。',
