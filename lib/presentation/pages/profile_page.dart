@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../application/providers/providers.dart';
+import '../../application/state/auth_status.dart';
 import '../../application/state/app_settings.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/app_error.dart';
 import '../../utils/snackbar_helper.dart';
+import 'auth_page.dart';
 import 'personal_info_page.dart';
 import '../widgets/section_card.dart';
 
@@ -15,10 +18,61 @@ class ProfilePage extends ConsumerWidget {
     showLatestSnackBar(context, message);
   }
 
+  Future<void> _confirmAndSignOut(
+    BuildContext context,
+    WidgetRef ref,
+    DateTime currentMonth,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('确认退出登录'),
+        content: Text(
+          (ref.read(authStatusProvider).valueOrNull ?? AuthStatus.signedOut)
+                  .isGuest
+              ? '游客退出后将返回登录页，但会保留当前游客身份和训练数据，后续再次点击游客登录可继续使用。'
+              : '退出后将返回登录页，本地主题和偏好设置会保留。',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('取消'),
+          ),
+          FilledButton.tonal(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('确认退出'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !context.mounted) {
+      return;
+    }
+
+    try {
+      await ref.read(authServiceProvider).signOut();
+      ref.invalidate(guestSoftSignedOutProvider);
+      ref.invalidate(homeSnapshotProvider);
+      ref.invalidate(analyticsSnapshotProvider);
+      ref.invalidate(sessionsByMonthProvider(currentMonth));
+      if (!context.mounted) return;
+      final currentStatus =
+          ref.read(authStatusProvider).valueOrNull ?? AuthStatus.signedOut;
+      _showFeedback(context, currentStatus.isGuest ? '已退出游客模式' : '已退出登录');
+    } catch (error) {
+      if (!context.mounted) return;
+      final appError = AppError.from(error, fallbackMessage: '退出失败，请稍后重试。');
+      _showFeedback(context, appError.message);
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(settingsProvider);
+    final authStatus =
+        ref.watch(authStatusProvider).valueOrNull ?? AuthStatus.signedOut;
     final colors = AppColors.of(context);
+    final month = ref.watch(calendarMonthProvider);
 
     return SafeArea(
       child: Padding(
@@ -28,8 +82,18 @@ class ProfilePage extends ConsumerWidget {
             _ProfileHeaderCard(
               colors: colors,
               settings: settings,
+              authStatus: authStatus,
               onOpenPersonalInfo: () {
                 Navigator.of(context).pushNamed(PersonalInfoPage.routeName);
+              },
+              onOpenAuth: () {
+                Navigator.of(context).pushNamed(AuthPage.routeName);
+              },
+              onUpgradeGuest: () {
+                Navigator.of(context).pushNamed(
+                  AuthPage.routeName,
+                  arguments: const AuthPageArgs(preferUpgrade: true),
+                );
               },
             ),
             const SizedBox(height: AppSpacing.md),
@@ -137,6 +201,30 @@ class ProfilePage extends ConsumerWidget {
                 ],
               ),
             ),
+            if (authStatus.isSignedIn)
+              SectionCard(
+                title: '账户',
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    OutlinedButton.icon(
+                      onPressed: () => _confirmAndSignOut(context, ref, month),
+                      icon: const Icon(Icons.logout),
+                      label: const Text('退出登录'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: colors.textPrimary,
+                        side: BorderSide(
+                          color: colors.textMuted.withValues(alpha: 0.35),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 12,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
           ],
         ),
       ),
@@ -148,15 +236,24 @@ class _ProfileHeaderCard extends StatelessWidget {
   const _ProfileHeaderCard({
     required this.colors,
     required this.settings,
+    required this.authStatus,
     required this.onOpenPersonalInfo,
+    required this.onOpenAuth,
+    required this.onUpgradeGuest,
   });
 
   final AppPalette colors;
   final AppSettings settings;
+  final AuthStatus authStatus;
   final VoidCallback onOpenPersonalInfo;
+  final VoidCallback onOpenAuth;
+  final VoidCallback onUpgradeGuest;
 
   @override
   Widget build(BuildContext context) {
+    final isGuest = authStatus.isGuest;
+    final isSignedIn = authStatus.isSignedIn;
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.md),
@@ -179,60 +276,89 @@ class _ProfileHeaderCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          settings.profileName,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context).textTheme.titleLarge
-                              ?.copyWith(fontWeight: FontWeight.w700),
-                        ),
-                      ),
-                      const SizedBox(width: AppSpacing.xs),
-                      TextButton.icon(
-                        onPressed: onOpenPersonalInfo,
-                        icon: const Icon(Icons.edit_outlined, size: 16),
-                        label: const Text('修改信息'),
-                        style: TextButton.styleFrom(
-                          foregroundColor: colors.accent,
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          minimumSize: Size.zero,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 4,
+                  if (isSignedIn)
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            settings.profileName,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context).textTheme.titleLarge
+                                ?.copyWith(fontWeight: FontWeight.w700),
                           ),
-                          textStyle: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(fontWeight: FontWeight.w700),
                         ),
-                      ),
-                    ],
-                  ),
+                        const SizedBox(width: AppSpacing.xs),
+                        if (!isGuest)
+                          TextButton.icon(
+                            onPressed: onOpenPersonalInfo,
+                            icon: const Icon(Icons.edit_outlined, size: 16),
+                            label: const Text('修改信息'),
+                            style: TextButton.styleFrom(
+                              foregroundColor: colors.accent,
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              minimumSize: Size.zero,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 4,
+                              ),
+                              textStyle: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(fontWeight: FontWeight.w700),
+                            ),
+                          ),
+                      ],
+                    )
+                  else
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            '未登录',
+                            style: Theme.of(context).textTheme.titleLarge
+                                ?.copyWith(fontWeight: FontWeight.w700),
+                          ),
+                        ),
+                        FilledButton.tonal(
+                          onPressed: onOpenAuth,
+                          child: const Text('登录/注册'),
+                        ),
+                      ],
+                    ),
                   const SizedBox(height: 2),
                   Text(
-                    '训练目标 · ${settings.trainingGoal ?? '未设置'}',
+                    !isSignedIn
+                        ? '登录后可同步训练数据'
+                        : isGuest
+                        ? '当前为游客模式，可升级为邮箱账号'
+                        : '训练目标 · ${settings.trainingGoal ?? '未设置'}',
                     style: Theme.of(
                       context,
                     ).textTheme.bodySmall?.copyWith(color: colors.textMuted),
                   ),
                   const SizedBox(height: AppSpacing.sm),
-                  Wrap(
-                    spacing: AppSpacing.sm,
-                    runSpacing: AppSpacing.xs,
-                    children: [
-                      _InfoBadge(
-                        label: '训练年限',
-                        value: settings.trainingYears ?? '未设置',
-                      ),
-                      _InfoBadge(
-                        label: '体重',
-                        value: settings.weightKg == null
-                            ? '未设置'
-                            : '${settings.weightKg!.toStringAsFixed(1)}kg',
-                      ),
-                    ],
-                  ),
+                  if (isGuest)
+                    OutlinedButton.icon(
+                      onPressed: onUpgradeGuest,
+                      icon: const Icon(Icons.upgrade),
+                      label: const Text('升级为邮箱账号'),
+                    )
+                  else if (isSignedIn)
+                    Wrap(
+                      spacing: AppSpacing.sm,
+                      runSpacing: AppSpacing.xs,
+                      children: [
+                        _InfoBadge(
+                          label: '训练年限',
+                          value: settings.trainingYears ?? '未设置',
+                        ),
+                        _InfoBadge(
+                          label: '体重',
+                          value: settings.weightKg == null
+                              ? '未设置'
+                              : '${settings.weightKg!.toStringAsFixed(1)}kg',
+                        ),
+                      ],
+                    ),
                 ],
               ),
             ),

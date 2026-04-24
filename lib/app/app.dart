@@ -3,8 +3,8 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../application/providers/providers.dart';
-import '../presentation/shell/main_shell.dart';
 import '../theme/app_theme.dart';
+import 'auth_gate.dart';
 import 'app_router.dart';
 
 class FitnessApp extends ConsumerWidget {
@@ -26,7 +26,7 @@ class FitnessApp extends ConsumerWidget {
         GlobalCupertinoLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
       ],
-      home: const MainShell(),
+      home: const AuthGate(),
       onGenerateRoute: AppRouter.onGenerateRoute,
     );
   }

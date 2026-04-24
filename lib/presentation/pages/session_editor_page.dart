@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -361,7 +362,8 @@ class _SessionEditorPageState extends ConsumerState<SessionEditorPage> {
           left: AppSpacing.md,
           right: AppSpacing.md,
           top: AppSpacing.sm,
-          bottom: MediaQuery.of(context).viewInsets.bottom + AppSpacing.md,
+          bottom: math.max(0.0, MediaQuery.of(context).viewInsets.bottom) +
+              AppSpacing.md,
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,

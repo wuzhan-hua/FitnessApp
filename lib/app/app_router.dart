@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../application/state/session_editor_controller.dart';
 import '../domain/entities/workout_models.dart';
+import '../presentation/pages/auth_page.dart';
 import '../presentation/pages/personal_info_page.dart';
 import '../presentation/pages/session_editor_page.dart';
 
@@ -28,6 +29,15 @@ class AppRouter {
     if (settings.name == PersonalInfoPage.routeName) {
       return MaterialPageRoute<void>(
         builder: (_) => const PersonalInfoPage(),
+        settings: settings,
+      );
+    }
+    if (settings.name == AuthPage.routeName) {
+      final args = settings.arguments;
+      final preferUpgrade =
+          args is AuthPageArgs ? args.preferUpgrade : false;
+      return MaterialPageRoute<void>(
+        builder: (_) => AuthPage(preferUpgrade: preferUpgrade),
         settings: settings,
       );
     }
