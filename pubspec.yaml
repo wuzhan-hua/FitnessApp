@@ -40,7 +40,6 @@ dependencies:
   fl_chart: ^1.1.1
   intl: ^0.20.2
   shared_preferences: ^2.5.3
-  google_fonts: ^6.3.2
   supabase_flutter: ^2.9.1
 
 
@@ -96,3 +95,17 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+  fonts:
+    - family: SpaceGrotesk
+      fonts:
+        - asset: assets/fonts/SpaceGrotesk-Variable.ttf
+    - family: BarlowCondensed
+      fonts:
+        - asset: assets/fonts/BarlowCondensed-Bold.ttf
+          weight: 700
+    - family: Roboto
+      fonts:
+        - asset: assets/fonts/Roboto-Regular.ttf
+    - family: ChineseFallback
+      fonts:
+        - asset: assets/fonts/ChineseFallback-Regular.ttf

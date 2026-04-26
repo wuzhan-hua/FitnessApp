@@ -95,6 +95,9 @@ class _AuthPageState extends ConsumerState<AuthPage> {
       return;
     }
 
+    final authService = ref.read(authServiceProvider);
+    final authStatus =
+        ref.read(authStatusProvider).valueOrNull ?? AuthStatus.signedOut;
     final email = _emailController.text.trim();
     if (!_isValidEmail(email)) {
       showLatestSnackBar(context, '请先输入正确邮箱后再发送验证码');
@@ -103,20 +106,21 @@ class _AuthPageState extends ConsumerState<AuthPage> {
 
     setState(() => _isSendingCode = true);
     try {
-      final authStatus =
-          ref.read(authStatusProvider).valueOrNull ?? AuthStatus.signedOut;
       if (widget.preferUpgrade && authStatus.isGuest) {
-        await ref.read(authServiceProvider).sendGuestUpgradeCode(email);
+        await authService.sendGuestUpgradeCode(email);
+        if (!mounted) {
+          return;
+        }
         setState(() {
           _lockedUpgradeEmail = email.toLowerCase();
         });
       } else {
-        await ref.read(authServiceProvider).sendEmailCodeForSignUp(email);
+        await authService.sendEmailCodeForSignUp(email);
       }
-      _startResendCountdown();
       if (!mounted) {
         return;
       }
+      _startResendCountdown();
       showLatestSnackBar(context, '验证码已发送，请检查邮箱。');
     } catch (error) {
       if (!mounted) return;
@@ -136,6 +140,14 @@ class _AuthPageState extends ConsumerState<AuthPage> {
 
     setState(() => _isSubmitting = true);
     final authService = ref.read(authServiceProvider);
+    final emailSignUpPendingNotifier = ref.read(
+      emailSignUpPendingProvider.notifier,
+    );
+    final guestSoftSignedOut = guestSoftSignedOutProvider;
+    final homeSnapshot = homeSnapshotProvider;
+    final analyticsSnapshot = analyticsSnapshotProvider;
+    final calendarMonth = ref.read(calendarMonthProvider);
+    final sessionsByMonth = sessionsByMonthProvider(calendarMonth);
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
     final isUpgradeFlow = widget.preferUpgrade && status.isGuest;
@@ -155,33 +167,31 @@ class _AuthPageState extends ConsumerState<AuthPage> {
         showLatestSnackBar(context, '邮箱账号升级成功，已切换为正式账号');
       } else if (_mode == _AuthMode.signIn) {
         await authService.signInWithEmail(email, password);
-        ref.read(emailSignUpPendingProvider.notifier).state = false;
+        emailSignUpPendingNotifier.state = false;
         if (!mounted) return;
         showLatestSnackBar(context, '登录成功');
       } else {
-        ref.read(emailSignUpPendingProvider.notifier).state = true;
+        emailSignUpPendingNotifier.state = true;
         await authService.completeEmailSignUp(
           email: email,
           code: _otpController.text.trim(),
           password: password,
         );
-        ref.read(emailSignUpPendingProvider.notifier).state = false;
+        emailSignUpPendingNotifier.state = false;
         if (!mounted) return;
         showLatestSnackBar(context, '注册成功，已进入系统');
       }
 
-      ref.invalidate(guestSoftSignedOutProvider);
-      ref.invalidate(homeSnapshotProvider);
-      ref.invalidate(analyticsSnapshotProvider);
-      final month = ref.read(calendarMonthProvider);
-      ref.invalidate(sessionsByMonthProvider(month));
+      ref.invalidate(guestSoftSignedOut);
+      ref.invalidate(homeSnapshot);
+      ref.invalidate(analyticsSnapshot);
+      ref.invalidate(sessionsByMonth);
 
-      if (!mounted) return;
       if (Navigator.of(context).canPop()) {
         Navigator.of(context).pop();
       }
     } catch (error) {
-      ref.read(emailSignUpPendingProvider.notifier).state = false;
+      emailSignUpPendingNotifier.state = false;
       if (!mounted) return;
       final appError = AppError.from(error, fallbackMessage: '认证失败，请稍后重试。');
       showLatestSnackBar(context, appError.message);
@@ -197,11 +207,12 @@ class _AuthPageState extends ConsumerState<AuthPage> {
       return;
     }
 
+    final authService = ref.read(authServiceProvider);
     setState(() => _isSubmitting = true);
     try {
-      await ref.read(authServiceProvider).signInAsGuest();
-      ref.invalidate(guestSoftSignedOutProvider);
+      await authService.signInAsGuest();
       if (!mounted) return;
+      ref.invalidate(guestSoftSignedOutProvider);
       showLatestSnackBar(context, '游客登录成功');
       if (Navigator.of(context).canPop()) {
         Navigator.of(context).pop();

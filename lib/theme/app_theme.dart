@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class AppPalette {
   const AppPalette({
@@ -67,26 +66,40 @@ class AppRadius {
 }
 
 class AppTheme {
+  static const String _bodyFontFamily = 'SpaceGrotesk';
+  static const String _displayFontFamily = 'BarlowCondensed';
+  static const List<String> _fontFallback = <String>[
+    'ChineseFallback',
+    'Roboto',
+  ];
+
   static ThemeData get light => _buildTheme(AppPalette.light, Brightness.light);
 
   static ThemeData get dark => _buildTheme(AppPalette.dark, Brightness.dark);
 
   static ThemeData _buildTheme(AppPalette palette, Brightness brightness) {
-    final baseText = GoogleFonts.spaceGroteskTextTheme().apply(
-      bodyColor: palette.textPrimary,
-      displayColor: palette.textPrimary,
-    );
+    final baseText = _withFamily(
+      ThemeData(brightness: brightness).textTheme,
+    ).apply(bodyColor: palette.textPrimary, displayColor: palette.textPrimary);
 
-    final display = GoogleFonts.barlowCondensedTextTheme().copyWith(
-      headlineSmall: GoogleFonts.barlowCondensed(
-        fontWeight: FontWeight.w700,
-        fontSize: 28,
-      ),
-      headlineMedium: GoogleFonts.barlowCondensed(
-        fontWeight: FontWeight.w700,
-        fontSize: 32,
-      ),
-    );
+    final display =
+        _withFamily(
+          ThemeData(brightness: brightness).textTheme,
+          family: _displayFontFamily,
+        ).copyWith(
+          headlineSmall: _style(
+            family: _displayFontFamily,
+            fontWeight: FontWeight.w700,
+            fontSize: 28,
+            color: palette.textPrimary,
+          ),
+          headlineMedium: _style(
+            family: _displayFontFamily,
+            fontWeight: FontWeight.w700,
+            fontSize: 32,
+            color: palette.textPrimary,
+          ),
+        );
 
     final mergedText = baseText.copyWith(
       headlineSmall: display.headlineSmall,
@@ -105,6 +118,7 @@ class AppTheme {
     );
 
     return ThemeData(
+      fontFamily: _bodyFontFamily,
       colorScheme: scheme,
       scaffoldBackgroundColor: palette.background,
       textTheme: mergedText,
@@ -123,10 +137,7 @@ class AppTheme {
         backgroundColor: palette.panel,
         indicatorColor: palette.accent.withValues(alpha: 0.2),
         labelTextStyle: WidgetStatePropertyAll(
-          GoogleFonts.spaceGrotesk(
-            fontWeight: FontWeight.w600,
-            color: palette.textPrimary,
-          ),
+          _style(fontWeight: FontWeight.w600, color: palette.textPrimary),
         ),
         iconTheme: WidgetStatePropertyAll(
           IconThemeData(color: palette.textMuted),
@@ -136,12 +147,57 @@ class AppTheme {
         backgroundColor: palette.panelAlt,
         selectedColor: palette.accent.withValues(alpha: 0.2),
         shape: const StadiumBorder(),
-        labelStyle: GoogleFonts.spaceGrotesk(
+        labelStyle: _style(
           color: palette.textPrimary,
           fontWeight: FontWeight.w600,
         ),
       ),
       useMaterial3: true,
+    );
+  }
+
+  static TextTheme _withFamily(
+    TextTheme textTheme, {
+    String family = _bodyFontFamily,
+  }) {
+    return textTheme.copyWith(
+      displayLarge: _merge(textTheme.displayLarge, family: family),
+      displayMedium: _merge(textTheme.displayMedium, family: family),
+      displaySmall: _merge(textTheme.displaySmall, family: family),
+      headlineLarge: _merge(textTheme.headlineLarge, family: family),
+      headlineMedium: _merge(textTheme.headlineMedium, family: family),
+      headlineSmall: _merge(textTheme.headlineSmall, family: family),
+      titleLarge: _merge(textTheme.titleLarge, family: family),
+      titleMedium: _merge(textTheme.titleMedium, family: family),
+      titleSmall: _merge(textTheme.titleSmall, family: family),
+      bodyLarge: _merge(textTheme.bodyLarge, family: family),
+      bodyMedium: _merge(textTheme.bodyMedium, family: family),
+      bodySmall: _merge(textTheme.bodySmall, family: family),
+      labelLarge: _merge(textTheme.labelLarge, family: family),
+      labelMedium: _merge(textTheme.labelMedium, family: family),
+      labelSmall: _merge(textTheme.labelSmall, family: family),
+    );
+  }
+
+  static TextStyle _merge(TextStyle? style, {required String family}) {
+    return (style ?? const TextStyle()).copyWith(
+      fontFamily: family,
+      fontFamilyFallback: _fontFallback,
+    );
+  }
+
+  static TextStyle _style({
+    String family = _bodyFontFamily,
+    FontWeight? fontWeight,
+    double? fontSize,
+    Color? color,
+  }) {
+    return TextStyle(
+      fontFamily: family,
+      fontFamilyFallback: _fontFallback,
+      fontWeight: fontWeight,
+      fontSize: fontSize,
+      color: color,
     );
   }
 }
