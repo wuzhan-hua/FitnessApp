@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 
 import '../../application/providers/providers.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/app_error.dart';
 import '../../utils/snackbar_helper.dart';
 import '../widgets/section_card.dart';
 
@@ -28,12 +29,19 @@ class _PersonalInfoPageState extends ConsumerState<PersonalInfoPage> {
   String? _trainingGoal;
   String? _trainingYears;
   String? _activityLevel;
-  bool _initialized = false;
+  bool _isLoading = true;
+  bool _isSaving = false;
 
   static const _genders = ['男', '女', '其他', '不透露'];
   static const _goals = ['增肌', '减脂', '维持', '提升力量'];
   static const _years = ['<1年', '1-3年', '3-5年', '5年以上'];
   static const _activityLevels = ['久坐', '轻度活跃', '中度活跃', '高活跃'];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPersonalInfo();
+  }
 
   @override
   void dispose() {
@@ -44,10 +52,7 @@ class _PersonalInfoPageState extends ConsumerState<PersonalInfoPage> {
     super.dispose();
   }
 
-  void _initIfNeeded() {
-    if (_initialized) {
-      return;
-    }
+  void _applySettings() {
     final settings = ref.read(settingsProvider);
     _nameController.text = settings.profileName;
     _heightController.text = settings.heightCm?.toStringAsFixed(1) ?? '';
@@ -60,7 +65,31 @@ class _PersonalInfoPageState extends ConsumerState<PersonalInfoPage> {
     _trainingGoal = settings.trainingGoal;
     _trainingYears = settings.trainingYears;
     _activityLevel = settings.activityLevel;
-    _initialized = true;
+  }
+
+  Future<void> _loadPersonalInfo() async {
+    try {
+      await ref.read(settingsProvider.notifier).loadPersonalInfo();
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _applySettings();
+        _isLoading = false;
+      });
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _applySettings();
+        _isLoading = false;
+      });
+      showLatestSnackBar(
+        context,
+        AppError.from(error, fallbackMessage: '加载个人资料失败，请稍后重试。').message,
+      );
+    }
   }
 
   Future<void> _pickBirthDate() async {
@@ -84,28 +113,43 @@ class _PersonalInfoPageState extends ConsumerState<PersonalInfoPage> {
   }
 
   Future<void> _save() async {
-    if (!_formKey.currentState!.validate()) {
+    if (_isSaving || !_formKey.currentState!.validate()) {
       return;
     }
     final height = double.tryParse(_heightController.text.trim());
     final weight = double.tryParse(_weightController.text.trim());
-    await ref
-        .read(settingsProvider.notifier)
-        .updatePersonalInfo(
-          profileName: _nameController.text.trim(),
-          gender: _gender,
-          birthDate: _birthDate,
-          heightCm: height,
-          weightKg: weight,
-          trainingGoal: _trainingGoal,
-          trainingYears: _trainingYears,
-          activityLevel: _activityLevel,
-        );
-    if (!mounted) {
-      return;
+    setState(() => _isSaving = true);
+    try {
+      await ref
+          .read(settingsProvider.notifier)
+          .updatePersonalInfo(
+            profileName: _nameController.text.trim(),
+            gender: _gender,
+            birthDate: _birthDate,
+            heightCm: height,
+            weightKg: weight,
+            trainingGoal: _trainingGoal,
+            trainingYears: _trainingYears,
+            activityLevel: _activityLevel,
+          );
+      if (!mounted) {
+        return;
+      }
+      showLatestSnackBar(context, '个人信息已保存');
+      Navigator.of(context).pop();
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      showLatestSnackBar(
+        context,
+        AppError.from(error, fallbackMessage: '保存个人资料失败，请稍后重试。').message,
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isSaving = false);
+      }
     }
-    showLatestSnackBar(context, '个人信息已保存');
-    Navigator.of(context).pop();
   }
 
   InputDecoration _inputDecoration(String label) {
@@ -140,193 +184,11 @@ class _PersonalInfoPageState extends ConsumerState<PersonalInfoPage> {
 
   @override
   Widget build(BuildContext context) {
-    _initIfNeeded();
     final colors = AppColors.of(context);
 
     return Scaffold(
       appBar: AppBar(title: const Text('个人信息')),
-      body: SafeArea(
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            padding: const EdgeInsets.all(AppSpacing.md),
-            children: [
-              Container(
-                margin: const EdgeInsets.only(bottom: AppSpacing.md),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.md,
-                  vertical: 12,
-                ),
-                decoration: BoxDecoration(
-                  color: colors.panelAlt,
-                  borderRadius: AppRadius.card,
-                  border: Border.all(
-                    color: colors.accent.withValues(alpha: 0.24),
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.tune_rounded, color: colors.accent, size: 20),
-                    const SizedBox(width: AppSpacing.xs),
-                    Expanded(
-                      child: Text(
-                        '完善资料以获得更精准训练建议',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              SectionCard(
-                title: '基础信息',
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '用于完善你的基础档案',
-                      style: Theme.of(
-                        context,
-                      ).textTheme.bodySmall?.copyWith(color: colors.textMuted),
-                    ),
-                    const SizedBox(height: AppSpacing.sm),
-                    TextFormField(
-                      controller: _nameController,
-                      decoration: _inputDecoration('姓名*'),
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return '请输入姓名';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: AppSpacing.sm),
-                    _ChoiceField(
-                      label: '性别',
-                      options: _genders,
-                      value: _gender,
-                      onChanged: (value) => setState(() => _gender = value),
-                    ),
-                    const SizedBox(height: AppSpacing.sm),
-                    TextFormField(
-                      controller: _birthDateController,
-                      readOnly: true,
-                      onTap: _pickBirthDate,
-                      decoration: _inputDecoration('生日').copyWith(
-                        hintText: '点击选择生日',
-                        suffixIcon: Container(
-                          margin: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: colors.panelAlt,
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(
-                              color: colors.textMuted.withValues(alpha: 0.28),
-                            ),
-                          ),
-                          child: IconButton(
-                            icon: const Icon(Icons.event, size: 18),
-                            onPressed: _pickBirthDate,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              SectionCard(
-                title: '体征信息',
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '用于训练负荷和消耗估算',
-                      style: Theme.of(
-                        context,
-                      ).textTheme.bodySmall?.copyWith(color: colors.textMuted),
-                    ),
-                    const SizedBox(height: AppSpacing.sm),
-                    TextFormField(
-                      controller: _heightController,
-                      keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true,
-                      ),
-                      decoration: _inputDecoration('身高(cm)'),
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return null;
-                        }
-                        final parsed = double.tryParse(value.trim());
-                        if (parsed == null || parsed <= 0) {
-                          return '请输入有效身高';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: AppSpacing.sm),
-                    TextFormField(
-                      controller: _weightController,
-                      keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true,
-                      ),
-                      decoration: _inputDecoration('体重(kg)'),
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return null;
-                        }
-                        final parsed = double.tryParse(value.trim());
-                        if (parsed == null || parsed <= 0) {
-                          return '请输入有效体重';
-                        }
-                        return null;
-                      },
-                    ),
-                  ],
-                ),
-              ),
-              SectionCard(
-                title: '训练背景',
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '帮助系统给出更合适的训练建议',
-                      style: Theme.of(
-                        context,
-                      ).textTheme.bodySmall?.copyWith(color: colors.textMuted),
-                    ),
-                    const SizedBox(height: AppSpacing.sm),
-                    _ChoiceField(
-                      label: '训练目标',
-                      options: _goals,
-                      value: _trainingGoal,
-                      onChanged: (value) =>
-                          setState(() => _trainingGoal = value),
-                    ),
-                    const SizedBox(height: AppSpacing.sm),
-                    _ChoiceField(
-                      label: '训练年限',
-                      options: _years,
-                      value: _trainingYears,
-                      onChanged: (value) =>
-                          setState(() => _trainingYears = value),
-                    ),
-                    const SizedBox(height: AppSpacing.sm),
-                    _ChoiceField(
-                      label: '活动水平',
-                      options: _activityLevels,
-                      value: _activityLevel,
-                      onChanged: (value) =>
-                          setState(() => _activityLevel = value),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 80),
-            ],
-          ),
-        ),
-      ),
+      body: SafeArea(child: _buildBody(context, colors)),
       bottomNavigationBar: SafeArea(
         minimum: const EdgeInsets.fromLTRB(
           AppSpacing.md,
@@ -335,11 +197,201 @@ class _PersonalInfoPageState extends ConsumerState<PersonalInfoPage> {
           AppSpacing.md,
         ),
         child: FilledButton.icon(
-          onPressed: _save,
-          icon: const Icon(Icons.save),
-          label: const Text('保存个人信息'),
+          onPressed: _isLoading || _isSaving ? null : _save,
+          icon: _isSaving
+              ? const SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Icon(Icons.save),
+          label: Text(_isSaving ? '保存中...' : '保存个人信息'),
           style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52)),
         ),
+      ),
+    );
+  }
+
+  Widget _buildBody(BuildContext context, AppPalette colors) {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    return Form(
+      key: _formKey,
+      child: ListView(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        children: [
+          Container(
+            margin: const EdgeInsets.only(bottom: AppSpacing.md),
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.md,
+              vertical: 12,
+            ),
+            decoration: BoxDecoration(
+              color: colors.panelAlt,
+              borderRadius: AppRadius.card,
+              border: Border.all(color: colors.accent.withValues(alpha: 0.24)),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.tune_rounded, color: colors.accent, size: 20),
+                const SizedBox(width: AppSpacing.xs),
+                Expanded(
+                  child: Text(
+                    '完善资料以获得更精准训练建议',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SectionCard(
+            title: '基础信息',
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '用于完善你的基础档案',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: colors.textMuted),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                TextFormField(
+                  controller: _nameController,
+                  decoration: _inputDecoration('昵称*').copyWith(
+                    hintText: '请输入昵称',
+                  ),
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return '请输入昵称';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                _ChoiceField(
+                  label: '性别',
+                  options: _genders,
+                  value: _gender,
+                  onChanged: (value) => setState(() => _gender = value),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                TextFormField(
+                  controller: _birthDateController,
+                  readOnly: true,
+                  onTap: _pickBirthDate,
+                  decoration: _inputDecoration('生日').copyWith(
+                    hintText: '点击选择生日',
+                    suffixIcon: Container(
+                      margin: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: colors.panelAlt,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: colors.textMuted.withValues(alpha: 0.28),
+                        ),
+                      ),
+                      child: IconButton(
+                        icon: const Icon(Icons.event, size: 18),
+                        onPressed: _pickBirthDate,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SectionCard(
+            title: '体征信息',
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '用于训练负荷和消耗估算',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: colors.textMuted),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                TextFormField(
+                  controller: _heightController,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  decoration: _inputDecoration('身高(cm)'),
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return null;
+                    }
+                    final parsed = double.tryParse(value.trim());
+                    if (parsed == null || parsed <= 0) {
+                      return '请输入有效身高';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                TextFormField(
+                  controller: _weightController,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  decoration: _inputDecoration('体重(kg)'),
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return null;
+                    }
+                    final parsed = double.tryParse(value.trim());
+                    if (parsed == null || parsed <= 0) {
+                      return '请输入有效体重';
+                    }
+                    return null;
+                  },
+                ),
+              ],
+            ),
+          ),
+          SectionCard(
+            title: '训练背景',
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '帮助系统给出更合适的训练建议',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: colors.textMuted),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                _ChoiceField(
+                  label: '训练目标',
+                  options: _goals,
+                  value: _trainingGoal,
+                  onChanged: (value) => setState(() => _trainingGoal = value),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                _ChoiceField(
+                  label: '训练年限',
+                  options: _years,
+                  value: _trainingYears,
+                  onChanged: (value) => setState(() => _trainingYears = value),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                _ChoiceField(
+                  label: '活动水平',
+                  options: _activityLevels,
+                  value: _activityLevel,
+                  onChanged: (value) => setState(() => _activityLevel = value),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 80),
+        ],
       ),
     );
   }

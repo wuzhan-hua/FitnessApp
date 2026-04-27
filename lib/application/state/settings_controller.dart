@@ -1,12 +1,20 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../data/services/auth_service.dart';
+import '../../data/services/user_profile_service.dart';
+import '../../domain/entities/user_profile.dart';
 import 'app_settings.dart';
 
 class SettingsController extends StateNotifier<AppSettings> {
-  SettingsController() : super(AppSettings.defaults) {
-    _load();
+  SettingsController(this._authService, this._userProfileService)
+    : super(AppSettings.defaults) {
+    _loadFuture = _load();
   }
+
+  final AuthService _authService;
+  final UserProfileService _userProfileService;
+  late final Future<void> _loadFuture;
 
   static const _unitKey = 'unit_kg';
   static const _restKey = 'default_rest_seconds';
@@ -20,6 +28,31 @@ class SettingsController extends StateNotifier<AppSettings> {
   static const _goalKey = 'profile_training_goal';
   static const _trainingYearsKey = 'profile_training_years';
   static const _activityLevelKey = 'profile_activity_level';
+
+  Future<AppSettings> loadPersonalInfo() async {
+    await _loadFuture;
+    final user = _authService.currentSession?.user;
+    if (user == null || user.isAnonymous) {
+      return state;
+    }
+
+    final profile = await _userProfileService.fetchCurrentUserProfile();
+    if (profile == null) {
+      return state;
+    }
+
+    await _applyPersonalInfo(
+      profileName: profile.profileName,
+      gender: profile.gender,
+      birthDate: profile.birthDate,
+      heightCm: profile.heightCm,
+      weightKg: profile.weightKg,
+      trainingGoal: profile.trainingGoal,
+      trainingYears: profile.trainingYears,
+      activityLevel: profile.activityLevel,
+    );
+    return state;
+  }
 
   Future<void> _load() async {
     final prefs = await SharedPreferences.getInstance();
@@ -81,41 +114,38 @@ class SettingsController extends StateNotifier<AppSettings> {
     String? trainingYears,
     String? activityLevel,
   }) async {
+    await _loadFuture;
     final normalizedName = profileName.trim();
     if (normalizedName.isEmpty) {
       return;
     }
-    state = state.copyWith(
+    final user = _authService.currentSession?.user;
+    if (user != null && !user.isAnonymous) {
+      await _userProfileService.upsertCurrentUserProfile(
+        UserProfile(
+          userId: user.id,
+          profileName: normalizedName,
+          gender: gender,
+          birthDate: birthDate,
+          heightCm: heightCm,
+          weightKg: weightKg,
+          trainingGoal: trainingGoal,
+          trainingYears: trainingYears,
+          activityLevel: activityLevel,
+        ),
+      );
+    }
+
+    await _applyPersonalInfo(
       profileName: normalizedName,
       gender: gender,
-      clearGender: gender == null,
       birthDate: birthDate,
-      clearBirthDate: birthDate == null,
       heightCm: heightCm,
-      clearHeightCm: heightCm == null,
       weightKg: weightKg,
-      clearWeightKg: weightKg == null,
       trainingGoal: trainingGoal,
-      clearTrainingGoal: trainingGoal == null,
       trainingYears: trainingYears,
-      clearTrainingYears: trainingYears == null,
       activityLevel: activityLevel,
-      clearActivityLevel: activityLevel == null,
     );
-
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_profileNameKey, normalizedName);
-    await _setOrRemoveString(prefs, _genderKey, gender);
-    await _setOrRemoveString(
-      prefs,
-      _birthDateKey,
-      birthDate?.toIso8601String(),
-    );
-    await _setOrRemoveDouble(prefs, _heightCmKey, heightCm);
-    await _setOrRemoveDouble(prefs, _weightKgKey, weightKg);
-    await _setOrRemoveString(prefs, _goalKey, trainingGoal);
-    await _setOrRemoveString(prefs, _trainingYearsKey, trainingYears);
-    await _setOrRemoveString(prefs, _activityLevelKey, activityLevel);
   }
 
   DateTime? _parseDate(String? raw) {
@@ -147,5 +177,48 @@ class SettingsController extends StateNotifier<AppSettings> {
       return;
     }
     await prefs.setDouble(key, value);
+  }
+
+  Future<void> _applyPersonalInfo({
+    required String profileName,
+    String? gender,
+    DateTime? birthDate,
+    double? heightCm,
+    double? weightKg,
+    String? trainingGoal,
+    String? trainingYears,
+    String? activityLevel,
+  }) async {
+    state = state.copyWith(
+      profileName: profileName,
+      gender: gender,
+      clearGender: gender == null,
+      birthDate: birthDate,
+      clearBirthDate: birthDate == null,
+      heightCm: heightCm,
+      clearHeightCm: heightCm == null,
+      weightKg: weightKg,
+      clearWeightKg: weightKg == null,
+      trainingGoal: trainingGoal,
+      clearTrainingGoal: trainingGoal == null,
+      trainingYears: trainingYears,
+      clearTrainingYears: trainingYears == null,
+      activityLevel: activityLevel,
+      clearActivityLevel: activityLevel == null,
+    );
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_profileNameKey, profileName);
+    await _setOrRemoveString(prefs, _genderKey, gender);
+    await _setOrRemoveString(
+      prefs,
+      _birthDateKey,
+      birthDate?.toIso8601String(),
+    );
+    await _setOrRemoveDouble(prefs, _heightCmKey, heightCm);
+    await _setOrRemoveDouble(prefs, _weightKgKey, weightKg);
+    await _setOrRemoveString(prefs, _goalKey, trainingGoal);
+    await _setOrRemoveString(prefs, _trainingYearsKey, trainingYears);
+    await _setOrRemoveString(prefs, _activityLevelKey, activityLevel);
   }
 }

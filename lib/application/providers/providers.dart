@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../data/services/workout_service.dart';
 import '../../data/services/auth_service.dart';
+import '../../data/services/user_profile_service.dart';
 import '../../data/repositories/supabase_workout_repository.dart';
 import '../../data/repositories/workout_repository.dart';
 import '../../domain/entities/workout_models.dart';
@@ -27,6 +28,10 @@ final authServiceProvider = Provider<AuthService>((ref) {
   return AuthService(Supabase.instance.client);
 });
 
+final userProfileServiceProvider = Provider<UserProfileService>((ref) {
+  return UserProfileService(Supabase.instance.client);
+});
+
 final guestSoftSignedOutProvider = FutureProvider<bool>((ref) async {
   final service = ref.watch(authServiceProvider);
   return service.isGuestSoftSignedOut();
@@ -42,7 +47,9 @@ final authStatusProvider = StreamProvider<AuthStatus>((ref) async* {
 
 final settingsProvider = StateNotifierProvider<SettingsController, AppSettings>(
   (ref) {
-    return SettingsController();
+    final authService = ref.watch(authServiceProvider);
+    final userProfileService = ref.watch(userProfileServiceProvider);
+    return SettingsController(authService, userProfileService);
   },
 );
 
