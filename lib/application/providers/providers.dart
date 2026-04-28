@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../data/services/workout_service.dart';
+import '../../data/services/exercise_catalog_service.dart';
 import '../../data/services/auth_service.dart';
 import '../../data/services/user_profile_service.dart';
 import '../../data/repositories/supabase_workout_repository.dart';
@@ -30,6 +31,10 @@ final authServiceProvider = Provider<AuthService>((ref) {
 
 final userProfileServiceProvider = Provider<UserProfileService>((ref) {
   return UserProfileService(Supabase.instance.client);
+});
+
+final exerciseCatalogServiceProvider = Provider<ExerciseCatalogService>((ref) {
+  return ExerciseCatalogService(Supabase.instance.client);
 });
 
 final guestSoftSignedOutProvider = FutureProvider<bool>((ref) async {
@@ -83,5 +88,46 @@ final sessionEditorProvider = StateNotifierProvider.autoDispose
       args,
     ) {
       final service = ref.watch(workoutServiceProvider);
-      return SessionEditorController(service, args);
+      final exerciseCatalogService = ref.watch(exerciseCatalogServiceProvider);
+      return SessionEditorController(service, exerciseCatalogService, args);
+    });
+
+final selectedExerciseMuscleGroupProvider = StateProvider.autoDispose<String?>(
+  (ref) => null,
+);
+
+final selectedExerciseEquipmentProvider = StateProvider.autoDispose<String?>(
+  (ref) => null,
+);
+
+final exerciseMuscleGroupsProvider = FutureProvider.autoDispose<List<String>>((
+  ref,
+) async {
+  final service = ref.watch(exerciseCatalogServiceProvider);
+  return service.getPrimaryMuscleGroups();
+});
+
+final exerciseEquipmentsProvider = FutureProvider.autoDispose<List<String>>((
+  ref,
+) async {
+  final muscleGroup = ref.watch(selectedExerciseMuscleGroupProvider);
+  if (muscleGroup == null || muscleGroup.isEmpty) {
+    return const [];
+  }
+  final service = ref.watch(exerciseCatalogServiceProvider);
+  return service.getEquipmentsByMuscleGroup(muscleGroup);
+});
+
+final exerciseCatalogItemsProvider =
+    FutureProvider.autoDispose<List<ExerciseCatalogItem>>((ref) async {
+      final muscleGroup = ref.watch(selectedExerciseMuscleGroupProvider);
+      if (muscleGroup == null || muscleGroup.isEmpty) {
+        return const [];
+      }
+      final equipment = ref.watch(selectedExerciseEquipmentProvider);
+      final service = ref.watch(exerciseCatalogServiceProvider);
+      return service.getExercises(
+        muscleGroup: muscleGroup,
+        equipment: equipment,
+      );
     });

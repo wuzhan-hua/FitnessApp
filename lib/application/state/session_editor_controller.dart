@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../data/services/exercise_catalog_service.dart';
 import '../../data/services/workout_service.dart';
 import '../../domain/entities/workout_models.dart';
 import 'session_editor_state.dart';
@@ -17,12 +18,17 @@ class SessionEditorArgs {
 }
 
 class SessionEditorController extends StateNotifier<SessionEditorState> {
-  SessionEditorController(this._service, this.args)
+  SessionEditorController(this._service, this._exerciseCatalogService, this.args)
     : super(SessionEditorState.initial) {
     load();
   }
 
+  static const double _defaultStrengthWeight = 20;
+  static const int _defaultStrengthReps = 8;
+  static const int _defaultRestSeconds = 120;
+
   final WorkoutService _service;
+  final ExerciseCatalogService _exerciseCatalogService;
   final SessionEditorArgs args;
 
   Future<void> load() async {
@@ -33,7 +39,8 @@ class SessionEditorController extends StateNotifier<SessionEditorState> {
         mode: args.mode,
         sessionId: args.sessionId,
       );
-      state = state.copyWith(isLoading: false, session: session, error: null);
+      final normalized = await _normalizeZeroWeightExercises(session);
+      state = state.copyWith(isLoading: false, session: normalized, error: null);
     } catch (error) {
       state = state.copyWith(isLoading: false, error: '加载训练记录失败: $error');
     }
@@ -130,9 +137,9 @@ class SessionEditorController extends StateNotifier<SessionEditorState> {
           ? exercise.sets.last
           : const ExerciseSet(
               index: 0,
-              weight: 20,
-              reps: 8,
-              restSeconds: 120,
+              weight: _defaultStrengthWeight,
+              reps: _defaultStrengthReps,
+              restSeconds: _defaultRestSeconds,
               isCompleted: false,
             );
       final nextIndex = exercise.sets.length + 1;
@@ -140,7 +147,7 @@ class SessionEditorController extends StateNotifier<SessionEditorState> {
       final newSet = ExerciseSet(
         index: nextIndex,
         weight: nextSetType == ExerciseSetType.cardio ? 0 : lastSet.weight,
-        reps: nextSetType == ExerciseSetType.cardio ? 0 : 8,
+        reps: nextSetType == ExerciseSetType.cardio ? 0 : lastSet.reps,
         restSeconds: lastSet.restSeconds,
         isCompleted: false,
         setType: nextSetType,
@@ -168,6 +175,7 @@ class SessionEditorController extends StateNotifier<SessionEditorState> {
     String? exerciseId,
     ExerciseSetType setType = ExerciseSetType.strength,
     bool canAdd = true,
+    bool defaultsToZeroWeight = false,
   }) {
     if (!canAdd) {
       return false;
@@ -193,9 +201,11 @@ class SessionEditorController extends StateNotifier<SessionEditorState> {
       sets: [
         ExerciseSet(
           index: 1,
-          weight: setType == ExerciseSetType.cardio ? 0 : 20,
-          reps: setType == ExerciseSetType.cardio ? 0 : 8,
-          restSeconds: 120,
+          weight: setType == ExerciseSetType.cardio
+              ? 0
+              : (defaultsToZeroWeight ? 0 : _defaultStrengthWeight),
+          reps: setType == ExerciseSetType.cardio ? 0 : _defaultStrengthReps,
+          restSeconds: _defaultRestSeconds,
           isCompleted: false,
           setType: setType,
           durationMinutes: setType == ExerciseSetType.cardio ? 20 : null,
@@ -207,6 +217,57 @@ class SessionEditorController extends StateNotifier<SessionEditorState> {
       session: session.copyWith(exercises: [...session.exercises, newExercise]),
     );
     return true;
+  }
+
+  Future<WorkoutSession> _normalizeZeroWeightExercises(
+    WorkoutSession session,
+  ) async {
+    if (session.exercises.isEmpty) {
+      return session;
+    }
+    final exerciseIds = session.exercises
+        .map((exercise) => exercise.exerciseId.trim())
+        .where((id) => id.isNotEmpty && !id.startsWith('custom-'))
+        .toSet();
+    if (exerciseIds.isEmpty) {
+      return session;
+    }
+
+    final zeroWeightIds = await _exerciseCatalogService
+        .getDefaultZeroWeightExerciseIds(exerciseIds);
+    if (zeroWeightIds.isEmpty) {
+      return session;
+    }
+
+    var changed = false;
+    final updatedExercises = session.exercises.map((exercise) {
+      if (!zeroWeightIds.contains(exercise.exerciseId) ||
+          !_shouldNormalizeZeroWeightExercise(exercise)) {
+        return exercise;
+      }
+      changed = true;
+      return exercise.copyWith(
+        sets: exercise.sets
+            .map(
+              (set) => set.setType == ExerciseSetType.cardio
+                  ? set
+                  : set.copyWith(weight: 0),
+            )
+            .toList(),
+      );
+    }).toList();
+
+    return changed ? session.copyWith(exercises: updatedExercises) : session;
+  }
+
+  bool _shouldNormalizeZeroWeightExercise(SessionExercise exercise) {
+    final strengthSets = exercise.sets
+        .where((set) => set.setType == ExerciseSetType.strength)
+        .toList();
+    if (strengthSets.isEmpty) {
+      return false;
+    }
+    return strengthSets.every((set) => set.weight == _defaultStrengthWeight);
   }
 
   void removeExercise({required String exerciseId}) {

@@ -379,7 +379,7 @@ class RestTimerBar extends StatelessWidget {
             FilledButton.tonalIcon(
               onPressed: onToggle,
               icon: Icon(running ? Icons.pause : Icons.play_arrow),
-              label: Text(running ? '暂停' : '开始'),
+              label: Text(running ? '暂停' : '开始计时'),
             ),
           ],
         ),

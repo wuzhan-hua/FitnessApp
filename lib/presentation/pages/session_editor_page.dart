@@ -1,15 +1,15 @@
 import 'dart:async';
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../application/providers/providers.dart';
 import '../../application/state/session_editor_controller.dart';
+import '../../constants/exercise_catalog_constants.dart';
 import '../../domain/entities/workout_models.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/snackbar_helper.dart';
+import 'exercise_library_page.dart';
 import '../widgets/section_card.dart';
 import '../widgets/session_editor/session_editor_widgets.dart';
 
@@ -25,16 +25,8 @@ class SessionEditorPage extends ConsumerStatefulWidget {
 }
 
 class _SessionEditorPageState extends ConsumerState<SessionEditorPage> {
-  static const List<String> _trainingTypes = [
-    '胸',
-    '背',
-    '腿',
-    '肩',
-    '手臂',
-    '核心',
-    '有氧',
-    '休息日',
-  ];
+  static const List<String> _trainingTypes =
+      ExerciseCatalogConstants.sessionEditorGroups;
 
   Timer? _timer;
   int _restSeconds = 120;
@@ -259,35 +251,11 @@ class _SessionEditorPageState extends ConsumerState<SessionEditorPage> {
   }
 
   String _titleForTrainingType(String trainingType) {
-    return trainingType == '休息日' ? '休息日' : '$trainingType训练日';
+    return ExerciseCatalogConstants.titleForGroup(trainingType);
   }
 
   String _inferTrainingTypeFromTitle(String? title) {
-    final normalized = (title ?? '').trim();
-    if (normalized.isEmpty) {
-      return '胸';
-    }
-    if (normalized.contains('休息')) {
-      return '休息日';
-    }
-    if (normalized.contains('有氧')) {
-      return '有氧';
-    }
-    if (normalized.contains('胸') || normalized.contains('推')) {
-      return '胸';
-    }
-    if (normalized.contains('背') || normalized.contains('拉')) {
-      return '背';
-    }
-    if (normalized.contains('腿') || normalized.contains('下肢')) {
-      return '腿';
-    }
-    for (final type in _trainingTypes) {
-      if (normalized.contains(type)) {
-        return type;
-      }
-    }
-    return '胸';
+    return ExerciseCatalogConstants.inferSessionGroupFromTitle(title);
   }
 
   void _initTrainingTypeIfNeeded(WorkoutSession? session) {
@@ -309,29 +277,6 @@ class _SessionEditorPageState extends ConsumerState<SessionEditorPage> {
     });
   }
 
-  List<String> _recommendedExercises(String trainingType) {
-    switch (trainingType) {
-      case '胸':
-        return ['平板杠铃卧推', '上斜哑铃卧推', '双杠臂屈伸', '绳索夹胸'];
-      case '背':
-        return ['杠铃划船', '引体向上', '高位下拉', '坐姿划船'];
-      case '腿':
-        return ['深蹲', '罗马尼亚硬拉', '腿举', '腿弯举'];
-      case '肩':
-        return ['杠铃推举', '哑铃侧平举', '反向飞鸟', '阿诺德推举'];
-      case '手臂':
-        return ['杠铃弯举', '绳索下压', '哑铃锤式弯举', '仰卧臂屈伸'];
-      case '核心':
-        return ['卷腹', '平板支撑', '悬垂举腿', '绳索卷腹'];
-      case '有氧':
-        return ['跑步机慢跑', '动感单车', '划船机', '椭圆机'];
-      case '休息日':
-        return ['轻度拉伸', '泡沫轴放松', '轻松散步', '呼吸训练'];
-      default:
-        return ['杠铃卧推', '深蹲', '硬拉', '肩上推举'];
-    }
-  }
-
   bool _isCardioExercise(SessionExercise exercise) {
     return exercise.sets.any((set) => set.setType == ExerciseSetType.cardio);
   }
@@ -340,109 +285,39 @@ class _SessionEditorPageState extends ConsumerState<SessionEditorPage> {
     return items.isEmpty ? null : items.first;
   }
 
-  Future<void> _showAddExerciseDialog(
+  Future<void> _openExerciseLibrary(
     SessionEditorController controller,
   ) async {
     if (_isRestDay) {
       showLatestSnackBar(context, '休息日不支持新增训练动作，请记录恢复备注');
       return;
     }
-    final options = _recommendedExercises(_selectedTrainingType);
-    final customController = TextEditingController();
     final setType = _isCardio
         ? ExerciseSetType.cardio
         : ExerciseSetType.strength;
-
-    await showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      showDragHandle: true,
-      builder: (context) => Padding(
-        padding: EdgeInsets.only(
-          left: AppSpacing.md,
-          right: AppSpacing.md,
-          top: AppSpacing.sm,
-          bottom: math.max(0.0, MediaQuery.of(context).viewInsets.bottom) +
-              AppSpacing.md,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('新增动作', style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: AppSpacing.xs),
-            Text('当前类型：$_selectedTrainingType'),
-            if (_selectedTrainingType == '休息日') ...[
-              const SizedBox(height: AppSpacing.xs),
-              Text(
-                '今日建议以恢复为主：放松、拉伸、低强度活动。',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: AppColors.of(context).textMuted,
-                ),
-              ),
-            ],
-            const SizedBox(height: AppSpacing.sm),
-            Wrap(
-              spacing: AppSpacing.sm,
-              runSpacing: AppSpacing.sm,
-              children: options
-                  .map(
-                    (item) => FilledButton.tonal(
-                      onPressed: () {
-                        final added = controller.addExercise(
-                          name: item,
-                          setType: setType,
-                          canAdd: !_isRestDay,
-                        );
-                        Navigator.of(context).pop();
-                        if (added) {
-                          showLatestSnackBar(context, '已新增动作：$item');
-                        } else {
-                          showLatestSnackBar(context, '休息日不支持新增训练动作');
-                        }
-                      },
-                      child: Text(item),
-                    ),
-                  )
-                  .toList(),
-            ),
-            const SizedBox(height: AppSpacing.md),
-            TextField(
-              controller: customController,
-              decoration: const InputDecoration(
-                labelText: '自定义动作名',
-                hintText: '例如：史密斯上斜卧推',
-              ),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            Align(
-              alignment: Alignment.centerRight,
-              child: FilledButton(
-                onPressed: () {
-                  final name = customController.text.trim();
-                  if (name.isEmpty) {
-                    showLatestSnackBar(context, '请输入动作名');
-                    return;
-                  }
-                  final added = controller.addExercise(
-                    name: name,
-                    setType: setType,
-                    canAdd: !_isRestDay,
-                  );
-                  Navigator.of(context).pop();
-                  if (added) {
-                    showLatestSnackBar(context, '已新增动作：$name');
-                  } else {
-                    showLatestSnackBar(context, '休息日不支持新增训练动作');
-                  }
-                },
-                child: const Text('新增动作'),
-              ),
-            ),
-          ],
+    final result = await Navigator.of(context).pushNamed<ExerciseSelectionResult>(
+      ExerciseLibraryPage.routeName,
+      arguments: ExerciseLibraryPageArgs(
+        initialMuscleGroup: ExerciseCatalogConstants.normalizeLibraryGroup(
+          _selectedTrainingType,
         ),
       ),
     );
+    if (!mounted || result == null) {
+      return;
+    }
+    final added = controller.addExercise(
+      name: result.exerciseName,
+      exerciseId: result.exerciseId,
+      setType: setType,
+      canAdd: !_isRestDay,
+      defaultsToZeroWeight: result.defaultsToZeroWeight,
+    );
+    if (added) {
+      showLatestSnackBar(context, '已新增动作：${result.exerciseName}');
+    } else {
+      showLatestSnackBar(context, '休息日不支持新增训练动作');
+    }
   }
 
   @override
@@ -534,8 +409,7 @@ class _SessionEditorPageState extends ConsumerState<SessionEditorPage> {
                                 FilledButton.icon(
                                   onPressed: _isRestDay
                                       ? null
-                                      : () =>
-                                            _showAddExerciseDialog(controller),
+                                      : () => _openExerciseLibrary(controller),
                                   icon: const Icon(Icons.add, size: 18),
                                   style: FilledButton.styleFrom(
                                     minimumSize: const Size(122, 42),
@@ -599,27 +473,7 @@ class _SessionEditorPageState extends ConsumerState<SessionEditorPage> {
                                 '单条记录',
                                 style: Theme.of(context).textTheme.bodySmall
                                     ?.copyWith(color: colors.textMuted),
-                              )
-                            else ...[
-                              FilledButton.tonal(
-                                onPressed: () {
-                                  controller.addSet(exerciseId: exercise.id);
-                                  showLatestSnackBar(context, '已新增1组');
-                                },
-                                style: FilledButton.styleFrom(
-                                  minimumSize: const Size(48, 30),
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 10,
-                                    vertical: 4,
-                                  ),
-                                  textStyle: Theme.of(
-                                    context,
-                                  ).textTheme.bodySmall,
-                                ),
-                                child: const Text('+组'),
                               ),
-                              const SizedBox(width: 2),
-                            ],
                             IconButton(
                               onPressed: () {
                                 controller.removeExercise(
@@ -726,6 +580,27 @@ class _SessionEditorPageState extends ConsumerState<SessionEditorPage> {
                                         : '每个动作至少保留1组';
                                     showLatestSnackBar(context, text);
                                   },
+                                ),
+                              ),
+                              const SizedBox(height: AppSpacing.xs),
+                              Align(
+                                alignment: Alignment.center,
+                                child: FilledButton.tonal(
+                                  onPressed: () {
+                                    controller.addSet(exerciseId: exercise.id);
+                                    showLatestSnackBar(context, '已新增1组');
+                                  },
+                                  style: FilledButton.styleFrom(
+                                    minimumSize: const Size(88, 36),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 18,
+                                      vertical: 8,
+                                    ),
+                                    textStyle: Theme.of(
+                                      context,
+                                    ).textTheme.bodyMedium,
+                                  ),
+                                  child: const Text('+组'),
                                 ),
                               ),
                             ],

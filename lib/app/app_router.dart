@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../application/state/session_editor_controller.dart';
 import '../domain/entities/workout_models.dart';
 import '../presentation/pages/auth_page.dart';
+import '../presentation/pages/exercise_detail_page.dart';
+import '../presentation/pages/exercise_library_page.dart';
 import '../presentation/pages/personal_info_page.dart';
 import '../presentation/pages/session_editor_page.dart';
 
@@ -31,6 +33,24 @@ class AppRouter {
         builder: (_) => const PersonalInfoPage(),
         settings: settings,
       );
+    }
+    if (settings.name == ExerciseLibraryPage.routeName) {
+      final args = settings.arguments;
+      return MaterialPageRoute<ExerciseSelectionResult?>(
+        builder: (_) => ExerciseLibraryPage(
+          args: args is ExerciseLibraryPageArgs ? args : null,
+        ),
+        settings: settings,
+      );
+    }
+    if (settings.name == ExerciseDetailPage.routeName) {
+      final args = settings.arguments;
+      if (args is ExerciseDetailPageArgs) {
+        return MaterialPageRoute<void>(
+          builder: (_) => ExerciseDetailPage(args: args),
+          settings: settings,
+        );
+      }
     }
     if (settings.name == AuthPage.routeName) {
       final args = settings.arguments;

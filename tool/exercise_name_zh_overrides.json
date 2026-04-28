@@ -1,0 +1,5240 @@
+[
+  {
+    "id": "Plank",
+    "name_en": "Plank",
+    "name_zh_draft": "平板支撑",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Dynamic_Chest_Stretch",
+    "name_en": "Dynamic Chest Stretch",
+    "name_zh_draft": "Dynamic Chest 拉伸",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Barbell_Hack_Squat",
+    "name_en": "Barbell Hack Squat",
+    "name_zh_draft": "杠铃 Hack 深蹲",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Face_Pull",
+    "name_en": "Face Pull",
+    "name_zh_draft": "Face Pull",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Butterfly",
+    "name_en": "Butterfly",
+    "name_zh_draft": "Butterfly",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Box_Skip",
+    "name_en": "Box Skip",
+    "name_zh_draft": "Box Skip",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Box_Squat",
+    "name_en": "Box Squat",
+    "name_zh_draft": "Box 深蹲",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Chest_And_Front_Of_Shoulder_Stretch",
+    "name_en": "Chest And Front Of Shoulder Stretch",
+    "name_zh_draft": "Chest And 前 Of Shoulder 拉伸",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Cocoons",
+    "name_en": "Cocoons",
+    "name_zh_draft": "Cocoons",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Downward_Facing_Balance",
+    "name_en": "Downward Facing Balance",
+    "name_zh_draft": "Downward Facing Balance",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Chair_Squat",
+    "name_en": "Chair Squat",
+    "name_zh_draft": "Chair 深蹲",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Chair_Upper_Body_Stretch",
+    "name_en": "Chair Upper Body Stretch",
+    "name_zh_draft": "Chair Upper Body 拉伸",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Hug_A_Ball",
+    "name_en": "Hug A Ball",
+    "name_zh_draft": "Hug A Ball",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Hug_Knees_To_Chest",
+    "name_en": "Hug Knees To Chest",
+    "name_zh_draft": "Hug Knees To Chest",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Drag_Curl",
+    "name_en": "Drag Curl",
+    "name_zh_draft": "Drag 弯举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Drop_Push",
+    "name_en": "Drop Push",
+    "name_zh_draft": "Drop Push",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Decline_EZ_Bar_Triceps_Extension",
+    "name_en": "Decline EZ Bar Triceps Extension",
+    "name_zh_draft": "下斜 EZ Bar 三头肌屈伸",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Decline_Oblique_Crunch",
+    "name_en": "Decline Oblique Crunch",
+    "name_zh_draft": "下斜 Oblique 卷腹",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Decline_Push-Up",
+    "name_en": "Decline Push-Up",
+    "name_zh_draft": "下斜 俯卧撑",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Dynamic_Back_Stretch",
+    "name_en": "Dynamic Back Stretch",
+    "name_zh_draft": "Dynamic 后 拉伸",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Leg-Over_Floor_Press",
+    "name_en": "Leg-Over Floor Press",
+    "name_zh_draft": "Leg Over Floor 推举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Hamstring_Stretch",
+    "name_en": "Hamstring Stretch",
+    "name_zh_draft": "Hamstring 拉伸",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Incline_Push-Up_Reverse_Grip",
+    "name_en": "Incline Push-Up Reverse Grip",
+    "name_zh_draft": "上斜 俯卧撑 反向 Grip",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Incline_Push-Up_Wide",
+    "name_en": "Incline Push-Up Wide",
+    "name_zh_draft": "上斜 俯卧撑 Wide",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Neck-SMR",
+    "name_en": "Neck-SMR",
+    "name_zh_draft": "Neck SMR",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Seated_Floor_Hamstring_Stretch",
+    "name_en": "Seated Floor Hamstring Stretch",
+    "name_zh_draft": "坐姿 Floor Hamstring 拉伸",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Looking_At_Ceiling",
+    "name_en": "Looking At Ceiling",
+    "name_zh_draft": "Looking At Ceiling",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Plate_Pinch",
+    "name_en": "Plate Pinch",
+    "name_zh_draft": "Plate Pinch",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Medicine_Ball_Chest_Pass",
+    "name_en": "Medicine Ball Chest Pass",
+    "name_zh_draft": "药球 Chest Pass",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Lying_Prone_Quadriceps",
+    "name_en": "Lying Prone Quadriceps",
+    "name_zh_draft": "仰卧 俯卧 Quadriceps",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Lying_Rear_Delt_Raise",
+    "name_en": "Lying Rear Delt Raise",
+    "name_zh_draft": "仰卧 Rear Delt 上举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Lying_Supine_Dumbbell_Curl",
+    "name_en": "Lying Supine Dumbbell Curl",
+    "name_zh_draft": "仰卧 Supine哑铃 弯举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "90_90_Hamstring",
+    "name_en": "90/90 Hamstring",
+    "name_zh_draft": "90 / 90 Hamstring",
+    "name_zh_final": ""
+  },
+  {
+    "id": "One-Arm_Open_Palm_Kettlebell_Clean",
+    "name_en": "One-Arm Open Palm Kettlebell Clean",
+    "name_zh_draft": "单臂 Open Palm壶铃 Clean",
+    "name_zh_final": ""
+  },
+  {
+    "id": "One-Arm_Overhead_Kettlebell_Squats",
+    "name_en": "One-Arm Overhead Kettlebell Squats",
+    "name_zh_draft": "单臂 Overhead壶铃 Squats",
+    "name_zh_final": ""
+  },
+  {
+    "id": "One-Arm_Side_Deadlift",
+    "name_en": "One-Arm Side Deadlift",
+    "name_zh_draft": "单臂 侧 硬拉",
+    "name_zh_final": ""
+  },
+  {
+    "id": "One_Arm_Against_Wall",
+    "name_en": "One Arm Against Wall",
+    "name_zh_draft": "One Arm Against Wall",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Power_Stairs",
+    "name_en": "Power Stairs",
+    "name_zh_draft": "Power Stairs",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Power_Snatch",
+    "name_en": "Power Snatch",
+    "name_zh_draft": "Power Snatch",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Power_Snatch_from_Blocks",
+    "name_en": "Power Snatch from Blocks",
+    "name_zh_draft": "Power Snatch from Blocks",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Rocket_Jump",
+    "name_en": "Rocket Jump",
+    "name_zh_draft": "Rocket Jump",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Side-Lying_Floor_Stretch",
+    "name_en": "Side-Lying Floor Stretch",
+    "name_zh_draft": "侧 仰卧 Floor 拉伸",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Side_Bridge",
+    "name_en": "Side Bridge",
+    "name_zh_draft": "侧 臀桥",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Seated_Palms-Down_Barbell_Wrist_Curl",
+    "name_en": "Seated Palms-Down Barbell Wrist Curl",
+    "name_zh_draft": "坐姿 Palms Down杠铃 Wrist 弯举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Seated_Side_Lateral_Raise",
+    "name_en": "Seated Side Lateral Raise",
+    "name_zh_draft": "坐姿 侧 Lateral 上举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Smith_Machine_Calf_Raise",
+    "name_en": "Smith Machine Calf Raise",
+    "name_zh_draft": "史密斯机 Calf 上举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Smith_Machine_One-Arm_Upright_Row",
+    "name_en": "Smith Machine One-Arm Upright Row",
+    "name_zh_draft": "史密斯机 单臂 Upright 划船",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Backward_Drag",
+    "name_en": "Backward Drag",
+    "name_zh_draft": "Backward Drag",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Standing_Cable_Wood_Chop",
+    "name_en": "Standing Cable Wood Chop",
+    "name_zh_draft": "站姿绳索 Wood Chop",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Standing_Calf_Raises",
+    "name_en": "Standing Calf Raises",
+    "name_zh_draft": "站姿 Calf Raises",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Standing_Concentration_Curl",
+    "name_en": "Standing Concentration Curl",
+    "name_zh_draft": "站姿 Concentration 弯举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Standing_Soleus_And_Achilles_Stretch",
+    "name_en": "Standing Soleus And Achilles Stretch",
+    "name_zh_draft": "站姿 Soleus And Achilles 拉伸",
+    "name_zh_final": ""
+  },
+  {
+    "id": "3_4_Sit-Up",
+    "name_en": "3/4 Sit-Up",
+    "name_zh_draft": "3 / 4 Sit Up",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Weighted_Sissy_Squat",
+    "name_en": "Weighted Sissy Squat",
+    "name_zh_draft": "Weighted Sissy 深蹲",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Ab_Crunch_Machine",
+    "name_en": "Ab Crunch Machine",
+    "name_zh_draft": "Ab 卷腹器械",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Ab_Roller",
+    "name_en": "Ab Roller",
+    "name_zh_draft": "Ab Roller",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Adductor",
+    "name_en": "Adductor",
+    "name_zh_draft": "Adductor",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Adductor_Groin",
+    "name_en": "Adductor/Groin",
+    "name_zh_draft": "Adductor / Groin",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Advanced_Kettlebell_Windmill",
+    "name_en": "Advanced Kettlebell Windmill",
+    "name_zh_draft": "Advanced壶铃 Windmill",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Air_Bike",
+    "name_en": "Air Bike",
+    "name_zh_draft": "Air Bike",
+    "name_zh_final": ""
+  },
+  {
+    "id": "All_Fours_Quad_Stretch",
+    "name_en": "All Fours Quad Stretch",
+    "name_zh_draft": "All Fours Quad 拉伸",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Alternate_Hammer_Curl",
+    "name_en": "Alternate Hammer Curl",
+    "name_zh_draft": "Alternate 锤式 弯举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Alternate_Heel_Touchers",
+    "name_en": "Alternate Heel Touchers",
+    "name_zh_draft": "Alternate Heel Touchers",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Alternate_Incline_Dumbbell_Curl",
+    "name_en": "Alternate Incline Dumbbell Curl",
+    "name_zh_draft": "Alternate 上斜哑铃 弯举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Alternate_Leg_Diagonal_Bound",
+    "name_en": "Alternate Leg Diagonal Bound",
+    "name_zh_draft": "Alternate Leg Diagonal Bound",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Alternating_Cable_Shoulder_Press",
+    "name_en": "Alternating Cable Shoulder Press",
+    "name_zh_draft": "交替绳索 肩推",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Alternating_Deltoid_Raise",
+    "name_en": "Alternating Deltoid Raise",
+    "name_zh_draft": "交替 Deltoid 上举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Alternating_Floor_Press",
+    "name_en": "Alternating Floor Press",
+    "name_zh_draft": "交替 Floor 推举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Alternating_Hang_Clean",
+    "name_en": "Alternating Hang Clean",
+    "name_zh_draft": "交替 Hang Clean",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Alternating_Kettlebell_Press",
+    "name_en": "Alternating Kettlebell Press",
+    "name_zh_draft": "交替壶铃 推举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Alternating_Kettlebell_Row",
+    "name_en": "Alternating Kettlebell Row",
+    "name_zh_draft": "交替壶铃 划船",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Alternating_Renegade_Row",
+    "name_en": "Alternating Renegade Row",
+    "name_zh_draft": "交替 Renegade 划船",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Ankle_Circles",
+    "name_en": "Ankle Circles",
+    "name_zh_draft": "Ankle Circles",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Ankle_On_The_Knee",
+    "name_en": "Ankle On The Knee",
+    "name_zh_draft": "Ankle On The Knee",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Anterior_Tibialis-SMR",
+    "name_en": "Anterior Tibialis-SMR",
+    "name_zh_draft": "Anterior Tibialis SMR",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Anti-Gravity_Press",
+    "name_en": "Anti-Gravity Press",
+    "name_zh_draft": "Anti Gravity 推举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Arm_Circles",
+    "name_en": "Arm Circles",
+    "name_zh_draft": "Arm Circles",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Body_Tricep_Press",
+    "name_en": "Body Tricep Press",
+    "name_zh_draft": "Body Tricep 推举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Arnold_Dumbbell_Press",
+    "name_en": "Arnold Dumbbell Press",
+    "name_zh_draft": "Arnold哑铃 推举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Around_The_Worlds",
+    "name_en": "Around The Worlds",
+    "name_zh_draft": "Around The Worlds",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Atlas_Stone_Trainer",
+    "name_en": "Atlas Stone Trainer",
+    "name_zh_draft": "Atlas Stone Trainer",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Atlas_Stones",
+    "name_en": "Atlas Stones",
+    "name_zh_draft": "Atlas Stones",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Axle_Deadlift",
+    "name_en": "Axle Deadlift",
+    "name_zh_draft": "Axle 硬拉",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Back_Flyes_-_With_Bands",
+    "name_en": "Back Flyes - With Bands",
+    "name_zh_draft": "后 飞鸟 With 弹力带",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Backward_Medicine_Ball_Throw",
+    "name_en": "Backward Medicine Ball Throw",
+    "name_zh_draft": "Backward 药球 Throw",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Balance_Board",
+    "name_en": "Balance Board",
+    "name_zh_draft": "Balance Board",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Ball_Leg_Curl",
+    "name_en": "Ball Leg Curl",
+    "name_zh_draft": "Ball 腿弯举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Band_Assisted_Pull-Up",
+    "name_en": "Band Assisted Pull-Up",
+    "name_zh_draft": "弹力带 Assisted 引体向上",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Band_Good_Morning",
+    "name_en": "Band Good Morning",
+    "name_zh_draft": "弹力带 Good Morning",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Band_Good_Morning_Pull_Through",
+    "name_en": "Band Good Morning (Pull Through)",
+    "name_zh_draft": "弹力带 Good Morning (Pull Through)",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Band_Hip_Adductions",
+    "name_en": "Band Hip Adductions",
+    "name_zh_draft": "弹力带 Hip Adductions",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Band_Pull_Apart",
+    "name_en": "Band Pull Apart",
+    "name_zh_draft": "弹力带 Pull Apart",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Band_Skull_Crusher",
+    "name_en": "Band Skull Crusher",
+    "name_zh_draft": "弹力带 Skull Crusher",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Barbell_Ab_Rollout",
+    "name_en": "Barbell Ab Rollout",
+    "name_zh_draft": "杠铃 Ab Rollout",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Barbell_Ab_Rollout_-_On_Knees",
+    "name_en": "Barbell Ab Rollout - On Knees",
+    "name_zh_draft": "杠铃 Ab Rollout On Knees",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Barbell_Bench_Press_-_Medium_Grip",
+    "name_en": "Barbell Bench Press - Medium Grip",
+    "name_zh_draft": "杠铃 卧推 Medium Grip",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Barbell_Curl",
+    "name_en": "Barbell Curl",
+    "name_zh_draft": "杠铃 弯举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Barbell_Curls_Lying_Against_An_Incline",
+    "name_en": "Barbell Curls Lying Against An Incline",
+    "name_zh_draft": "杠铃 Curls 仰卧 Against An 上斜",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Barbell_Deadlift",
+    "name_en": "Barbell Deadlift",
+    "name_zh_draft": "杠铃 硬拉",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Barbell_Full_Squat",
+    "name_en": "Barbell Full Squat",
+    "name_zh_draft": "杠铃 Full 深蹲",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Barbell_Glute_Bridge",
+    "name_en": "Barbell Glute Bridge",
+    "name_zh_draft": "杠铃 Glute 臀桥",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Barbell_Guillotine_Bench_Press",
+    "name_en": "Barbell Guillotine Bench Press",
+    "name_zh_draft": "杠铃 Guillotine 卧推",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Barbell_Hip_Thrust",
+    "name_en": "Barbell Hip Thrust",
+    "name_zh_draft": "杠铃 Hip Thrust",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Barbell_Incline_Bench_Press_-_Medium_Grip",
+    "name_en": "Barbell Incline Bench Press - Medium Grip",
+    "name_zh_draft": "杠铃 上斜 卧推 Medium Grip",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Barbell_Incline_Shoulder_Raise",
+    "name_en": "Barbell Incline Shoulder Raise",
+    "name_zh_draft": "杠铃 上斜 Shoulder 上举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Barbell_Lunge",
+    "name_en": "Barbell Lunge",
+    "name_zh_draft": "杠铃 弓步蹲",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Barbell_Rear_Delt_Row",
+    "name_en": "Barbell Rear Delt Row",
+    "name_zh_draft": "杠铃 Rear Delt 划船",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Barbell_Rollout_from_Bench",
+    "name_en": "Barbell Rollout from Bench",
+    "name_zh_draft": "杠铃 Rollout from Bench",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Barbell_Seated_Calf_Raise",
+    "name_en": "Barbell Seated Calf Raise",
+    "name_zh_draft": "杠铃 坐姿 Calf 上举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Barbell_Shoulder_Press",
+    "name_en": "Barbell Shoulder Press",
+    "name_zh_draft": "杠铃 肩推",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Barbell_Shrug",
+    "name_en": "Barbell Shrug",
+    "name_zh_draft": "杠铃 耸肩",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Box_Jump_Multiple_Response",
+    "name_en": "Box Jump (Multiple Response)",
+    "name_zh_draft": "Box Jump (Multiple Response)",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Barbell_Shrug_Behind_The_Back",
+    "name_en": "Barbell Shrug Behind The Back",
+    "name_zh_draft": "杠铃 耸肩 Behind The 后",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Barbell_Side_Bend",
+    "name_en": "Barbell Side Bend",
+    "name_zh_draft": "杠铃 侧 Bend",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Barbell_Side_Split_Squat",
+    "name_en": "Barbell Side Split Squat",
+    "name_zh_draft": "杠铃 侧 Split 深蹲",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Barbell_Squat",
+    "name_en": "Barbell Squat",
+    "name_zh_draft": "杠铃 深蹲",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Barbell_Squat_To_A_Bench",
+    "name_en": "Barbell Squat To A Bench",
+    "name_zh_draft": "杠铃 深蹲 To A Bench",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Bent-Knee_Hip_Raise",
+    "name_en": "Bent-Knee Hip Raise",
+    "name_zh_draft": "Bent Knee Hip 上举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Barbell_Step_Ups",
+    "name_en": "Barbell Step Ups",
+    "name_zh_draft": "杠铃 Step Ups",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Barbell_Walking_Lunge",
+    "name_en": "Barbell Walking Lunge",
+    "name_zh_draft": "杠铃 Walking 弓步蹲",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Battling_Ropes",
+    "name_en": "Battling Ropes",
+    "name_zh_draft": "Battling Ropes",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Bear_Crawl_Sled_Drags",
+    "name_en": "Bear Crawl Sled Drags",
+    "name_zh_draft": "Bear Crawl Sled Drags",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Behind_Head_Chest_Stretch",
+    "name_en": "Behind Head Chest Stretch",
+    "name_zh_draft": "Behind Head Chest 拉伸",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Bench_Dips",
+    "name_en": "Bench Dips",
+    "name_zh_draft": "Bench Dips",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Bench_Jump",
+    "name_en": "Bench Jump",
+    "name_zh_draft": "Bench Jump",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Bench_Press_-_Powerlifting",
+    "name_en": "Bench Press - Powerlifting",
+    "name_zh_draft": "卧推 Powerlifting",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Bench_Press_-_With_Bands",
+    "name_en": "Bench Press - With Bands",
+    "name_zh_draft": "卧推 With 弹力带",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Bench_Press_with_Chains",
+    "name_en": "Bench Press with Chains",
+    "name_zh_draft": "卧推 with Chains",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Bench_Sprint",
+    "name_en": "Bench Sprint",
+    "name_zh_draft": "Bench Sprint",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Bent-Arm_Barbell_Pullover",
+    "name_en": "Bent-Arm Barbell Pullover",
+    "name_zh_draft": "Bent Arm杠铃 上拉",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Bent-Arm_Dumbbell_Pullover",
+    "name_en": "Bent-Arm Dumbbell Pullover",
+    "name_zh_draft": "Bent Arm哑铃 上拉",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Bent_Over_Barbell_Row",
+    "name_en": "Bent Over Barbell Row",
+    "name_zh_draft": "俯身杠铃 划船",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Bent_Over_Dumbbell_Rear_Delt_Raise_With_Head_On_Bench",
+    "name_en": "Bent Over Dumbbell Rear Delt Raise With Head On Bench",
+    "name_zh_draft": "俯身哑铃 Rear Delt 上举 With Head On Bench",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Bent_Over_Low-Pulley_Side_Lateral",
+    "name_en": "Bent Over Low-Pulley Side Lateral",
+    "name_zh_draft": "俯身 Low Pulley 侧 Lateral",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Bent_Over_One-Arm_Long_Bar_Row",
+    "name_en": "Bent Over One-Arm Long Bar Row",
+    "name_zh_draft": "俯身 单臂 Long Bar 划船",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Bent_Over_Two-Arm_Long_Bar_Row",
+    "name_en": "Bent Over Two-Arm Long Bar Row",
+    "name_zh_draft": "俯身 双臂 Long Bar 划船",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Bent_Over_Two-Dumbbell_Row",
+    "name_en": "Bent Over Two-Dumbbell Row",
+    "name_zh_draft": "俯身 Two哑铃 划船",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Bent_Over_Two-Dumbbell_Row_With_Palms_In",
+    "name_en": "Bent Over Two-Dumbbell Row With Palms In",
+    "name_zh_draft": "俯身 Two哑铃 划船 With Palms In",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Bent_Press",
+    "name_en": "Bent Press",
+    "name_zh_draft": "Bent 推举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Bicycling",
+    "name_en": "Bicycling",
+    "name_zh_draft": "Bicycling",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Bicycling_Stationary",
+    "name_en": "Bicycling, Stationary",
+    "name_zh_draft": "Bicycling, Stationary",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Board_Press",
+    "name_en": "Board Press",
+    "name_zh_draft": "Board 推举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Body-Up",
+    "name_en": "Body-Up",
+    "name_zh_draft": "Body Up",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Bodyweight_Flyes",
+    "name_en": "Bodyweight Flyes",
+    "name_zh_draft": "徒手 飞鸟",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Bodyweight_Mid_Row",
+    "name_en": "Bodyweight Mid Row",
+    "name_zh_draft": "徒手 Mid 划船",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Bodyweight_Squat",
+    "name_en": "Bodyweight Squat",
+    "name_zh_draft": "徒手 深蹲",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Bodyweight_Walking_Lunge",
+    "name_en": "Bodyweight Walking Lunge",
+    "name_zh_draft": "徒手 Walking 弓步蹲",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Bosu_Ball_Cable_Crunch_With_Side_Bends",
+    "name_en": "Bosu Ball Cable Crunch With Side Bends",
+    "name_zh_draft": "Bosu Ball绳索 卷腹 With 侧 Bends",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Bottoms-Up_Clean_From_The_Hang_Position",
+    "name_en": "Bottoms-Up Clean From The Hang Position",
+    "name_zh_draft": "Bottoms Up Clean From The Hang Position",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Bottoms_Up",
+    "name_en": "Bottoms Up",
+    "name_zh_draft": "Bottoms Up",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Box_Squat_with_Bands",
+    "name_en": "Box Squat with Bands",
+    "name_zh_draft": "Box 深蹲 with 弹力带",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Box_Squat_with_Chains",
+    "name_en": "Box Squat with Chains",
+    "name_zh_draft": "Box 深蹲 with Chains",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Brachialis-SMR",
+    "name_en": "Brachialis-SMR",
+    "name_zh_draft": "Brachialis SMR",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Bradford_Rocky_Presses",
+    "name_en": "Bradford/Rocky Presses",
+    "name_zh_draft": "Bradford / Rocky Presses",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Butt-Ups",
+    "name_en": "Butt-Ups",
+    "name_zh_draft": "Butt Ups",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Butt_Lift_Bridge",
+    "name_en": "Butt Lift (Bridge)",
+    "name_zh_draft": "Butt Lift (臀桥)",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Cable_Chest_Press",
+    "name_en": "Cable Chest Press",
+    "name_zh_draft": "绳索 推胸",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Cable_Crossover",
+    "name_en": "Cable Crossover",
+    "name_zh_draft": "绳索 Crossover",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Cable_Crunch",
+    "name_en": "Cable Crunch",
+    "name_zh_draft": "绳索 卷腹",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Cable_Deadlifts",
+    "name_en": "Cable Deadlifts",
+    "name_zh_draft": "绳索 Deadlifts",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Cable_Hammer_Curls_-_Rope_Attachment",
+    "name_en": "Cable Hammer Curls - Rope Attachment",
+    "name_zh_draft": "绳索 锤式 Curls Rope Attachment",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Cable_Hip_Adduction",
+    "name_en": "Cable Hip Adduction",
+    "name_zh_draft": "绳索 Hip Adduction",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Piriformis-SMR",
+    "name_en": "Piriformis-SMR",
+    "name_zh_draft": "Piriformis SMR",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Cable_Incline_Pushdown",
+    "name_en": "Cable Incline Pushdown",
+    "name_zh_draft": "绳索 上斜 Pushdown",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Cable_Incline_Triceps_Extension",
+    "name_en": "Cable Incline Triceps Extension",
+    "name_zh_draft": "绳索 上斜 三头肌屈伸",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Cable_Internal_Rotation",
+    "name_en": "Cable Internal Rotation",
+    "name_zh_draft": "绳索 Internal Rotation",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Cable_Iron_Cross",
+    "name_en": "Cable Iron Cross",
+    "name_zh_draft": "绳索 Iron Cross",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Cable_Judo_Flip",
+    "name_en": "Cable Judo Flip",
+    "name_zh_draft": "绳索 Judo Flip",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Cable_Lying_Triceps_Extension",
+    "name_en": "Cable Lying Triceps Extension",
+    "name_zh_draft": "绳索 仰卧 三头肌屈伸",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Cable_One_Arm_Tricep_Extension",
+    "name_en": "Cable One Arm Tricep Extension",
+    "name_zh_draft": "绳索 One Arm Tricep 屈伸",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Cable_Preacher_Curl",
+    "name_en": "Cable Preacher Curl",
+    "name_zh_draft": "绳索 Preacher 弯举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Cable_Rear_Delt_Fly",
+    "name_en": "Cable Rear Delt Fly",
+    "name_zh_draft": "绳索 Rear Delt 飞鸟",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Cable_Reverse_Crunch",
+    "name_en": "Cable Reverse Crunch",
+    "name_zh_draft": "绳索 反向 卷腹",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Cable_Rope_Overhead_Triceps_Extension",
+    "name_en": "Cable Rope Overhead Triceps Extension",
+    "name_zh_draft": "绳索 Rope Overhead 三头肌屈伸",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Cable_Rope_Rear-Delt_Rows",
+    "name_en": "Cable Rope Rear-Delt Rows",
+    "name_zh_draft": "绳索 Rope Rear Delt Rows",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Cable_Russian_Twists",
+    "name_en": "Cable Russian Twists",
+    "name_zh_draft": "绳索 Russian Twists",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Cable_Seated_Crunch",
+    "name_en": "Cable Seated Crunch",
+    "name_zh_draft": "绳索 坐姿 卷腹",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Cable_Seated_Lateral_Raise",
+    "name_en": "Cable Seated Lateral Raise",
+    "name_zh_draft": "绳索 坐姿 Lateral 上举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Cable_Shoulder_Press",
+    "name_en": "Cable Shoulder Press",
+    "name_zh_draft": "绳索 肩推",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Cable_Shrugs",
+    "name_en": "Cable Shrugs",
+    "name_zh_draft": "绳索 Shrugs",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Cable_Wrist_Curl",
+    "name_en": "Cable Wrist Curl",
+    "name_zh_draft": "绳索 Wrist 弯举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Calf-Machine_Shoulder_Shrug",
+    "name_en": "Calf-Machine Shoulder Shrug",
+    "name_zh_draft": "Calf器械 Shoulder 耸肩",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Calf_Press",
+    "name_en": "Calf Press",
+    "name_zh_draft": "Calf 推举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Car_Drivers",
+    "name_en": "Car Drivers",
+    "name_zh_draft": "Car Drivers",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Calf_Press_On_The_Leg_Press_Machine",
+    "name_en": "Calf Press On The Leg Press Machine",
+    "name_zh_draft": "Calf 推举 On The 腿举器械",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Calf_Raise_On_A_Dumbbell",
+    "name_en": "Calf Raise On A Dumbbell",
+    "name_zh_draft": "Calf 上举 On A哑铃",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Calf_Raises_-_With_Bands",
+    "name_en": "Calf Raises - With Bands",
+    "name_zh_draft": "Calf Raises With 弹力带",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Calf_Stretch_Elbows_Against_Wall",
+    "name_en": "Calf Stretch Elbows Against Wall",
+    "name_zh_draft": "Calf 拉伸 Elbows Against Wall",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Calf_Stretch_Hands_Against_Wall",
+    "name_en": "Calf Stretch Hands Against Wall",
+    "name_zh_draft": "Calf 拉伸 Hands Against Wall",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Calves-SMR",
+    "name_en": "Calves-SMR",
+    "name_zh_draft": "Calves SMR",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Car_Deadlift",
+    "name_en": "Car Deadlift",
+    "name_zh_draft": "Car 硬拉",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Carioca_Quick_Step",
+    "name_en": "Carioca Quick Step",
+    "name_zh_draft": "Carioca Quick Step",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Cat_Stretch",
+    "name_en": "Cat Stretch",
+    "name_zh_draft": "Cat 拉伸",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Catch_and_Overhead_Throw",
+    "name_en": "Catch and Overhead Throw",
+    "name_zh_draft": "Catch and Overhead Throw",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Chain_Handle_Extension",
+    "name_en": "Chain Handle Extension",
+    "name_zh_draft": "Chain Handle 屈伸",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Chain_Press",
+    "name_en": "Chain Press",
+    "name_zh_draft": "Chain 推举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Chair_Leg_Extended_Stretch",
+    "name_en": "Chair Leg Extended Stretch",
+    "name_zh_draft": "Chair Leg Extended 拉伸",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Chair_Lower_Back_Stretch",
+    "name_en": "Chair Lower Back Stretch",
+    "name_zh_draft": "Chair Lower 后 拉伸",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Chest_Push_from_3_point_stance",
+    "name_en": "Chest Push from 3 point stance",
+    "name_zh_draft": "Chest Push from 3 point stance",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Chest_Push_multiple_response",
+    "name_en": "Chest Push (multiple response)",
+    "name_zh_draft": "Chest Push (multiple response)",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Chest_Push_single_response",
+    "name_en": "Chest Push (single response)",
+    "name_zh_draft": "Chest Push (single response)",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Chest_Push_with_Run_Release",
+    "name_en": "Chest Push with Run Release",
+    "name_zh_draft": "Chest Push with Run Release",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Chest_Stretch_on_Stability_Ball",
+    "name_en": "Chest Stretch on Stability Ball",
+    "name_zh_draft": "Chest 拉伸 on Stability Ball",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Childs_Pose",
+    "name_en": "Child's Pose",
+    "name_zh_draft": "Child's Pose",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Chin-Up",
+    "name_en": "Chin-Up",
+    "name_zh_draft": "反手引体向上",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Chin_To_Chest_Stretch",
+    "name_en": "Chin To Chest Stretch",
+    "name_zh_draft": "Chin To Chest 拉伸",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Circus_Bell",
+    "name_en": "Circus Bell",
+    "name_zh_draft": "Circus Bell",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Dips_-_Chest_Version",
+    "name_en": "Dips - Chest Version",
+    "name_zh_draft": "Dips Chest Version",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Clean",
+    "name_en": "Clean",
+    "name_zh_draft": "Clean",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Clean_Deadlift",
+    "name_en": "Clean Deadlift",
+    "name_zh_draft": "Clean 硬拉",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Clean_Pull",
+    "name_en": "Clean Pull",
+    "name_zh_draft": "Clean Pull",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Clean_Shrug",
+    "name_en": "Clean Shrug",
+    "name_zh_draft": "Clean 耸肩",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Clean_and_Jerk",
+    "name_en": "Clean and Jerk",
+    "name_zh_draft": "Clean and Jerk",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Clean_and_Press",
+    "name_en": "Clean and Press",
+    "name_zh_draft": "Clean and 推举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Clean_from_Blocks",
+    "name_en": "Clean from Blocks",
+    "name_zh_draft": "Clean from Blocks",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Clock_Push-Up",
+    "name_en": "Clock Push-Up",
+    "name_zh_draft": "Clock 俯卧撑",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Close-Grip_Barbell_Bench_Press",
+    "name_en": "Close-Grip Barbell Bench Press",
+    "name_zh_draft": "窄握杠铃 卧推",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Close-Grip_Dumbbell_Press",
+    "name_en": "Close-Grip Dumbbell Press",
+    "name_zh_draft": "窄握哑铃 推举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Close-Grip_EZ-Bar_Curl_with_Band",
+    "name_en": "Close-Grip EZ-Bar Curl with Band",
+    "name_zh_draft": "窄握 EZ杠 弯举 with 弹力带",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Close-Grip_EZ-Bar_Press",
+    "name_en": "Close-Grip EZ-Bar Press",
+    "name_zh_draft": "窄握 EZ杠 推举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Close-Grip_EZ_Bar_Curl",
+    "name_en": "Close-Grip EZ Bar Curl",
+    "name_zh_draft": "窄握 EZ Bar 弯举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Close-Grip_Front_Lat_Pulldown",
+    "name_en": "Close-Grip Front Lat Pulldown",
+    "name_zh_draft": "窄握 前 Lat 下拉",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Close-Grip_Push-Up_off_of_a_Dumbbell",
+    "name_en": "Close-Grip Push-Up off of a Dumbbell",
+    "name_zh_draft": "窄握 俯卧撑 off of a哑铃",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Close-Grip_Standing_Barbell_Curl",
+    "name_en": "Close-Grip Standing Barbell Curl",
+    "name_zh_draft": "窄握 站姿杠铃 弯举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Conans_Wheel",
+    "name_en": "Conan's Wheel",
+    "name_zh_draft": "Conan's Wheel",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Concentration_Curls",
+    "name_en": "Concentration Curls",
+    "name_zh_draft": "Concentration Curls",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Cross-Body_Crunch",
+    "name_en": "Cross-Body Crunch",
+    "name_zh_draft": "Cross Body 卷腹",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Cross_Body_Hammer_Curl",
+    "name_en": "Cross Body Hammer Curl",
+    "name_zh_draft": "Cross Body 锤式 弯举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Cross_Over_-_With_Bands",
+    "name_en": "Cross Over - With Bands",
+    "name_zh_draft": "Cross Over With 弹力带",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Crossover_Reverse_Lunge",
+    "name_en": "Crossover Reverse Lunge",
+    "name_zh_draft": "Crossover 反向 弓步蹲",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Crucifix",
+    "name_en": "Crucifix",
+    "name_zh_draft": "Crucifix",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Crunch_-_Hands_Overhead",
+    "name_en": "Crunch - Hands Overhead",
+    "name_zh_draft": "卷腹 Hands Overhead",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Crunch_-_Legs_On_Exercise_Ball",
+    "name_en": "Crunch - Legs On Exercise Ball",
+    "name_zh_draft": "卷腹 Legs On 健身球",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Crunches",
+    "name_en": "Crunches",
+    "name_zh_draft": "Crunches",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Cuban_Press",
+    "name_en": "Cuban Press",
+    "name_zh_draft": "Cuban 推举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Dancers_Stretch",
+    "name_en": "Dancer's Stretch",
+    "name_zh_draft": "Dancer's 拉伸",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Dead_Bug",
+    "name_en": "Dead Bug",
+    "name_zh_draft": "Dead Bug",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Deadlift_with_Bands",
+    "name_en": "Deadlift with Bands",
+    "name_zh_draft": "硬拉 with 弹力带",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Deadlift_with_Chains",
+    "name_en": "Deadlift with Chains",
+    "name_zh_draft": "硬拉 with Chains",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Front_Leg_Raises",
+    "name_en": "Front Leg Raises",
+    "name_zh_draft": "前 Leg Raises",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Decline_Barbell_Bench_Press",
+    "name_en": "Decline Barbell Bench Press",
+    "name_zh_draft": "下斜杠铃 卧推",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Decline_Close-Grip_Bench_To_Skull_Crusher",
+    "name_en": "Decline Close-Grip Bench To Skull Crusher",
+    "name_zh_draft": "下斜 窄握 Bench To Skull Crusher",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Decline_Crunch",
+    "name_en": "Decline Crunch",
+    "name_zh_draft": "下斜 卷腹",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Decline_Dumbbell_Bench_Press",
+    "name_en": "Decline Dumbbell Bench Press",
+    "name_zh_draft": "下斜哑铃 卧推",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Decline_Dumbbell_Flyes",
+    "name_en": "Decline Dumbbell Flyes",
+    "name_zh_draft": "下斜哑铃 飞鸟",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Decline_Dumbbell_Triceps_Extension",
+    "name_en": "Decline Dumbbell Triceps Extension",
+    "name_zh_draft": "下斜哑铃 三头肌屈伸",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Decline_Reverse_Crunch",
+    "name_en": "Decline Reverse Crunch",
+    "name_zh_draft": "下斜 反向 卷腹",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Decline_Smith_Press",
+    "name_en": "Decline Smith Press",
+    "name_zh_draft": "下斜 Smith 推举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Deficit_Deadlift",
+    "name_en": "Deficit Deadlift",
+    "name_zh_draft": "Deficit 硬拉",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Depth_Jump_Leap",
+    "name_en": "Depth Jump Leap",
+    "name_zh_draft": "Depth Jump Leap",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Dip_Machine",
+    "name_en": "Dip Machine",
+    "name_zh_draft": "臂屈伸器械",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Groin_and_Back_Stretch",
+    "name_en": "Groin and Back Stretch",
+    "name_zh_draft": "Groin and 后 拉伸",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Dips_-_Triceps_Version",
+    "name_en": "Dips - Triceps Version",
+    "name_zh_draft": "Dips Triceps Version",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Donkey_Calf_Raises",
+    "name_en": "Donkey Calf Raises",
+    "name_zh_draft": "Donkey Calf Raises",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Double_Kettlebell_Alternating_Hang_Clean",
+    "name_en": "Double Kettlebell Alternating Hang Clean",
+    "name_zh_draft": "Double壶铃 交替 Hang Clean",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Double_Kettlebell_Jerk",
+    "name_en": "Double Kettlebell Jerk",
+    "name_zh_draft": "Double壶铃 Jerk",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Double_Kettlebell_Push_Press",
+    "name_en": "Double Kettlebell Push Press",
+    "name_zh_draft": "Double壶铃 借力推举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Double_Kettlebell_Snatch",
+    "name_en": "Double Kettlebell Snatch",
+    "name_zh_draft": "Double壶铃 Snatch",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Double_Kettlebell_Windmill",
+    "name_en": "Double Kettlebell Windmill",
+    "name_zh_draft": "Double壶铃 Windmill",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Double_Leg_Butt_Kick",
+    "name_en": "Double Leg Butt Kick",
+    "name_zh_draft": "Double Leg Butt Kick",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Dumbbell_Alternate_Bicep_Curl",
+    "name_en": "Dumbbell Alternate Bicep Curl",
+    "name_zh_draft": "哑铃 Alternate Bicep 弯举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Dumbbell_Bench_Press",
+    "name_en": "Dumbbell Bench Press",
+    "name_zh_draft": "哑铃 卧推",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Dumbbell_Bench_Press_with_Neutral_Grip",
+    "name_en": "Dumbbell Bench Press with Neutral Grip",
+    "name_zh_draft": "哑铃 卧推 with Neutral Grip",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Dumbbell_Bicep_Curl",
+    "name_en": "Dumbbell Bicep Curl",
+    "name_zh_draft": "哑铃 Bicep 弯举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Dumbbell_Clean",
+    "name_en": "Dumbbell Clean",
+    "name_zh_draft": "哑铃 Clean",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Groiners",
+    "name_en": "Groiners",
+    "name_zh_draft": "Groiners",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Dumbbell_Floor_Press",
+    "name_en": "Dumbbell Floor Press",
+    "name_zh_draft": "哑铃 Floor 推举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Dumbbell_Flyes",
+    "name_en": "Dumbbell Flyes",
+    "name_zh_draft": "哑铃 飞鸟",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Dumbbell_Incline_Row",
+    "name_en": "Dumbbell Incline Row",
+    "name_zh_draft": "哑铃 上斜 划船",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Dumbbell_Incline_Shoulder_Raise",
+    "name_en": "Dumbbell Incline Shoulder Raise",
+    "name_zh_draft": "哑铃 上斜 Shoulder 上举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Dumbbell_Lunges",
+    "name_en": "Dumbbell Lunges",
+    "name_zh_draft": "哑铃 Lunges",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Dumbbell_Lying_One-Arm_Rear_Lateral_Raise",
+    "name_en": "Dumbbell Lying One-Arm Rear Lateral Raise",
+    "name_zh_draft": "哑铃 仰卧 单臂 Rear Lateral 上举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Incline_Push-Up_Close-Grip",
+    "name_en": "Incline Push-Up Close-Grip",
+    "name_zh_draft": "上斜 俯卧撑 窄握",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Dumbbell_Lying_Pronation",
+    "name_en": "Dumbbell Lying Pronation",
+    "name_zh_draft": "哑铃 仰卧 Pronation",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Dumbbell_Lying_Rear_Lateral_Raise",
+    "name_en": "Dumbbell Lying Rear Lateral Raise",
+    "name_zh_draft": "哑铃 仰卧 Rear Lateral 上举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Dumbbell_Lying_Supination",
+    "name_en": "Dumbbell Lying Supination",
+    "name_zh_draft": "哑铃 仰卧 Supination",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Dumbbell_One-Arm_Shoulder_Press",
+    "name_en": "Dumbbell One-Arm Shoulder Press",
+    "name_zh_draft": "哑铃 单臂 肩推",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Dumbbell_One-Arm_Triceps_Extension",
+    "name_en": "Dumbbell One-Arm Triceps Extension",
+    "name_zh_draft": "哑铃 单臂 三头肌屈伸",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Incline_Push-Up_Medium",
+    "name_en": "Incline Push-Up Medium",
+    "name_zh_draft": "上斜 俯卧撑 Medium",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Dumbbell_One-Arm_Upright_Row",
+    "name_en": "Dumbbell One-Arm Upright Row",
+    "name_zh_draft": "哑铃 单臂 Upright 划船",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Dumbbell_Prone_Incline_Curl",
+    "name_en": "Dumbbell Prone Incline Curl",
+    "name_zh_draft": "哑铃 俯卧 上斜 弯举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Dumbbell_Raise",
+    "name_en": "Dumbbell Raise",
+    "name_zh_draft": "哑铃 上举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Dumbbell_Rear_Lunge",
+    "name_en": "Dumbbell Rear Lunge",
+    "name_zh_draft": "哑铃 Rear 弓步蹲",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Dumbbell_Scaption",
+    "name_en": "Dumbbell Scaption",
+    "name_zh_draft": "哑铃 Scaption",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Dumbbell_Seated_Box_Jump",
+    "name_en": "Dumbbell Seated Box Jump",
+    "name_zh_draft": "哑铃 坐姿 Box Jump",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Dumbbell_Seated_One-Leg_Calf_Raise",
+    "name_en": "Dumbbell Seated One-Leg Calf Raise",
+    "name_zh_draft": "哑铃 坐姿 One Leg Calf 上举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Dumbbell_Shoulder_Press",
+    "name_en": "Dumbbell Shoulder Press",
+    "name_zh_draft": "哑铃 肩推",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Dumbbell_Shrug",
+    "name_en": "Dumbbell Shrug",
+    "name_zh_draft": "哑铃 耸肩",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Dumbbell_Side_Bend",
+    "name_en": "Dumbbell Side Bend",
+    "name_zh_draft": "哑铃 侧 Bend",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Dumbbell_Squat",
+    "name_en": "Dumbbell Squat",
+    "name_zh_draft": "哑铃 深蹲",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Dumbbell_Squat_To_A_Bench",
+    "name_en": "Dumbbell Squat To A Bench",
+    "name_zh_draft": "哑铃 深蹲 To A Bench",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Dumbbell_Step_Ups",
+    "name_en": "Dumbbell Step Ups",
+    "name_zh_draft": "哑铃 Step Ups",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Dumbbell_Tricep_Extension_-Pronated_Grip",
+    "name_en": "Dumbbell Tricep Extension -Pronated Grip",
+    "name_zh_draft": "哑铃 Tricep 屈伸 Pronated Grip",
+    "name_zh_final": ""
+  },
+  {
+    "id": "EZ-Bar_Curl",
+    "name_en": "EZ-Bar Curl",
+    "name_zh_draft": "EZ杠 弯举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "EZ-Bar_Skullcrusher",
+    "name_en": "EZ-Bar Skullcrusher",
+    "name_zh_draft": "EZ杠 Skullcrusher",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Elbow_Circles",
+    "name_en": "Elbow Circles",
+    "name_zh_draft": "Elbow Circles",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Elbow_to_Knee",
+    "name_en": "Elbow to Knee",
+    "name_zh_draft": "Elbow to Knee",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Elbows_Back",
+    "name_en": "Elbows Back",
+    "name_zh_draft": "Elbows 后",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Elevated_Back_Lunge",
+    "name_en": "Elevated Back Lunge",
+    "name_zh_draft": "Elevated 后 弓步蹲",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Elevated_Cable_Rows",
+    "name_en": "Elevated Cable Rows",
+    "name_zh_draft": "Elevated绳索 Rows",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Elliptical_Trainer",
+    "name_en": "Elliptical Trainer",
+    "name_zh_draft": "Elliptical Trainer",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Exercise_Ball_Crunch",
+    "name_en": "Exercise Ball Crunch",
+    "name_zh_draft": "健身球 卷腹",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Exercise_Ball_Pull-In",
+    "name_en": "Exercise Ball Pull-In",
+    "name_zh_draft": "健身球 Pull In",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Extended_Range_One-Arm_Kettlebell_Floor_Press",
+    "name_en": "Extended Range One-Arm Kettlebell Floor Press",
+    "name_zh_draft": "Extended Range 单臂壶铃 Floor 推举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "External_Rotation",
+    "name_en": "External Rotation",
+    "name_zh_draft": "External Rotation",
+    "name_zh_final": ""
+  },
+  {
+    "id": "External_Rotation_with_Band",
+    "name_en": "External Rotation with Band",
+    "name_zh_draft": "External Rotation with 弹力带",
+    "name_zh_final": ""
+  },
+  {
+    "id": "External_Rotation_with_Cable",
+    "name_en": "External Rotation with Cable",
+    "name_zh_draft": "External Rotation with绳索",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Farmers_Walk",
+    "name_en": "Farmer's Walk",
+    "name_zh_draft": "Farmer's 行走",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Fast_Skipping",
+    "name_en": "Fast Skipping",
+    "name_zh_draft": "Fast Skipping",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Finger_Curls",
+    "name_en": "Finger Curls",
+    "name_zh_draft": "Finger Curls",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Flat_Bench_Cable_Flyes",
+    "name_en": "Flat Bench Cable Flyes",
+    "name_zh_draft": "平板 Bench绳索 飞鸟",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Flat_Bench_Leg_Pull-In",
+    "name_en": "Flat Bench Leg Pull-In",
+    "name_zh_draft": "平板 Bench Leg Pull In",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Flat_Bench_Lying_Leg_Raise",
+    "name_en": "Flat Bench Lying Leg Raise",
+    "name_zh_draft": "平板 Bench 仰卧 Leg 上举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Flexor_Incline_Dumbbell_Curls",
+    "name_en": "Flexor Incline Dumbbell Curls",
+    "name_zh_draft": "Flexor 上斜哑铃 Curls",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Floor_Glute-Ham_Raise",
+    "name_en": "Floor Glute-Ham Raise",
+    "name_zh_draft": "Floor Glute Ham 上举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Floor_Press",
+    "name_en": "Floor Press",
+    "name_zh_draft": "Floor 推举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Floor_Press_with_Chains",
+    "name_en": "Floor Press with Chains",
+    "name_zh_draft": "Floor 推举 with Chains",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Flutter_Kicks",
+    "name_en": "Flutter Kicks",
+    "name_zh_draft": "Flutter Kicks",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Foot-SMR",
+    "name_en": "Foot-SMR",
+    "name_zh_draft": "Foot SMR",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Forward_Drag_with_Press",
+    "name_en": "Forward Drag with Press",
+    "name_zh_draft": "Forward Drag with 推举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Frankenstein_Squat",
+    "name_en": "Frankenstein Squat",
+    "name_zh_draft": "Frankenstein 深蹲",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Freehand_Jump_Squat",
+    "name_en": "Freehand Jump Squat",
+    "name_zh_draft": "Freehand Jump 深蹲",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Frog_Hops",
+    "name_en": "Frog Hops",
+    "name_zh_draft": "Frog Hops",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Frog_Sit-Ups",
+    "name_en": "Frog Sit-Ups",
+    "name_zh_draft": "Frog Sit Ups",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Front_Barbell_Squat",
+    "name_en": "Front Barbell Squat",
+    "name_zh_draft": "前杠铃 深蹲",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Intermediate_Groin_Stretch",
+    "name_en": "Intermediate Groin Stretch",
+    "name_zh_draft": "Intermediate Groin 拉伸",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Front_Barbell_Squat_To_A_Bench",
+    "name_en": "Front Barbell Squat To A Bench",
+    "name_zh_draft": "前杠铃 深蹲 To A Bench",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Front_Box_Jump",
+    "name_en": "Front Box Jump",
+    "name_zh_draft": "前 Box Jump",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Front_Cable_Raise",
+    "name_en": "Front Cable Raise",
+    "name_zh_draft": "前绳索 上举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Front_Cone_Hops_or_hurdle_hops",
+    "name_en": "Front Cone Hops (or hurdle hops)",
+    "name_zh_draft": "前 Cone Hops (or hurdle hops)",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Front_Dumbbell_Raise",
+    "name_en": "Front Dumbbell Raise",
+    "name_zh_draft": "前哑铃 上举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Front_Incline_Dumbbell_Raise",
+    "name_en": "Front Incline Dumbbell Raise",
+    "name_zh_draft": "前 上斜哑铃 上举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Front_Plate_Raise",
+    "name_en": "Front Plate Raise",
+    "name_zh_draft": "前 Plate 上举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Front_Raise_And_Pullover",
+    "name_en": "Front Raise And Pullover",
+    "name_zh_draft": "前 上举 And 上拉",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Front_Squat_Clean_Grip",
+    "name_en": "Front Squat (Clean Grip)",
+    "name_zh_draft": "前 深蹲 (Clean Grip)",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Front_Squats_With_Two_Kettlebells",
+    "name_en": "Front Squats With Two Kettlebells",
+    "name_zh_draft": "前 Squats With Two Kettlebells",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Front_Two-Dumbbell_Raise",
+    "name_en": "Front Two-Dumbbell Raise",
+    "name_zh_draft": "前 Two哑铃 上举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Full_Range-Of-Motion_Lat_Pulldown",
+    "name_en": "Full Range-Of-Motion Lat Pulldown",
+    "name_zh_draft": "Full Range Of Motion Lat 下拉",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Kneeling_Hip_Flexor",
+    "name_en": "Kneeling Hip Flexor",
+    "name_zh_draft": "Kneeling Hip Flexor",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Gironda_Sternum_Chins",
+    "name_en": "Gironda Sternum Chins",
+    "name_zh_draft": "Gironda Sternum Chins",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Glute_Ham_Raise",
+    "name_en": "Glute Ham Raise",
+    "name_zh_draft": "Glute Ham 上举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Glute_Kickback",
+    "name_en": "Glute Kickback",
+    "name_zh_draft": "Glute Kickback",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Goblet_Squat",
+    "name_en": "Goblet Squat",
+    "name_zh_draft": "Goblet 深蹲",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Good_Morning",
+    "name_en": "Good Morning",
+    "name_zh_draft": "Good Morning",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Good_Morning_off_Pins",
+    "name_en": "Good Morning off Pins",
+    "name_zh_draft": "Good Morning off Pins",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Gorilla_Chin_Crunch",
+    "name_en": "Gorilla Chin/Crunch",
+    "name_zh_draft": "Gorilla Chin / 卷腹",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Hack_Squat",
+    "name_en": "Hack Squat",
+    "name_zh_draft": "Hack 深蹲",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Hammer_Curls",
+    "name_en": "Hammer Curls",
+    "name_zh_draft": "锤式 Curls",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Hammer_Grip_Incline_DB_Bench_Press",
+    "name_en": "Hammer Grip Incline DB Bench Press",
+    "name_zh_draft": "锤式 Grip 上斜 DB 卧推",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Hamstring-SMR",
+    "name_en": "Hamstring-SMR",
+    "name_zh_draft": "Hamstring SMR",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Handstand_Push-Ups",
+    "name_en": "Handstand Push-Ups",
+    "name_zh_draft": "Handstand Push Ups",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Hang_Clean",
+    "name_en": "Hang Clean",
+    "name_zh_draft": "Hang Clean",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Hang_Clean_-_Below_the_Knees",
+    "name_en": "Hang Clean - Below the Knees",
+    "name_zh_draft": "Hang Clean Below the Knees",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Hang_Snatch",
+    "name_en": "Hang Snatch",
+    "name_zh_draft": "Hang Snatch",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Hang_Snatch_-_Below_Knees",
+    "name_en": "Hang Snatch - Below Knees",
+    "name_zh_draft": "Hang Snatch Below Knees",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Hanging_Bar_Good_Morning",
+    "name_en": "Hanging Bar Good Morning",
+    "name_zh_draft": "Hanging Bar Good Morning",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Hanging_Leg_Raise",
+    "name_en": "Hanging Leg Raise",
+    "name_zh_draft": "Hanging Leg 上举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Hanging_Pike",
+    "name_en": "Hanging Pike",
+    "name_zh_draft": "Hanging Pike",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Heaving_Snatch_Balance",
+    "name_en": "Heaving Snatch Balance",
+    "name_zh_draft": "Heaving Snatch Balance",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Heavy_Bag_Thrust",
+    "name_en": "Heavy Bag Thrust",
+    "name_zh_draft": "Heavy Bag Thrust",
+    "name_zh_final": ""
+  },
+  {
+    "id": "High_Cable_Curls",
+    "name_en": "High Cable Curls",
+    "name_zh_draft": "High绳索 Curls",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Hip_Circles_prone",
+    "name_en": "Hip Circles (prone)",
+    "name_zh_draft": "Hip Circles (俯卧)",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Hip_Extension_with_Bands",
+    "name_en": "Hip Extension with Bands",
+    "name_zh_draft": "Hip 屈伸 with 弹力带",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Hip_Flexion_with_Band",
+    "name_en": "Hip Flexion with Band",
+    "name_zh_draft": "Hip Flexion with 弹力带",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Hip_Lift_with_Band",
+    "name_en": "Hip Lift with Band",
+    "name_zh_draft": "Hip Lift with 弹力带",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Hurdle_Hops",
+    "name_en": "Hurdle Hops",
+    "name_zh_draft": "Hurdle Hops",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Hyperextensions_Back_Extensions",
+    "name_en": "Hyperextensions (Back Extensions)",
+    "name_zh_draft": "Hyperextensions (后 Extensions)",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Hyperextensions_With_No_Hyperextension_Bench",
+    "name_en": "Hyperextensions With No Hyperextension Bench",
+    "name_zh_draft": "Hyperextensions With No Hyperextension Bench",
+    "name_zh_final": ""
+  },
+  {
+    "id": "IT_Band_and_Glute_Stretch",
+    "name_en": "IT Band and Glute Stretch",
+    "name_zh_draft": "IT 弹力带 and Glute 拉伸",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Iliotibial_Tract-SMR",
+    "name_en": "Iliotibial Tract-SMR",
+    "name_zh_draft": "Iliotibial Tract SMR",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Inchworm",
+    "name_en": "Inchworm",
+    "name_zh_draft": "Inchworm",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Incline_Barbell_Triceps_Extension",
+    "name_en": "Incline Barbell Triceps Extension",
+    "name_zh_draft": "上斜杠铃 三头肌屈伸",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Incline_Bench_Pull",
+    "name_en": "Incline Bench Pull",
+    "name_zh_draft": "上斜 Bench Pull",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Incline_Cable_Chest_Press",
+    "name_en": "Incline Cable Chest Press",
+    "name_zh_draft": "上斜绳索 推胸",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Incline_Cable_Flye",
+    "name_en": "Incline Cable Flye",
+    "name_zh_draft": "上斜绳索 飞鸟",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Incline_Dumbbell_Bench_With_Palms_Facing_In",
+    "name_en": "Incline Dumbbell Bench With Palms Facing In",
+    "name_zh_draft": "上斜哑铃 Bench With Palms Facing In",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Incline_Dumbbell_Curl",
+    "name_en": "Incline Dumbbell Curl",
+    "name_zh_draft": "上斜哑铃 弯举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Incline_Push-Up_Depth_Jump",
+    "name_en": "Incline Push-Up Depth Jump",
+    "name_zh_draft": "上斜 俯卧撑 Depth Jump",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Incline_Dumbbell_Flyes",
+    "name_en": "Incline Dumbbell Flyes",
+    "name_zh_draft": "上斜哑铃 飞鸟",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Incline_Dumbbell_Flyes_-_With_A_Twist",
+    "name_en": "Incline Dumbbell Flyes - With A Twist",
+    "name_zh_draft": "上斜哑铃 飞鸟 With A Twist",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Incline_Dumbbell_Press",
+    "name_en": "Incline Dumbbell Press",
+    "name_zh_draft": "上斜哑铃 推举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Incline_Hammer_Curls",
+    "name_en": "Incline Hammer Curls",
+    "name_zh_draft": "上斜 锤式 Curls",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Incline_Inner_Biceps_Curl",
+    "name_en": "Incline Inner Biceps Curl",
+    "name_zh_draft": "上斜 Inner Biceps 弯举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Incline_Push-Up",
+    "name_en": "Incline Push-Up",
+    "name_zh_draft": "上斜 俯卧撑",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Intermediate_Hip_Flexor_and_Quad_Stretch",
+    "name_en": "Intermediate Hip Flexor and Quad Stretch",
+    "name_zh_draft": "Intermediate Hip Flexor and Quad 拉伸",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Internal_Rotation_with_Band",
+    "name_en": "Internal Rotation with Band",
+    "name_zh_draft": "Internal Rotation with 弹力带",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Inverted_Row",
+    "name_en": "Inverted Row",
+    "name_zh_draft": "Inverted 划船",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Inverted_Row_with_Straps",
+    "name_en": "Inverted Row with Straps",
+    "name_zh_draft": "Inverted 划船 with Straps",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Iron_Cross",
+    "name_en": "Iron Cross",
+    "name_zh_draft": "Iron Cross",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Iron_Crosses_stretch",
+    "name_en": "Iron Crosses (stretch)",
+    "name_zh_draft": "Iron Crosses (拉伸)",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Isometric_Chest_Squeezes",
+    "name_en": "Isometric Chest Squeezes",
+    "name_zh_draft": "Isometric Chest Squeezes",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Isometric_Neck_Exercise_-_Front_And_Back",
+    "name_en": "Isometric Neck Exercise - Front And Back",
+    "name_zh_draft": "Isometric Neck Exercise 前 And 后",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Isometric_Neck_Exercise_-_Sides",
+    "name_en": "Isometric Neck Exercise - Sides",
+    "name_zh_draft": "Isometric Neck Exercise Sides",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Isometric_Wipers",
+    "name_en": "Isometric Wipers",
+    "name_zh_draft": "Isometric Wipers",
+    "name_zh_final": ""
+  },
+  {
+    "id": "JM_Press",
+    "name_en": "JM Press",
+    "name_zh_draft": "JM 推举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Jackknife_Sit-Up",
+    "name_en": "Jackknife Sit-Up",
+    "name_zh_draft": "Jackknife Sit Up",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Janda_Sit-Up",
+    "name_en": "Janda Sit-Up",
+    "name_zh_draft": "Janda Sit Up",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Jefferson_Squats",
+    "name_en": "Jefferson Squats",
+    "name_zh_draft": "Jefferson Squats",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Jerk_Balance",
+    "name_en": "Jerk Balance",
+    "name_zh_draft": "Jerk Balance",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Jerk_Dip_Squat",
+    "name_en": "Jerk Dip Squat",
+    "name_zh_draft": "Jerk 臂屈伸 深蹲",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Jogging_Treadmill",
+    "name_en": "Jogging, Treadmill",
+    "name_zh_draft": "Jogging, Treadmill",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Keg_Load",
+    "name_en": "Keg Load",
+    "name_zh_draft": "Keg Load",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Kettlebell_Arnold_Press",
+    "name_en": "Kettlebell Arnold Press",
+    "name_zh_draft": "壶铃 Arnold 推举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Kettlebell_Dead_Clean",
+    "name_en": "Kettlebell Dead Clean",
+    "name_zh_draft": "壶铃 Dead Clean",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Kettlebell_Figure_8",
+    "name_en": "Kettlebell Figure 8",
+    "name_zh_draft": "壶铃 Figure 8",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Kettlebell_Hang_Clean",
+    "name_en": "Kettlebell Hang Clean",
+    "name_zh_draft": "壶铃 Hang Clean",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Kettlebell_One-Legged_Deadlift",
+    "name_en": "Kettlebell One-Legged Deadlift",
+    "name_zh_draft": "壶铃 One Legged 硬拉",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Kettlebell_Pass_Between_The_Legs",
+    "name_en": "Kettlebell Pass Between The Legs",
+    "name_zh_draft": "壶铃 Pass Between The Legs",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Kettlebell_Pirate_Ships",
+    "name_en": "Kettlebell Pirate Ships",
+    "name_zh_draft": "壶铃 Pirate Ships",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Kettlebell_Pistol_Squat",
+    "name_en": "Kettlebell Pistol Squat",
+    "name_zh_draft": "壶铃 Pistol 深蹲",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Kettlebell_Seated_Press",
+    "name_en": "Kettlebell Seated Press",
+    "name_zh_draft": "壶铃 坐姿 推举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Kettlebell_Seesaw_Press",
+    "name_en": "Kettlebell Seesaw Press",
+    "name_zh_draft": "壶铃 Seesaw 推举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Kettlebell_Sumo_High_Pull",
+    "name_en": "Kettlebell Sumo High Pull",
+    "name_zh_draft": "壶铃 Sumo High Pull",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Prone_Manual_Hamstring",
+    "name_en": "Prone Manual Hamstring",
+    "name_zh_draft": "俯卧 Manual Hamstring",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Kettlebell_Thruster",
+    "name_en": "Kettlebell Thruster",
+    "name_zh_draft": "壶铃 Thruster",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Kettlebell_Turkish_Get-Up_Lunge_style",
+    "name_en": "Kettlebell Turkish Get-Up (Lunge style)",
+    "name_zh_draft": "壶铃 Turkish Get Up (弓步蹲 style)",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Kettlebell_Turkish_Get-Up_Squat_style",
+    "name_en": "Kettlebell Turkish Get-Up (Squat style)",
+    "name_zh_draft": "壶铃 Turkish Get Up (深蹲 style)",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Kettlebell_Windmill",
+    "name_en": "Kettlebell Windmill",
+    "name_zh_draft": "壶铃 Windmill",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Kipping_Muscle_Up",
+    "name_en": "Kipping Muscle Up",
+    "name_zh_draft": "Kipping Muscle Up",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Knee_Across_The_Body",
+    "name_en": "Knee Across The Body",
+    "name_zh_draft": "Knee Across The Body",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Knee_Circles",
+    "name_en": "Knee Circles",
+    "name_zh_draft": "Knee Circles",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Knee_Hip_Raise_On_Parallel_Bars",
+    "name_en": "Knee/Hip Raise On Parallel Bars",
+    "name_zh_draft": "Knee / Hip 上举 On Parallel Bars",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Knee_Tuck_Jump",
+    "name_en": "Knee Tuck Jump",
+    "name_zh_draft": "Knee Tuck Jump",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Kneeling_Arm_Drill",
+    "name_en": "Kneeling Arm Drill",
+    "name_zh_draft": "Kneeling Arm Drill",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Kneeling_Cable_Crunch_With_Alternating_Oblique_Twists",
+    "name_en": "Kneeling Cable Crunch With Alternating Oblique Twists",
+    "name_zh_draft": "Kneeling绳索 卷腹 With 交替 Oblique Twists",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Kneeling_Cable_Triceps_Extension",
+    "name_en": "Kneeling Cable Triceps Extension",
+    "name_zh_draft": "Kneeling绳索 三头肌屈伸",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Kneeling_Forearm_Stretch",
+    "name_en": "Kneeling Forearm Stretch",
+    "name_zh_draft": "Kneeling Forearm 拉伸",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Kneeling_High_Pulley_Row",
+    "name_en": "Kneeling High Pulley Row",
+    "name_zh_draft": "Kneeling High Pulley 划船",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Kneeling_Jump_Squat",
+    "name_en": "Kneeling Jump Squat",
+    "name_zh_draft": "Kneeling Jump 深蹲",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Kneeling_Single-Arm_High_Pulley_Row",
+    "name_en": "Kneeling Single-Arm High Pulley Row",
+    "name_zh_draft": "Kneeling Single Arm High Pulley 划船",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Kneeling_Squat",
+    "name_en": "Kneeling Squat",
+    "name_zh_draft": "Kneeling 深蹲",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Landmine_180s",
+    "name_en": "Landmine 180's",
+    "name_zh_draft": "Landmine 180's",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Landmine_Linear_Jammer",
+    "name_en": "Landmine Linear Jammer",
+    "name_zh_draft": "Landmine Linear Jammer",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Lateral_Bound",
+    "name_en": "Lateral Bound",
+    "name_zh_draft": "Lateral Bound",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Lateral_Box_Jump",
+    "name_en": "Lateral Box Jump",
+    "name_zh_draft": "Lateral Box Jump",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Lateral_Cone_Hops",
+    "name_en": "Lateral Cone Hops",
+    "name_zh_draft": "Lateral Cone Hops",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Lateral_Raise_-_With_Bands",
+    "name_en": "Lateral Raise - With Bands",
+    "name_zh_draft": "Lateral 上举 With 弹力带",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Latissimus_Dorsi-SMR",
+    "name_en": "Latissimus Dorsi-SMR",
+    "name_zh_draft": "Latissimus Dorsi SMR",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Leg-Up_Hamstring_Stretch",
+    "name_en": "Leg-Up Hamstring Stretch",
+    "name_zh_draft": "Leg Up Hamstring 拉伸",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Leg_Extensions",
+    "name_en": "Leg Extensions",
+    "name_zh_draft": "Leg Extensions",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Leg_Lift",
+    "name_en": "Leg Lift",
+    "name_zh_draft": "Leg Lift",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Leg_Press",
+    "name_en": "Leg Press",
+    "name_zh_draft": "腿举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Leg_Pull-In",
+    "name_en": "Leg Pull-In",
+    "name_zh_draft": "Leg Pull In",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Leverage_Chest_Press",
+    "name_en": "Leverage Chest Press",
+    "name_zh_draft": "Leverage 推胸",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Leverage_Deadlift",
+    "name_en": "Leverage Deadlift",
+    "name_zh_draft": "Leverage 硬拉",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Leverage_Decline_Chest_Press",
+    "name_en": "Leverage Decline Chest Press",
+    "name_zh_draft": "Leverage 下斜 推胸",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Leverage_High_Row",
+    "name_en": "Leverage High Row",
+    "name_zh_draft": "Leverage High 划船",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Leverage_Incline_Chest_Press",
+    "name_en": "Leverage Incline Chest Press",
+    "name_zh_draft": "Leverage 上斜 推胸",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Leverage_Iso_Row",
+    "name_en": "Leverage Iso Row",
+    "name_zh_draft": "Leverage Iso 划船",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Leverage_Shoulder_Press",
+    "name_en": "Leverage Shoulder Press",
+    "name_zh_draft": "Leverage 肩推",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Leverage_Shrug",
+    "name_en": "Leverage Shrug",
+    "name_zh_draft": "Leverage 耸肩",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Linear_3-Part_Start_Technique",
+    "name_en": "Linear 3-Part Start Technique",
+    "name_zh_draft": "Linear 3 Part Start Technique",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Linear_Acceleration_Wall_Drill",
+    "name_en": "Linear Acceleration Wall Drill",
+    "name_zh_draft": "Linear Acceleration Wall Drill",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Linear_Depth_Jump",
+    "name_en": "Linear Depth Jump",
+    "name_zh_draft": "Linear Depth Jump",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Log_Lift",
+    "name_en": "Log Lift",
+    "name_zh_draft": "Log Lift",
+    "name_zh_final": ""
+  },
+  {
+    "id": "London_Bridges",
+    "name_en": "London Bridges",
+    "name_zh_draft": "London Bridges",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Low_Cable_Crossover",
+    "name_en": "Low Cable Crossover",
+    "name_zh_draft": "Low绳索 Crossover",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Low_Cable_Triceps_Extension",
+    "name_en": "Low Cable Triceps Extension",
+    "name_zh_draft": "Low绳索 三头肌屈伸",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Low_Pulley_Row_To_Neck",
+    "name_en": "Low Pulley Row To Neck",
+    "name_zh_draft": "Low Pulley 划船 To Neck",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Lower_Back-SMR",
+    "name_en": "Lower Back-SMR",
+    "name_zh_draft": "Lower 后 SMR",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Lower_Back_Curl",
+    "name_en": "Lower Back Curl",
+    "name_zh_draft": "Lower 后 弯举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Lunge_Pass_Through",
+    "name_en": "Lunge Pass Through",
+    "name_zh_draft": "弓步蹲 Pass Through",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Lunge_Sprint",
+    "name_en": "Lunge Sprint",
+    "name_zh_draft": "弓步蹲 Sprint",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Lying_Bent_Leg_Groin",
+    "name_en": "Lying Bent Leg Groin",
+    "name_zh_draft": "仰卧 Bent Leg Groin",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Lying_Cable_Curl",
+    "name_en": "Lying Cable Curl",
+    "name_zh_draft": "仰卧绳索 弯举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Lying_Cambered_Barbell_Row",
+    "name_en": "Lying Cambered Barbell Row",
+    "name_zh_draft": "仰卧 Cambered杠铃 划船",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Lying_Close-Grip_Bar_Curl_On_High_Pulley",
+    "name_en": "Lying Close-Grip Bar Curl On High Pulley",
+    "name_zh_draft": "仰卧 窄握 Bar 弯举 On High Pulley",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Lying_Close-Grip_Barbell_Triceps_Extension_Behind_The_Head",
+    "name_en": "Lying Close-Grip Barbell Triceps Extension Behind The Head",
+    "name_zh_draft": "仰卧 窄握杠铃 三头肌屈伸 Behind The Head",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Lying_Close-Grip_Barbell_Triceps_Press_To_Chin",
+    "name_en": "Lying Close-Grip Barbell Triceps Press To Chin",
+    "name_zh_draft": "仰卧 窄握杠铃 Triceps 推举 To Chin",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Lying_Crossover",
+    "name_en": "Lying Crossover",
+    "name_zh_draft": "仰卧 Crossover",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Lying_Dumbbell_Tricep_Extension",
+    "name_en": "Lying Dumbbell Tricep Extension",
+    "name_zh_draft": "仰卧哑铃 Tricep 屈伸",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Lying_Face_Down_Plate_Neck_Resistance",
+    "name_en": "Lying Face Down Plate Neck Resistance",
+    "name_zh_draft": "仰卧 Face Down Plate Neck Resistance",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Lying_Face_Up_Plate_Neck_Resistance",
+    "name_en": "Lying Face Up Plate Neck Resistance",
+    "name_zh_draft": "仰卧 Face Up Plate Neck Resistance",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Lying_Glute",
+    "name_en": "Lying Glute",
+    "name_zh_draft": "仰卧 Glute",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Lying_Hamstring",
+    "name_en": "Lying Hamstring",
+    "name_zh_draft": "仰卧 Hamstring",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Lying_High_Bench_Barbell_Curl",
+    "name_en": "Lying High Bench Barbell Curl",
+    "name_zh_draft": "仰卧 High Bench杠铃 弯举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Middle_Back_Shrug",
+    "name_en": "Middle Back Shrug",
+    "name_zh_draft": "Middle 后 耸肩",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Lying_Leg_Curls",
+    "name_en": "Lying Leg Curls",
+    "name_zh_draft": "仰卧 Leg Curls",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Lying_Machine_Squat",
+    "name_en": "Lying Machine Squat",
+    "name_zh_draft": "仰卧器械 深蹲",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Lying_One-Arm_Lateral_Raise",
+    "name_en": "Lying One-Arm Lateral Raise",
+    "name_zh_draft": "仰卧 单臂 Lateral 上举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Lying_T-Bar_Row",
+    "name_en": "Lying T-Bar Row",
+    "name_zh_draft": "仰卧 T Bar 划船",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Lying_Triceps_Press",
+    "name_en": "Lying Triceps Press",
+    "name_zh_draft": "仰卧 Triceps 推举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Middle_Back_Stretch",
+    "name_en": "Middle Back Stretch",
+    "name_zh_draft": "Middle 后 拉伸",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Machine_Bench_Press",
+    "name_en": "Machine Bench Press",
+    "name_zh_draft": "器械 卧推",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Machine_Bicep_Curl",
+    "name_en": "Machine Bicep Curl",
+    "name_zh_draft": "器械 Bicep 弯举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Machine_Preacher_Curls",
+    "name_en": "Machine Preacher Curls",
+    "name_zh_draft": "器械 Preacher Curls",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Machine_Shoulder_Military_Press",
+    "name_en": "Machine Shoulder (Military) Press",
+    "name_zh_draft": "器械 Shoulder (Military) 推举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Machine_Triceps_Extension",
+    "name_en": "Machine Triceps Extension",
+    "name_zh_draft": "器械 三头肌屈伸",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Medicine_Ball_Full_Twist",
+    "name_en": "Medicine Ball Full Twist",
+    "name_zh_draft": "药球 Full Twist",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Medicine_Ball_Scoop_Throw",
+    "name_en": "Medicine Ball Scoop Throw",
+    "name_zh_draft": "药球 Scoop Throw",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Mixed_Grip_Chin",
+    "name_en": "Mixed Grip Chin",
+    "name_zh_draft": "Mixed Grip Chin",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Monster_Walk",
+    "name_en": "Monster Walk",
+    "name_zh_draft": "Monster 行走",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Mountain_Climbers",
+    "name_en": "Mountain Climbers",
+    "name_zh_draft": "Mountain Climbers",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Moving_Claw_Series",
+    "name_en": "Moving Claw Series",
+    "name_zh_draft": "Moving Claw Series",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Muscle_Snatch",
+    "name_en": "Muscle Snatch",
+    "name_zh_draft": "Muscle Snatch",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Muscle_Up",
+    "name_en": "Muscle Up",
+    "name_zh_draft": "Muscle Up",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Narrow_Stance_Hack_Squats",
+    "name_en": "Narrow Stance Hack Squats",
+    "name_zh_draft": "Narrow Stance Hack Squats",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Narrow_Stance_Leg_Press",
+    "name_en": "Narrow Stance Leg Press",
+    "name_zh_draft": "Narrow Stance 腿举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Narrow_Stance_Squats",
+    "name_en": "Narrow Stance Squats",
+    "name_zh_draft": "Narrow Stance Squats",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Natural_Glute_Ham_Raise",
+    "name_en": "Natural Glute Ham Raise",
+    "name_zh_draft": "Natural Glute Ham 上举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Neck_Press",
+    "name_en": "Neck Press",
+    "name_zh_draft": "Neck 推举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Oblique_Crunches",
+    "name_en": "Oblique Crunches",
+    "name_zh_draft": "Oblique Crunches",
+    "name_zh_final": ""
+  },
+  {
+    "id": "One_Knee_To_Chest",
+    "name_en": "One Knee To Chest",
+    "name_zh_draft": "One Knee To Chest",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Oblique_Crunches_-_On_The_Floor",
+    "name_en": "Oblique Crunches - On The Floor",
+    "name_zh_draft": "Oblique Crunches On The Floor",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Olympic_Squat",
+    "name_en": "Olympic Squat",
+    "name_zh_draft": "Olympic 深蹲",
+    "name_zh_final": ""
+  },
+  {
+    "id": "On-Your-Back_Quad_Stretch",
+    "name_en": "On-Your-Back Quad Stretch",
+    "name_zh_draft": "On Your 后 Quad 拉伸",
+    "name_zh_final": ""
+  },
+  {
+    "id": "On_Your_Side_Quad_Stretch",
+    "name_en": "On Your Side Quad Stretch",
+    "name_zh_draft": "On Your 侧 Quad 拉伸",
+    "name_zh_final": ""
+  },
+  {
+    "id": "One-Arm_Dumbbell_Row",
+    "name_en": "One-Arm Dumbbell Row",
+    "name_zh_draft": "单臂哑铃 划船",
+    "name_zh_final": ""
+  },
+  {
+    "id": "One-Arm_Flat_Bench_Dumbbell_Flye",
+    "name_en": "One-Arm Flat Bench Dumbbell Flye",
+    "name_zh_draft": "单臂 平板 Bench哑铃 飞鸟",
+    "name_zh_final": ""
+  },
+  {
+    "id": "One-Arm_High-Pulley_Cable_Side_Bends",
+    "name_en": "One-Arm High-Pulley Cable Side Bends",
+    "name_zh_draft": "单臂 High Pulley绳索 侧 Bends",
+    "name_zh_final": ""
+  },
+  {
+    "id": "One-Arm_Incline_Lateral_Raise",
+    "name_en": "One-Arm Incline Lateral Raise",
+    "name_zh_draft": "单臂 上斜 Lateral 上举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "One-Arm_Kettlebell_Clean",
+    "name_en": "One-Arm Kettlebell Clean",
+    "name_zh_draft": "单臂壶铃 Clean",
+    "name_zh_final": ""
+  },
+  {
+    "id": "One-Arm_Kettlebell_Clean_and_Jerk",
+    "name_en": "One-Arm Kettlebell Clean and Jerk",
+    "name_zh_draft": "单臂壶铃 Clean and Jerk",
+    "name_zh_final": ""
+  },
+  {
+    "id": "One-Arm_Kettlebell_Floor_Press",
+    "name_en": "One-Arm Kettlebell Floor Press",
+    "name_zh_draft": "单臂壶铃 Floor 推举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "One-Arm_Kettlebell_Jerk",
+    "name_en": "One-Arm Kettlebell Jerk",
+    "name_zh_draft": "单臂壶铃 Jerk",
+    "name_zh_final": ""
+  },
+  {
+    "id": "One-Arm_Kettlebell_Military_Press_To_The_Side",
+    "name_en": "One-Arm Kettlebell Military Press To The Side",
+    "name_zh_draft": "单臂壶铃 Military 推举 To The 侧",
+    "name_zh_final": ""
+  },
+  {
+    "id": "One-Arm_Kettlebell_Para_Press",
+    "name_en": "One-Arm Kettlebell Para Press",
+    "name_zh_draft": "单臂壶铃 Para 推举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "One-Arm_Kettlebell_Push_Press",
+    "name_en": "One-Arm Kettlebell Push Press",
+    "name_zh_draft": "单臂壶铃 借力推举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "One-Arm_Kettlebell_Row",
+    "name_en": "One-Arm Kettlebell Row",
+    "name_zh_draft": "单臂壶铃 划船",
+    "name_zh_final": ""
+  },
+  {
+    "id": "One-Arm_Kettlebell_Snatch",
+    "name_en": "One-Arm Kettlebell Snatch",
+    "name_zh_draft": "单臂壶铃 Snatch",
+    "name_zh_final": ""
+  },
+  {
+    "id": "One-Arm_Kettlebell_Split_Jerk",
+    "name_en": "One-Arm Kettlebell Split Jerk",
+    "name_zh_draft": "单臂壶铃 Split Jerk",
+    "name_zh_final": ""
+  },
+  {
+    "id": "One-Arm_Kettlebell_Split_Snatch",
+    "name_en": "One-Arm Kettlebell Split Snatch",
+    "name_zh_draft": "单臂壶铃 Split Snatch",
+    "name_zh_final": ""
+  },
+  {
+    "id": "One-Arm_Kettlebell_Swings",
+    "name_en": "One-Arm Kettlebell Swings",
+    "name_zh_draft": "单臂壶铃 Swings",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Side_Hop-Sprint",
+    "name_en": "Side Hop-Sprint",
+    "name_zh_draft": "侧 Hop Sprint",
+    "name_zh_final": ""
+  },
+  {
+    "id": "One-Arm_Long_Bar_Row",
+    "name_en": "One-Arm Long Bar Row",
+    "name_zh_draft": "单臂 Long Bar 划船",
+    "name_zh_final": ""
+  },
+  {
+    "id": "One-Arm_Medicine_Ball_Slam",
+    "name_en": "One-Arm Medicine Ball Slam",
+    "name_zh_draft": "单臂 药球 砸球",
+    "name_zh_final": ""
+  },
+  {
+    "id": "One-Arm_Side_Laterals",
+    "name_en": "One-Arm Side Laterals",
+    "name_zh_draft": "单臂 侧 Laterals",
+    "name_zh_final": ""
+  },
+  {
+    "id": "One-Legged_Cable_Kickback",
+    "name_en": "One-Legged Cable Kickback",
+    "name_zh_draft": "One Legged绳索 Kickback",
+    "name_zh_final": ""
+  },
+  {
+    "id": "One_Arm_Chin-Up",
+    "name_en": "One Arm Chin-Up",
+    "name_zh_draft": "One Arm 反手引体向上",
+    "name_zh_final": ""
+  },
+  {
+    "id": "One_Arm_Dumbbell_Bench_Press",
+    "name_en": "One Arm Dumbbell Bench Press",
+    "name_zh_draft": "One Arm哑铃 卧推",
+    "name_zh_final": ""
+  },
+  {
+    "id": "One_Arm_Dumbbell_Preacher_Curl",
+    "name_en": "One Arm Dumbbell Preacher Curl",
+    "name_zh_draft": "One Arm哑铃 Preacher 弯举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "One_Arm_Floor_Press",
+    "name_en": "One Arm Floor Press",
+    "name_zh_draft": "One Arm Floor 推举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "One_Arm_Lat_Pulldown",
+    "name_en": "One Arm Lat Pulldown",
+    "name_zh_draft": "One Arm Lat 下拉",
+    "name_zh_final": ""
+  },
+  {
+    "id": "One_Arm_Pronated_Dumbbell_Triceps_Extension",
+    "name_en": "One Arm Pronated Dumbbell Triceps Extension",
+    "name_zh_draft": "One Arm Pronated哑铃 三头肌屈伸",
+    "name_zh_final": ""
+  },
+  {
+    "id": "One_Arm_Supinated_Dumbbell_Triceps_Extension",
+    "name_en": "One Arm Supinated Dumbbell Triceps Extension",
+    "name_zh_draft": "One Arm Supinated哑铃 三头肌屈伸",
+    "name_zh_final": ""
+  },
+  {
+    "id": "One_Half_Locust",
+    "name_en": "One Half Locust",
+    "name_zh_draft": "One Half Locust",
+    "name_zh_final": ""
+  },
+  {
+    "id": "One_Handed_Hang",
+    "name_en": "One Handed Hang",
+    "name_zh_draft": "One Handed Hang",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Side_Jackknife",
+    "name_en": "Side Jackknife",
+    "name_zh_draft": "侧 Jackknife",
+    "name_zh_final": ""
+  },
+  {
+    "id": "One_Leg_Barbell_Squat",
+    "name_en": "One Leg Barbell Squat",
+    "name_zh_draft": "One Leg杠铃 深蹲",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Open_Palm_Kettlebell_Clean",
+    "name_en": "Open Palm Kettlebell Clean",
+    "name_zh_draft": "Open Palm壶铃 Clean",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Otis-Up",
+    "name_en": "Otis-Up",
+    "name_zh_draft": "Otis Up",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Overhead_Cable_Curl",
+    "name_en": "Overhead Cable Curl",
+    "name_zh_draft": "Overhead绳索 弯举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Overhead_Lat",
+    "name_en": "Overhead Lat",
+    "name_zh_draft": "Overhead Lat",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Overhead_Slam",
+    "name_en": "Overhead Slam",
+    "name_zh_draft": "Overhead 砸球",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Palms-Down_Wrist_Curl_Over_A_Bench",
+    "name_en": "Palms-Down Wrist Curl Over A Bench",
+    "name_zh_draft": "Palms Down Wrist 弯举 Over A Bench",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Overhead_Squat",
+    "name_en": "Overhead Squat",
+    "name_zh_draft": "Overhead 深蹲",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Overhead_Stretch",
+    "name_en": "Overhead Stretch",
+    "name_zh_draft": "Overhead 拉伸",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Overhead_Triceps",
+    "name_en": "Overhead Triceps",
+    "name_zh_draft": "Overhead Triceps",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Pallof_Press",
+    "name_en": "Pallof Press",
+    "name_zh_draft": "Pallof 推举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Pallof_Press_With_Rotation",
+    "name_en": "Pallof Press With Rotation",
+    "name_zh_draft": "Pallof 推举 With Rotation",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Palms-Down_Dumbbell_Wrist_Curl_Over_A_Bench",
+    "name_en": "Palms-Down Dumbbell Wrist Curl Over A Bench",
+    "name_zh_draft": "Palms Down哑铃 Wrist 弯举 Over A Bench",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Palms-Up_Barbell_Wrist_Curl_Over_A_Bench",
+    "name_en": "Palms-Up Barbell Wrist Curl Over A Bench",
+    "name_zh_draft": "Palms Up杠铃 Wrist 弯举 Over A Bench",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Palms-Up_Dumbbell_Wrist_Curl_Over_A_Bench",
+    "name_en": "Palms-Up Dumbbell Wrist Curl Over A Bench",
+    "name_zh_draft": "Palms Up哑铃 Wrist 弯举 Over A Bench",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Parallel_Bar_Dip",
+    "name_en": "Parallel Bar Dip",
+    "name_zh_draft": "Parallel Bar 臂屈伸",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Pelvic_Tilt_Into_Bridge",
+    "name_en": "Pelvic Tilt Into Bridge",
+    "name_zh_draft": "Pelvic Tilt Into 臀桥",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Peroneals-SMR",
+    "name_en": "Peroneals-SMR",
+    "name_zh_draft": "Peroneals SMR",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Peroneals_Stretch",
+    "name_en": "Peroneals Stretch",
+    "name_zh_draft": "Peroneals 拉伸",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Physioball_Hip_Bridge",
+    "name_en": "Physioball Hip Bridge",
+    "name_zh_draft": "Physioball Hip 臀桥",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Pin_Presses",
+    "name_en": "Pin Presses",
+    "name_zh_draft": "Pin Presses",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Plate_Twist",
+    "name_en": "Plate Twist",
+    "name_zh_draft": "Plate Twist",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Platform_Hamstring_Slides",
+    "name_en": "Platform Hamstring Slides",
+    "name_zh_draft": "Platform Hamstring Slides",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Plie_Dumbbell_Squat",
+    "name_en": "Plie Dumbbell Squat",
+    "name_zh_draft": "Plie哑铃 深蹲",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Plyo_Kettlebell_Pushups",
+    "name_en": "Plyo Kettlebell Pushups",
+    "name_zh_draft": "Plyo壶铃 Pushups",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Plyo_Push-up",
+    "name_en": "Plyo Push-up",
+    "name_zh_draft": "Plyo 俯卧撑",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Posterior_Tibialis_Stretch",
+    "name_en": "Posterior Tibialis Stretch",
+    "name_zh_draft": "Posterior Tibialis 拉伸",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Power_Clean",
+    "name_en": "Power Clean",
+    "name_zh_draft": "Power Clean",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Prowler_Sprint",
+    "name_en": "Prowler Sprint",
+    "name_zh_draft": "Prowler Sprint",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Power_Clean_from_Blocks",
+    "name_en": "Power Clean from Blocks",
+    "name_zh_draft": "Power Clean from Blocks",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Power_Jerk",
+    "name_en": "Power Jerk",
+    "name_zh_draft": "Power Jerk",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Power_Partials",
+    "name_en": "Power Partials",
+    "name_zh_draft": "Power Partials",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Preacher_Curl",
+    "name_en": "Preacher Curl",
+    "name_zh_draft": "Preacher 弯举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Preacher_Hammer_Dumbbell_Curl",
+    "name_en": "Preacher Hammer Dumbbell Curl",
+    "name_zh_draft": "Preacher 锤式哑铃 弯举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Press_Sit-Up",
+    "name_en": "Press Sit-Up",
+    "name_zh_draft": "推举 Sit Up",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Pull_Through",
+    "name_en": "Pull Through",
+    "name_zh_draft": "Pull Through",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Pullups",
+    "name_en": "Pullups",
+    "name_zh_draft": "Pullups",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Push-Up_Wide",
+    "name_en": "Push-Up Wide",
+    "name_zh_draft": "俯卧撑 Wide",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Push-Ups_-_Close_Triceps_Position",
+    "name_en": "Push-Ups - Close Triceps Position",
+    "name_zh_draft": "Push Ups Close Triceps Position",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Push-Ups_With_Feet_Elevated",
+    "name_en": "Push-Ups With Feet Elevated",
+    "name_zh_draft": "Push Ups With Feet Elevated",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Push-Ups_With_Feet_On_An_Exercise_Ball",
+    "name_en": "Push-Ups With Feet On An Exercise Ball",
+    "name_zh_draft": "Push Ups With Feet On An 健身球",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Push_Press",
+    "name_en": "Push Press",
+    "name_zh_draft": "借力推举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Push_Press_-_Behind_the_Neck",
+    "name_en": "Push Press - Behind the Neck",
+    "name_zh_draft": "借力推举 Behind the Neck",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Push_Up_to_Side_Plank",
+    "name_en": "Push Up to Side Plank",
+    "name_zh_draft": "Push Up to 侧 平板支撑",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Pushups",
+    "name_en": "Pushups",
+    "name_zh_draft": "Pushups",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Pushups_Close_and_Wide_Hand_Positions",
+    "name_en": "Pushups (Close and Wide Hand Positions)",
+    "name_zh_draft": "Pushups (Close and Wide Hand Positions)",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Pyramid",
+    "name_en": "Pyramid",
+    "name_zh_draft": "Pyramid",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Quad_Stretch",
+    "name_en": "Quad Stretch",
+    "name_zh_draft": "Quad 拉伸",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Quadriceps-SMR",
+    "name_en": "Quadriceps-SMR",
+    "name_zh_draft": "Quadriceps SMR",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Quick_Leap",
+    "name_en": "Quick Leap",
+    "name_zh_draft": "Quick Leap",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Rack_Delivery",
+    "name_en": "Rack Delivery",
+    "name_zh_draft": "Rack Delivery",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Rack_Pull_with_Bands",
+    "name_en": "Rack Pull with Bands",
+    "name_zh_draft": "Rack Pull with 弹力带",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Rack_Pulls",
+    "name_en": "Rack Pulls",
+    "name_zh_draft": "Rack Pulls",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Rear_Leg_Raises",
+    "name_en": "Rear Leg Raises",
+    "name_zh_draft": "Rear Leg Raises",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Recumbent_Bike",
+    "name_en": "Recumbent Bike",
+    "name_zh_draft": "Recumbent Bike",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Return_Push_from_Stance",
+    "name_en": "Return Push from Stance",
+    "name_zh_draft": "Return Push from Stance",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Reverse_Triceps_Bench_Press",
+    "name_en": "Reverse Triceps Bench Press",
+    "name_zh_draft": "反向 Triceps 卧推",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Reverse_Band_Bench_Press",
+    "name_en": "Reverse Band Bench Press",
+    "name_zh_draft": "反向 弹力带 卧推",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Reverse_Band_Box_Squat",
+    "name_en": "Reverse Band Box Squat",
+    "name_zh_draft": "反向 弹力带 Box 深蹲",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Reverse_Band_Deadlift",
+    "name_en": "Reverse Band Deadlift",
+    "name_zh_draft": "反向 弹力带 硬拉",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Reverse_Band_Power_Squat",
+    "name_en": "Reverse Band Power Squat",
+    "name_zh_draft": "反向 弹力带 Power 深蹲",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Rhomboids-SMR",
+    "name_en": "Rhomboids-SMR",
+    "name_zh_draft": "Rhomboids SMR",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Reverse_Band_Sumo_Deadlift",
+    "name_en": "Reverse Band Sumo Deadlift",
+    "name_zh_draft": "反向 弹力带 Sumo 硬拉",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Reverse_Barbell_Curl",
+    "name_en": "Reverse Barbell Curl",
+    "name_zh_draft": "反向杠铃 弯举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Reverse_Barbell_Preacher_Curls",
+    "name_en": "Reverse Barbell Preacher Curls",
+    "name_zh_draft": "反向杠铃 Preacher Curls",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Reverse_Cable_Curl",
+    "name_en": "Reverse Cable Curl",
+    "name_zh_draft": "反向绳索 弯举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Reverse_Crunch",
+    "name_en": "Reverse Crunch",
+    "name_zh_draft": "反向 卷腹",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Reverse_Flyes",
+    "name_en": "Reverse Flyes",
+    "name_zh_draft": "反向 飞鸟",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Reverse_Flyes_With_External_Rotation",
+    "name_en": "Reverse Flyes With External Rotation",
+    "name_zh_draft": "反向 飞鸟 With External Rotation",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Reverse_Grip_Bent-Over_Rows",
+    "name_en": "Reverse Grip Bent-Over Rows",
+    "name_zh_draft": "反向 Grip 俯身 Rows",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Reverse_Grip_Triceps_Pushdown",
+    "name_en": "Reverse Grip Triceps Pushdown",
+    "name_zh_draft": "反向 Grip Triceps Pushdown",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Reverse_Hyperextension",
+    "name_en": "Reverse Hyperextension",
+    "name_zh_draft": "反向 Hyperextension",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Reverse_Machine_Flyes",
+    "name_en": "Reverse Machine Flyes",
+    "name_zh_draft": "反向器械 飞鸟",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Reverse_Plate_Curls",
+    "name_en": "Reverse Plate Curls",
+    "name_zh_draft": "反向 Plate Curls",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Rickshaw_Carry",
+    "name_en": "Rickshaw Carry",
+    "name_zh_draft": "Rickshaw 搬运",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Rickshaw_Deadlift",
+    "name_en": "Rickshaw Deadlift",
+    "name_zh_draft": "Rickshaw 硬拉",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Ring_Dips",
+    "name_en": "Ring Dips",
+    "name_zh_draft": "Ring Dips",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Rocking_Standing_Calf_Raise",
+    "name_en": "Rocking Standing Calf Raise",
+    "name_zh_draft": "Rocking 站姿 Calf 上举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Rocky_Pull-Ups_Pulldowns",
+    "name_en": "Rocky Pull-Ups/Pulldowns",
+    "name_zh_draft": "Rocky Pull Ups / Pulldowns",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Scissors_Jump",
+    "name_en": "Scissors Jump",
+    "name_zh_draft": "Scissors Jump",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Romanian_Deadlift",
+    "name_en": "Romanian Deadlift",
+    "name_zh_draft": "罗马尼亚硬拉",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Romanian_Deadlift_from_Deficit",
+    "name_en": "Romanian Deadlift from Deficit",
+    "name_zh_draft": "罗马尼亚硬拉 from Deficit",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Rope_Climb",
+    "name_en": "Rope Climb",
+    "name_zh_draft": "Rope Climb",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Rope_Crunch",
+    "name_en": "Rope Crunch",
+    "name_zh_draft": "Rope 卷腹",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Rope_Jumping",
+    "name_en": "Rope Jumping",
+    "name_zh_draft": "Rope Jumping",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Rope_Straight-Arm_Pulldown",
+    "name_en": "Rope Straight-Arm Pulldown",
+    "name_zh_draft": "Rope 直臂 下拉",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Round_The_World_Shoulder_Stretch",
+    "name_en": "Round The World Shoulder Stretch",
+    "name_zh_draft": "Round The World Shoulder 拉伸",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Rowing_Stationary",
+    "name_en": "Rowing, Stationary",
+    "name_zh_draft": "Rowing, Stationary",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Runners_Stretch",
+    "name_en": "Runner's Stretch",
+    "name_zh_draft": "Runner's 拉伸",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Running_Treadmill",
+    "name_en": "Running, Treadmill",
+    "name_zh_draft": "Running, Treadmill",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Russian_Twist",
+    "name_en": "Russian Twist",
+    "name_zh_draft": "Russian Twist",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Sandbag_Load",
+    "name_en": "Sandbag Load",
+    "name_zh_draft": "Sandbag Load",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Scapular_Pull-Up",
+    "name_en": "Scapular Pull-Up",
+    "name_zh_draft": "Scapular 引体向上",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Scissor_Kick",
+    "name_en": "Scissor Kick",
+    "name_zh_draft": "Scissor Kick",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Seated_Band_Hamstring_Curl",
+    "name_en": "Seated Band Hamstring Curl",
+    "name_zh_draft": "坐姿 弹力带 Hamstring 弯举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Seated_Barbell_Military_Press",
+    "name_en": "Seated Barbell Military Press",
+    "name_zh_draft": "坐姿杠铃 Military 推举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Seated_Barbell_Twist",
+    "name_en": "Seated Barbell Twist",
+    "name_zh_draft": "坐姿杠铃 Twist",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Seated_Bent-Over_One-Arm_Dumbbell_Triceps_Extension",
+    "name_en": "Seated Bent-Over One-Arm Dumbbell Triceps Extension",
+    "name_zh_draft": "坐姿 俯身 单臂哑铃 三头肌屈伸",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Seated_Bent-Over_Rear_Delt_Raise",
+    "name_en": "Seated Bent-Over Rear Delt Raise",
+    "name_zh_draft": "坐姿 俯身 Rear Delt 上举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Seated_Close-Grip_Concentration_Barbell_Curl",
+    "name_en": "Seated Close-Grip Concentration Barbell Curl",
+    "name_zh_draft": "坐姿 窄握 Concentration杠铃 弯举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Seated_Bent-Over_Two-Arm_Dumbbell_Triceps_Extension",
+    "name_en": "Seated Bent-Over Two-Arm Dumbbell Triceps Extension",
+    "name_zh_draft": "坐姿 俯身 双臂哑铃 三头肌屈伸",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Seated_Biceps",
+    "name_en": "Seated Biceps",
+    "name_zh_draft": "坐姿 Biceps",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Seated_Cable_Rows",
+    "name_en": "Seated Cable Rows",
+    "name_zh_draft": "坐姿绳索 Rows",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Seated_Cable_Shoulder_Press",
+    "name_en": "Seated Cable Shoulder Press",
+    "name_zh_draft": "坐姿绳索 肩推",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Seated_Calf_Raise",
+    "name_en": "Seated Calf Raise",
+    "name_zh_draft": "坐姿 Calf 上举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Seated_Calf_Stretch",
+    "name_en": "Seated Calf Stretch",
+    "name_zh_draft": "坐姿 Calf 拉伸",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Seated_Dumbbell_Curl",
+    "name_en": "Seated Dumbbell Curl",
+    "name_zh_draft": "坐姿哑铃 弯举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Seated_Dumbbell_Inner_Biceps_Curl",
+    "name_en": "Seated Dumbbell Inner Biceps Curl",
+    "name_zh_draft": "坐姿哑铃 Inner Biceps 弯举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Seated_Dumbbell_Palms-Down_Wrist_Curl",
+    "name_en": "Seated Dumbbell Palms-Down Wrist Curl",
+    "name_zh_draft": "坐姿哑铃 Palms Down Wrist 弯举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Seated_Dumbbell_Palms-Up_Wrist_Curl",
+    "name_en": "Seated Dumbbell Palms-Up Wrist Curl",
+    "name_zh_draft": "坐姿哑铃 Palms Up Wrist 弯举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Seated_Dumbbell_Press",
+    "name_en": "Seated Dumbbell Press",
+    "name_zh_draft": "坐姿哑铃 推举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Seated_Flat_Bench_Leg_Pull-In",
+    "name_en": "Seated Flat Bench Leg Pull-In",
+    "name_zh_draft": "坐姿 平板 Bench Leg Pull In",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Seated_Front_Deltoid",
+    "name_en": "Seated Front Deltoid",
+    "name_zh_draft": "坐姿 前 Deltoid",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Seated_Glute",
+    "name_en": "Seated Glute",
+    "name_zh_draft": "坐姿 Glute",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Seated_Good_Mornings",
+    "name_en": "Seated Good Mornings",
+    "name_zh_draft": "坐姿 Good Mornings",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Seated_Hamstring",
+    "name_en": "Seated Hamstring",
+    "name_zh_draft": "坐姿 Hamstring",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Seated_Hamstring_and_Calf_Stretch",
+    "name_en": "Seated Hamstring and Calf Stretch",
+    "name_zh_draft": "坐姿 Hamstring and Calf 拉伸",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Seated_Head_Harness_Neck_Resistance",
+    "name_en": "Seated Head Harness Neck Resistance",
+    "name_zh_draft": "坐姿 Head Harness Neck Resistance",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Seated_Leg_Curl",
+    "name_en": "Seated Leg Curl",
+    "name_zh_draft": "坐姿 腿弯举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Seated_Leg_Tucks",
+    "name_en": "Seated Leg Tucks",
+    "name_zh_draft": "坐姿 Leg Tucks",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Seated_One-Arm_Dumbbell_Palms-Down_Wrist_Curl",
+    "name_en": "Seated One-Arm Dumbbell Palms-Down Wrist Curl",
+    "name_zh_draft": "坐姿 单臂哑铃 Palms Down Wrist 弯举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Seated_One-Arm_Dumbbell_Palms-Up_Wrist_Curl",
+    "name_en": "Seated One-Arm Dumbbell Palms-Up Wrist Curl",
+    "name_zh_draft": "坐姿 单臂哑铃 Palms Up Wrist 弯举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Seated_One-arm_Cable_Pulley_Rows",
+    "name_en": "Seated One-arm Cable Pulley Rows",
+    "name_zh_draft": "坐姿 单臂绳索 Pulley Rows",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Seated_Overhead_Stretch",
+    "name_en": "Seated Overhead Stretch",
+    "name_zh_draft": "坐姿 Overhead 拉伸",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Seated_Palm-Up_Barbell_Wrist_Curl",
+    "name_en": "Seated Palm-Up Barbell Wrist Curl",
+    "name_zh_draft": "坐姿 Palm Up杠铃 Wrist 弯举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Seated_Triceps_Press",
+    "name_en": "Seated Triceps Press",
+    "name_zh_draft": "坐姿 Triceps 推举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Seated_Two-Arm_Palms-Up_Low-Pulley_Wrist_Curl",
+    "name_en": "Seated Two-Arm Palms-Up Low-Pulley Wrist Curl",
+    "name_zh_draft": "坐姿 双臂 Palms Up Low Pulley Wrist 弯举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "See-Saw_Press_Alternating_Side_Press",
+    "name_en": "See-Saw Press (Alternating Side Press)",
+    "name_zh_draft": "See Saw 推举 (交替 侧 推举)",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Shotgun_Row",
+    "name_en": "Shotgun Row",
+    "name_zh_draft": "Shotgun 划船",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Shoulder_Circles",
+    "name_en": "Shoulder Circles",
+    "name_zh_draft": "Shoulder Circles",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Shoulder_Press_-_With_Bands",
+    "name_en": "Shoulder Press - With Bands",
+    "name_zh_draft": "肩推 With 弹力带",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Shoulder_Raise",
+    "name_en": "Shoulder Raise",
+    "name_zh_draft": "Shoulder 上举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Shoulder_Stretch",
+    "name_en": "Shoulder Stretch",
+    "name_zh_draft": "Shoulder 拉伸",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Side_Lateral_Raise",
+    "name_en": "Side Lateral Raise",
+    "name_zh_draft": "侧 Lateral 上举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Side_Laterals_to_Front_Raise",
+    "name_en": "Side Laterals to Front Raise",
+    "name_zh_draft": "侧 Laterals to 前 上举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Side_Leg_Raises",
+    "name_en": "Side Leg Raises",
+    "name_zh_draft": "侧 Leg Raises",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Side_Lying_Groin_Stretch",
+    "name_en": "Side Lying Groin Stretch",
+    "name_zh_draft": "侧 仰卧 Groin 拉伸",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Side_Neck_Stretch",
+    "name_en": "Side Neck Stretch",
+    "name_zh_draft": "侧 Neck 拉伸",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Side_Standing_Long_Jump",
+    "name_en": "Side Standing Long Jump",
+    "name_zh_draft": "侧 站姿 Long Jump",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Side_To_Side_Chins",
+    "name_en": "Side To Side Chins",
+    "name_zh_draft": "侧 To 侧 Chins",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Side_Wrist_Pull",
+    "name_en": "Side Wrist Pull",
+    "name_zh_draft": "侧 Wrist Pull",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Side_to_Side_Box_Shuffle",
+    "name_en": "Side to Side Box Shuffle",
+    "name_zh_draft": "侧 to 侧 Box Shuffle",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Single-Arm_Cable_Crossover",
+    "name_en": "Single-Arm Cable Crossover",
+    "name_zh_draft": "Single Arm绳索 Crossover",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Single-Arm_Linear_Jammer",
+    "name_en": "Single-Arm Linear Jammer",
+    "name_zh_draft": "Single Arm Linear Jammer",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Single-Arm_Push-Up",
+    "name_en": "Single-Arm Push-Up",
+    "name_zh_draft": "Single Arm 俯卧撑",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Single-Cone_Sprint_Drill",
+    "name_en": "Single-Cone Sprint Drill",
+    "name_zh_draft": "Single Cone Sprint Drill",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Single-Leg_High_Box_Squat",
+    "name_en": "Single-Leg High Box Squat",
+    "name_zh_draft": "单腿 High Box 深蹲",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Single-Leg_Hop_Progression",
+    "name_en": "Single-Leg Hop Progression",
+    "name_zh_draft": "单腿 Hop Progression",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Single-Leg_Lateral_Hop",
+    "name_en": "Single-Leg Lateral Hop",
+    "name_zh_draft": "单腿 Lateral Hop",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Single-Leg_Leg_Extension",
+    "name_en": "Single-Leg Leg Extension",
+    "name_zh_draft": "单腿 腿屈伸",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Single-Leg_Stride_Jump",
+    "name_en": "Single-Leg Stride Jump",
+    "name_zh_draft": "单腿 Stride Jump",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Single_Dumbbell_Raise",
+    "name_en": "Single Dumbbell Raise",
+    "name_zh_draft": "Single哑铃 上举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Single_Leg_Butt_Kick",
+    "name_en": "Single Leg Butt Kick",
+    "name_zh_draft": "Single Leg Butt Kick",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Single_Leg_Glute_Bridge",
+    "name_en": "Single Leg Glute Bridge",
+    "name_zh_draft": "Single Leg Glute 臀桥",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Single_Leg_Push-off",
+    "name_en": "Single Leg Push-off",
+    "name_zh_draft": "Single Leg Push off",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Sit-Up",
+    "name_en": "Sit-Up",
+    "name_zh_draft": "Sit Up",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Sit_Squats",
+    "name_en": "Sit Squats",
+    "name_zh_draft": "Sit Squats",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Snatch_Shrug",
+    "name_en": "Snatch Shrug",
+    "name_zh_draft": "Snatch 耸肩",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Skating",
+    "name_en": "Skating",
+    "name_zh_draft": "Skating",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Sled_Drag_-_Harness",
+    "name_en": "Sled Drag - Harness",
+    "name_zh_draft": "Sled Drag Harness",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Sled_Overhead_Backward_Walk",
+    "name_en": "Sled Overhead Backward Walk",
+    "name_zh_draft": "Sled Overhead Backward 行走",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Sled_Overhead_Triceps_Extension",
+    "name_en": "Sled Overhead Triceps Extension",
+    "name_zh_draft": "Sled Overhead 三头肌屈伸",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Sled_Push",
+    "name_en": "Sled Push",
+    "name_zh_draft": "Sled Push",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Sled_Reverse_Flye",
+    "name_en": "Sled Reverse Flye",
+    "name_zh_draft": "Sled 反向 飞鸟",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Sled_Row",
+    "name_en": "Sled Row",
+    "name_zh_draft": "Sled 划船",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Sledgehammer_Swings",
+    "name_en": "Sledgehammer Swings",
+    "name_zh_draft": "Sledgehammer Swings",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Smith_Incline_Shoulder_Raise",
+    "name_en": "Smith Incline Shoulder Raise",
+    "name_zh_draft": "Smith 上斜 Shoulder 上举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Smith_Machine_Behind_the_Back_Shrug",
+    "name_en": "Smith Machine Behind the Back Shrug",
+    "name_zh_draft": "史密斯机 Behind the 后 耸肩",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Smith_Machine_Bench_Press",
+    "name_en": "Smith Machine Bench Press",
+    "name_zh_draft": "史密斯机 卧推",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Smith_Machine_Bent_Over_Row",
+    "name_en": "Smith Machine Bent Over Row",
+    "name_zh_draft": "史密斯机 俯身 划船",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Smith_Machine_Close-Grip_Bench_Press",
+    "name_en": "Smith Machine Close-Grip Bench Press",
+    "name_zh_draft": "史密斯机 窄握 卧推",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Standing_Biceps_Stretch",
+    "name_en": "Standing Biceps Stretch",
+    "name_zh_draft": "站姿 Biceps 拉伸",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Smith_Machine_Decline_Press",
+    "name_en": "Smith Machine Decline Press",
+    "name_zh_draft": "史密斯机 下斜 推举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Smith_Machine_Hang_Power_Clean",
+    "name_en": "Smith Machine Hang Power Clean",
+    "name_zh_draft": "史密斯机 Hang Power Clean",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Smith_Machine_Hip_Raise",
+    "name_en": "Smith Machine Hip Raise",
+    "name_zh_draft": "史密斯机 Hip 上举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Smith_Machine_Incline_Bench_Press",
+    "name_en": "Smith Machine Incline Bench Press",
+    "name_zh_draft": "史密斯机 上斜 卧推",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Smith_Machine_Leg_Press",
+    "name_en": "Smith Machine Leg Press",
+    "name_zh_draft": "史密斯机 腿举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Smith_Machine_Overhead_Shoulder_Press",
+    "name_en": "Smith Machine Overhead Shoulder Press",
+    "name_zh_draft": "史密斯机 Overhead 肩推",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Smith_Machine_Pistol_Squat",
+    "name_en": "Smith Machine Pistol Squat",
+    "name_zh_draft": "史密斯机 Pistol 深蹲",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Smith_Machine_Reverse_Calf_Raises",
+    "name_en": "Smith Machine Reverse Calf Raises",
+    "name_zh_draft": "史密斯机 反向 Calf Raises",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Smith_Machine_Squat",
+    "name_en": "Smith Machine Squat",
+    "name_zh_draft": "史密斯机 深蹲",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Smith_Machine_Stiff-Legged_Deadlift",
+    "name_en": "Smith Machine Stiff-Legged Deadlift",
+    "name_zh_draft": "史密斯机 Stiff Legged 硬拉",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Smith_Machine_Upright_Row",
+    "name_en": "Smith Machine Upright Row",
+    "name_zh_draft": "史密斯机 Upright 划船",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Smith_Single-Leg_Split_Squat",
+    "name_en": "Smith Single-Leg Split Squat",
+    "name_zh_draft": "Smith 单腿 Split 深蹲",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Snatch",
+    "name_en": "Snatch",
+    "name_zh_draft": "Snatch",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Snatch_Balance",
+    "name_en": "Snatch Balance",
+    "name_zh_draft": "Snatch Balance",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Snatch_Deadlift",
+    "name_en": "Snatch Deadlift",
+    "name_zh_draft": "Snatch 硬拉",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Snatch_Pull",
+    "name_en": "Snatch Pull",
+    "name_zh_draft": "Snatch Pull",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Snatch_from_Blocks",
+    "name_en": "Snatch from Blocks",
+    "name_zh_draft": "Snatch from Blocks",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Speed_Band_Overhead_Triceps",
+    "name_en": "Speed Band Overhead Triceps",
+    "name_zh_draft": "Speed 弹力带 Overhead Triceps",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Speed_Box_Squat",
+    "name_en": "Speed Box Squat",
+    "name_zh_draft": "Speed Box 深蹲",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Speed_Squats",
+    "name_en": "Speed Squats",
+    "name_zh_draft": "Speed Squats",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Spell_Caster",
+    "name_en": "Spell Caster",
+    "name_zh_draft": "Spell Caster",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Spider_Crawl",
+    "name_en": "Spider Crawl",
+    "name_zh_draft": "Spider Crawl",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Spider_Curl",
+    "name_en": "Spider Curl",
+    "name_zh_draft": "Spider 弯举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Spinal_Stretch",
+    "name_en": "Spinal Stretch",
+    "name_zh_draft": "Spinal 拉伸",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Split_Clean",
+    "name_en": "Split Clean",
+    "name_zh_draft": "Split Clean",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Split_Jerk",
+    "name_en": "Split Jerk",
+    "name_zh_draft": "Split Jerk",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Split_Jump",
+    "name_en": "Split Jump",
+    "name_zh_draft": "Split Jump",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Standing_Bradford_Press",
+    "name_en": "Standing Bradford Press",
+    "name_zh_draft": "站姿 Bradford 推举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Split_Snatch",
+    "name_en": "Split Snatch",
+    "name_zh_draft": "Split Snatch",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Split_Squat_with_Dumbbells",
+    "name_en": "Split Squat with Dumbbells",
+    "name_zh_draft": "Split 深蹲 with Dumbbells",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Split_Squats",
+    "name_en": "Split Squats",
+    "name_zh_draft": "Split Squats",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Squat_Jerk",
+    "name_en": "Squat Jerk",
+    "name_zh_draft": "深蹲 Jerk",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Squat_with_Bands",
+    "name_en": "Squat with Bands",
+    "name_zh_draft": "深蹲 with 弹力带",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Standing_Cable_Chest_Press",
+    "name_en": "Standing Cable Chest Press",
+    "name_zh_draft": "站姿绳索 推胸",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Squat_with_Chains",
+    "name_en": "Squat with Chains",
+    "name_zh_draft": "深蹲 with Chains",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Squat_with_Plate_Movers",
+    "name_en": "Squat with Plate Movers",
+    "name_zh_draft": "深蹲 with Plate Movers",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Squats_-_With_Bands",
+    "name_en": "Squats - With Bands",
+    "name_zh_draft": "Squats With 弹力带",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Stairmaster",
+    "name_en": "Stairmaster",
+    "name_zh_draft": "Stairmaster",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Standing_Alternating_Dumbbell_Press",
+    "name_en": "Standing Alternating Dumbbell Press",
+    "name_zh_draft": "站姿 交替哑铃 推举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Star_Jump",
+    "name_en": "Star Jump",
+    "name_zh_draft": "Star Jump",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Standing_Barbell_Calf_Raise",
+    "name_en": "Standing Barbell Calf Raise",
+    "name_zh_draft": "站姿杠铃 Calf 上举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Standing_Barbell_Press_Behind_Neck",
+    "name_en": "Standing Barbell Press Behind Neck",
+    "name_zh_draft": "站姿杠铃 推举 Behind Neck",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Standing_Bent-Over_One-Arm_Dumbbell_Triceps_Extension",
+    "name_en": "Standing Bent-Over One-Arm Dumbbell Triceps Extension",
+    "name_zh_draft": "站姿 俯身 单臂哑铃 三头肌屈伸",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Standing_Bent-Over_Two-Arm_Dumbbell_Triceps_Extension",
+    "name_en": "Standing Bent-Over Two-Arm Dumbbell Triceps Extension",
+    "name_zh_draft": "站姿 俯身 双臂哑铃 三头肌屈伸",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Standing_Biceps_Cable_Curl",
+    "name_en": "Standing Biceps Cable Curl",
+    "name_zh_draft": "站姿 Biceps绳索 弯举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Standing_Cable_Lift",
+    "name_en": "Standing Cable Lift",
+    "name_zh_draft": "站姿绳索 Lift",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Standing_Dumbbell_Calf_Raise",
+    "name_en": "Standing Dumbbell Calf Raise",
+    "name_zh_draft": "站姿哑铃 Calf 上举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Standing_Dumbbell_Press",
+    "name_en": "Standing Dumbbell Press",
+    "name_zh_draft": "站姿哑铃 推举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Standing_Dumbbell_Reverse_Curl",
+    "name_en": "Standing Dumbbell Reverse Curl",
+    "name_zh_draft": "站姿哑铃 反向 弯举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Standing_Dumbbell_Straight-Arm_Front_Delt_Raise_Above_Head",
+    "name_en": "Standing Dumbbell Straight-Arm Front Delt Raise Above Head",
+    "name_zh_draft": "站姿哑铃 直臂 前 Delt 上举 Above Head",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Standing_Dumbbell_Triceps_Extension",
+    "name_en": "Standing Dumbbell Triceps Extension",
+    "name_zh_draft": "站姿哑铃 三头肌屈伸",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Step-up_with_Knee_Raise",
+    "name_en": "Step-up with Knee Raise",
+    "name_zh_draft": "Step up with Knee 上举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Standing_Dumbbell_Upright_Row",
+    "name_en": "Standing Dumbbell Upright Row",
+    "name_zh_draft": "站姿哑铃 Upright 划船",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Standing_Elevated_Quad_Stretch",
+    "name_en": "Standing Elevated Quad Stretch",
+    "name_zh_draft": "站姿 Elevated Quad 拉伸",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Standing_Front_Barbell_Raise_Over_Head",
+    "name_en": "Standing Front Barbell Raise Over Head",
+    "name_zh_draft": "站姿 前杠铃 上举 Over Head",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Standing_Gastrocnemius_Calf_Stretch",
+    "name_en": "Standing Gastrocnemius Calf Stretch",
+    "name_zh_draft": "站姿 Gastrocnemius Calf 拉伸",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Standing_Hamstring_and_Calf_Stretch",
+    "name_en": "Standing Hamstring and Calf Stretch",
+    "name_zh_draft": "站姿 Hamstring and Calf 拉伸",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Standing_Hip_Circles",
+    "name_en": "Standing Hip Circles",
+    "name_zh_draft": "站姿 Hip Circles",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Standing_Hip_Flexors",
+    "name_en": "Standing Hip Flexors",
+    "name_zh_draft": "站姿 Hip Flexors",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Standing_Military_Press",
+    "name_en": "Standing Military Press",
+    "name_zh_draft": "站姿 Military 推举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Standing_Inner-Biceps_Curl",
+    "name_en": "Standing Inner-Biceps Curl",
+    "name_zh_draft": "站姿 Inner Biceps 弯举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Standing_Lateral_Stretch",
+    "name_en": "Standing Lateral Stretch",
+    "name_zh_draft": "站姿 Lateral 拉伸",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Standing_Leg_Curl",
+    "name_en": "Standing Leg Curl",
+    "name_zh_draft": "站姿 腿弯举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Standing_Long_Jump",
+    "name_en": "Standing Long Jump",
+    "name_zh_draft": "站姿 Long Jump",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Standing_Low-Pulley_Deltoid_Raise",
+    "name_en": "Standing Low-Pulley Deltoid Raise",
+    "name_zh_draft": "站姿 Low Pulley Deltoid 上举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Standing_Low-Pulley_One-Arm_Triceps_Extension",
+    "name_en": "Standing Low-Pulley One-Arm Triceps Extension",
+    "name_zh_draft": "站姿 Low Pulley 单臂 三头肌屈伸",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Standing_Olympic_Plate_Hand_Squeeze",
+    "name_en": "Standing Olympic Plate Hand Squeeze",
+    "name_zh_draft": "站姿 Olympic Plate Hand Squeeze",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Standing_One-Arm_Cable_Curl",
+    "name_en": "Standing One-Arm Cable Curl",
+    "name_zh_draft": "站姿 单臂绳索 弯举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Standing_One-Arm_Dumbbell_Curl_Over_Incline_Bench",
+    "name_en": "Standing One-Arm Dumbbell Curl Over Incline Bench",
+    "name_zh_draft": "站姿 单臂哑铃 弯举 Over 上斜 Bench",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Standing_One-Arm_Dumbbell_Triceps_Extension",
+    "name_en": "Standing One-Arm Dumbbell Triceps Extension",
+    "name_zh_draft": "站姿 单臂哑铃 三头肌屈伸",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Standing_Overhead_Barbell_Triceps_Extension",
+    "name_en": "Standing Overhead Barbell Triceps Extension",
+    "name_zh_draft": "站姿 Overhead杠铃 三头肌屈伸",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Standing_Two-Arm_Overhead_Throw",
+    "name_en": "Standing Two-Arm Overhead Throw",
+    "name_zh_draft": "站姿 双臂 Overhead Throw",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Standing_Palm-In_One-Arm_Dumbbell_Press",
+    "name_en": "Standing Palm-In One-Arm Dumbbell Press",
+    "name_zh_draft": "站姿 Palm In 单臂哑铃 推举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Standing_Palms-In_Dumbbell_Press",
+    "name_en": "Standing Palms-In Dumbbell Press",
+    "name_zh_draft": "站姿 Palms In哑铃 推举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Standing_Palms-Up_Barbell_Behind_The_Back_Wrist_Curl",
+    "name_en": "Standing Palms-Up Barbell Behind The Back Wrist Curl",
+    "name_zh_draft": "站姿 Palms Up杠铃 Behind The 后 Wrist 弯举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Standing_Pelvic_Tilt",
+    "name_en": "Standing Pelvic Tilt",
+    "name_zh_draft": "站姿 Pelvic Tilt",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Standing_Rope_Crunch",
+    "name_en": "Standing Rope Crunch",
+    "name_zh_draft": "站姿 Rope 卷腹",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Standing_Toe_Touches",
+    "name_en": "Standing Toe Touches",
+    "name_zh_draft": "站姿 Toe Touches",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Standing_Towel_Triceps_Extension",
+    "name_en": "Standing Towel Triceps Extension",
+    "name_zh_draft": "站姿 Towel 三头肌屈伸",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Step_Mill",
+    "name_en": "Step Mill",
+    "name_zh_draft": "Step Mill",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Stiff-Legged_Barbell_Deadlift",
+    "name_en": "Stiff-Legged Barbell Deadlift",
+    "name_zh_draft": "Stiff Legged杠铃 硬拉",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Stiff-Legged_Dumbbell_Deadlift",
+    "name_en": "Stiff-Legged Dumbbell Deadlift",
+    "name_zh_draft": "Stiff Legged哑铃 硬拉",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Stiff_Leg_Barbell_Good_Morning",
+    "name_en": "Stiff Leg Barbell Good Morning",
+    "name_zh_draft": "Stiff Leg杠铃 Good Morning",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Stomach_Vacuum",
+    "name_en": "Stomach Vacuum",
+    "name_zh_draft": "Stomach Vacuum",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Sumo_Deadlift_with_Bands",
+    "name_en": "Sumo Deadlift with Bands",
+    "name_zh_draft": "Sumo 硬拉 with 弹力带",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Straight-Arm_Dumbbell_Pullover",
+    "name_en": "Straight-Arm Dumbbell Pullover",
+    "name_zh_draft": "直臂哑铃 上拉",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Straight-Arm_Pulldown",
+    "name_en": "Straight-Arm Pulldown",
+    "name_zh_draft": "直臂 下拉",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Straight_Bar_Bench_Mid_Rows",
+    "name_en": "Straight Bar Bench Mid Rows",
+    "name_zh_draft": "Straight Bar Bench Mid Rows",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Straight_Raises_on_Incline_Bench",
+    "name_en": "Straight Raises on Incline Bench",
+    "name_zh_draft": "Straight Raises on 上斜 Bench",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Stride_Jump_Crossover",
+    "name_en": "Stride Jump Crossover",
+    "name_zh_draft": "Stride Jump Crossover",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Sumo_Deadlift",
+    "name_en": "Sumo Deadlift",
+    "name_zh_draft": "Sumo 硬拉",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Sumo_Deadlift_with_Chains",
+    "name_en": "Sumo Deadlift with Chains",
+    "name_zh_draft": "Sumo 硬拉 with Chains",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Superman",
+    "name_en": "Superman",
+    "name_zh_draft": "Superman",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Supine_Chest_Throw",
+    "name_en": "Supine Chest Throw",
+    "name_zh_draft": "Supine Chest Throw",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Supine_One-Arm_Overhead_Throw",
+    "name_en": "Supine One-Arm Overhead Throw",
+    "name_zh_draft": "Supine 单臂 Overhead Throw",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Supine_Two-Arm_Overhead_Throw",
+    "name_en": "Supine Two-Arm Overhead Throw",
+    "name_zh_draft": "Supine 双臂 Overhead Throw",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Suspended_Fallout",
+    "name_en": "Suspended Fallout",
+    "name_zh_draft": "Suspended Fallout",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Suspended_Push-Up",
+    "name_en": "Suspended Push-Up",
+    "name_zh_draft": "Suspended 俯卧撑",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Suspended_Reverse_Crunch",
+    "name_en": "Suspended Reverse Crunch",
+    "name_zh_draft": "Suspended 反向 卷腹",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Suspended_Row",
+    "name_en": "Suspended Row",
+    "name_zh_draft": "Suspended 划船",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Suspended_Split_Squat",
+    "name_en": "Suspended Split Squat",
+    "name_zh_draft": "Suspended Split 深蹲",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Svend_Press",
+    "name_en": "Svend Press",
+    "name_zh_draft": "Svend 推举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "T-Bar_Row_with_Handle",
+    "name_en": "T-Bar Row with Handle",
+    "name_zh_draft": "T Bar 划船 with Handle",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Tate_Press",
+    "name_en": "Tate Press",
+    "name_zh_draft": "Tate 推举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "The_Straddle",
+    "name_en": "The Straddle",
+    "name_zh_draft": "The Straddle",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Upper_Back-Leg_Grab",
+    "name_en": "Upper Back-Leg Grab",
+    "name_zh_draft": "Upper 后 Leg Grab",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Thigh_Abductor",
+    "name_en": "Thigh Abductor",
+    "name_zh_draft": "Thigh Abductor",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Thigh_Adductor",
+    "name_en": "Thigh Adductor",
+    "name_zh_draft": "Thigh Adductor",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Tire_Flip",
+    "name_en": "Tire Flip",
+    "name_zh_draft": "Tire Flip",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Toe_Touchers",
+    "name_en": "Toe Touchers",
+    "name_zh_draft": "Toe Touchers",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Torso_Rotation",
+    "name_en": "Torso Rotation",
+    "name_zh_draft": "Torso Rotation",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Trail_Running_Walking",
+    "name_en": "Trail Running/Walking",
+    "name_zh_draft": "Trail Running / Walking",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Trap_Bar_Deadlift",
+    "name_en": "Trap Bar Deadlift",
+    "name_zh_draft": "Trap Bar 硬拉",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Upper_Back_Stretch",
+    "name_en": "Upper Back Stretch",
+    "name_zh_draft": "Upper 后 拉伸",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Tricep_Dumbbell_Kickback",
+    "name_en": "Tricep Dumbbell Kickback",
+    "name_zh_draft": "Tricep哑铃 Kickback",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Tricep_Side_Stretch",
+    "name_en": "Tricep Side Stretch",
+    "name_zh_draft": "Tricep 侧 拉伸",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Triceps_Overhead_Extension_with_Rope",
+    "name_en": "Triceps Overhead Extension with Rope",
+    "name_zh_draft": "Triceps Overhead 屈伸 with Rope",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Triceps_Pushdown",
+    "name_en": "Triceps Pushdown",
+    "name_zh_draft": "Triceps Pushdown",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Triceps_Pushdown_-_Rope_Attachment",
+    "name_en": "Triceps Pushdown - Rope Attachment",
+    "name_zh_draft": "Triceps Pushdown Rope Attachment",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Triceps_Pushdown_-_V-Bar_Attachment",
+    "name_en": "Triceps Pushdown - V-Bar Attachment",
+    "name_zh_draft": "Triceps Pushdown V Bar Attachment",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Triceps_Stretch",
+    "name_en": "Triceps Stretch",
+    "name_zh_draft": "Triceps 拉伸",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Tuck_Crunch",
+    "name_en": "Tuck Crunch",
+    "name_zh_draft": "Tuck 卷腹",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Two-Arm_Dumbbell_Preacher_Curl",
+    "name_en": "Two-Arm Dumbbell Preacher Curl",
+    "name_zh_draft": "双臂哑铃 Preacher 弯举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Two-Arm_Kettlebell_Clean",
+    "name_en": "Two-Arm Kettlebell Clean",
+    "name_zh_draft": "双臂壶铃 Clean",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Two-Arm_Kettlebell_Jerk",
+    "name_en": "Two-Arm Kettlebell Jerk",
+    "name_zh_draft": "双臂壶铃 Jerk",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Two-Arm_Kettlebell_Military_Press",
+    "name_en": "Two-Arm Kettlebell Military Press",
+    "name_zh_draft": "双臂壶铃 Military 推举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Two-Arm_Kettlebell_Row",
+    "name_en": "Two-Arm Kettlebell Row",
+    "name_zh_draft": "双臂壶铃 划船",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Underhand_Cable_Pulldowns",
+    "name_en": "Underhand Cable Pulldowns",
+    "name_zh_draft": "Underhand绳索 Pulldowns",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Upright_Barbell_Row",
+    "name_en": "Upright Barbell Row",
+    "name_zh_draft": "Upright杠铃 划船",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Upright_Cable_Row",
+    "name_en": "Upright Cable Row",
+    "name_zh_draft": "Upright绳索 划船",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Upright_Row_-_With_Bands",
+    "name_en": "Upright Row - With Bands",
+    "name_zh_draft": "Upright 划船 With 弹力带",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Upward_Stretch",
+    "name_en": "Upward Stretch",
+    "name_zh_draft": "Upward 拉伸",
+    "name_zh_final": ""
+  },
+  {
+    "id": "V-Bar_Pulldown",
+    "name_en": "V-Bar Pulldown",
+    "name_zh_draft": "V Bar 下拉",
+    "name_zh_final": ""
+  },
+  {
+    "id": "V-Bar_Pullup",
+    "name_en": "V-Bar Pullup",
+    "name_zh_draft": "V Bar Pullup",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Vertical_Swing",
+    "name_en": "Vertical Swing",
+    "name_zh_draft": "Vertical Swing",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Walking_Treadmill",
+    "name_en": "Walking, Treadmill",
+    "name_zh_draft": "Walking, Treadmill",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Weighted_Ball_Hyperextension",
+    "name_en": "Weighted Ball Hyperextension",
+    "name_zh_draft": "Weighted Ball Hyperextension",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Weighted_Ball_Side_Bend",
+    "name_en": "Weighted Ball Side Bend",
+    "name_zh_draft": "Weighted Ball 侧 Bend",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Weighted_Bench_Dip",
+    "name_en": "Weighted Bench Dip",
+    "name_zh_draft": "Weighted Bench 臂屈伸",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Weighted_Crunches",
+    "name_en": "Weighted Crunches",
+    "name_zh_draft": "Weighted Crunches",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Weighted_Jump_Squat",
+    "name_en": "Weighted Jump Squat",
+    "name_zh_draft": "Weighted Jump 深蹲",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Weighted_Pull_Ups",
+    "name_en": "Weighted Pull Ups",
+    "name_zh_draft": "Weighted Pull Ups",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Weighted_Sit-Ups_-_With_Bands",
+    "name_en": "Weighted Sit-Ups - With Bands",
+    "name_zh_draft": "Weighted Sit Ups With 弹力带",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Weighted_Squat",
+    "name_en": "Weighted Squat",
+    "name_zh_draft": "Weighted 深蹲",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Wide-Grip_Barbell_Bench_Press",
+    "name_en": "Wide-Grip Barbell Bench Press",
+    "name_zh_draft": "宽握杠铃 卧推",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Wide-Grip_Standing_Barbell_Curl",
+    "name_en": "Wide-Grip Standing Barbell Curl",
+    "name_zh_draft": "宽握 站姿杠铃 弯举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Wide-Grip_Decline_Barbell_Bench_Press",
+    "name_en": "Wide-Grip Decline Barbell Bench Press",
+    "name_zh_draft": "宽握 下斜杠铃 卧推",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Wide-Grip_Decline_Barbell_Pullover",
+    "name_en": "Wide-Grip Decline Barbell Pullover",
+    "name_zh_draft": "宽握 下斜杠铃 上拉",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Wide-Grip_Lat_Pulldown",
+    "name_en": "Wide-Grip Lat Pulldown",
+    "name_zh_draft": "宽握 Lat 下拉",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Wide-Grip_Pulldown_Behind_The_Neck",
+    "name_en": "Wide-Grip Pulldown Behind The Neck",
+    "name_zh_draft": "宽握 下拉 Behind The Neck",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Wide-Grip_Rear_Pull-Up",
+    "name_en": "Wide-Grip Rear Pull-Up",
+    "name_zh_draft": "宽握 Rear 引体向上",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Wide_Stance_Barbell_Squat",
+    "name_en": "Wide Stance Barbell Squat",
+    "name_zh_draft": "Wide Stance杠铃 深蹲",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Wide_Stance_Stiff_Legs",
+    "name_en": "Wide Stance Stiff Legs",
+    "name_zh_draft": "Wide Stance Stiff Legs",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Wind_Sprints",
+    "name_en": "Wind Sprints",
+    "name_zh_draft": "Wind Sprints",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Windmills",
+    "name_en": "Windmills",
+    "name_zh_draft": "Windmills",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Worlds_Greatest_Stretch",
+    "name_en": "World's Greatest Stretch",
+    "name_zh_draft": "World's Greatest 拉伸",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Wrist_Circles",
+    "name_en": "Wrist Circles",
+    "name_zh_draft": "Wrist Circles",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Wrist_Roller",
+    "name_en": "Wrist Roller",
+    "name_zh_draft": "Wrist Roller",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Wrist_Rotations_with_Straight_Bar",
+    "name_en": "Wrist Rotations with Straight Bar",
+    "name_zh_draft": "Wrist Rotations with Straight Bar",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Yoke_Walk",
+    "name_en": "Yoke Walk",
+    "name_zh_draft": "Yoke 行走",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Zercher_Squats",
+    "name_en": "Zercher Squats",
+    "name_zh_draft": "Zercher Squats",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Zottman_Curl",
+    "name_en": "Zottman Curl",
+    "name_zh_draft": "Zottman 弯举",
+    "name_zh_final": ""
+  },
+  {
+    "id": "Zottman_Preacher_Curl",
+    "name_en": "Zottman Preacher Curl",
+    "name_zh_draft": "Zottman Preacher 弯举",
+    "name_zh_final": ""
+  }
+]

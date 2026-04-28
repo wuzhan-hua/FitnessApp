@@ -65,30 +65,140 @@ extension SessionStatusX on SessionStatus {
 class ExerciseCatalogItem {
   const ExerciseCatalogItem({
     required this.id,
-    required this.name,
-    required this.muscleGroup,
-    required this.equipment,
+    required this.nameEn,
+    this.nameZh,
+    required this.primaryMusclesEn,
+    this.primaryMusclesZh = const [],
+    this.secondaryMusclesEn = const [],
+    this.secondaryMusclesZh = const [],
+    this.equipmentEn,
+    this.equipmentZh,
+    this.categoryEn,
+    this.categoryZh,
+    this.instructionsEn = const [],
+    this.instructionsZh = const [],
+    this.coverImageUrl,
+    this.imageUrls = const [],
   });
 
   /// 动作唯一标识。
   final String id;
 
-  /// 动作名称。
-  final String name;
+  /// 动作英文名称。
+  final String nameEn;
 
-  /// 主要目标肌群。
-  final String muscleGroup;
+  /// 动作中文名称。
+  final String? nameZh;
 
-  /// 所需器械信息。
-  final String equipment;
+  /// 主要目标肌群（英文）。
+  final List<String> primaryMusclesEn;
+
+  /// 主要目标肌群（中文）。
+  final List<String> primaryMusclesZh;
+
+  /// 次要目标肌群（英文）。
+  final List<String> secondaryMusclesEn;
+
+  /// 次要目标肌群（中文）。
+  final List<String> secondaryMusclesZh;
+
+  /// 所需器械（英文）。
+  final String? equipmentEn;
+
+  /// 所需器械（中文）。
+  final String? equipmentZh;
+
+  /// 动作分类（英文）。
+  final String? categoryEn;
+
+  /// 动作分类（中文）。
+  final String? categoryZh;
+
+  /// 动作说明（英文）。
+  final List<String> instructionsEn;
+
+  /// 动作说明（中文）。
+  final List<String> instructionsZh;
+
+  /// 列表缩略图地址。
+  final String? coverImageUrl;
+
+  /// 动作参考图地址列表。
+  final List<String> imageUrls;
+
+  /// 兼容旧代码的展示名称优先级：中文 > 英文。
+  String get name => (nameZh != null && nameZh!.trim().isNotEmpty) ? nameZh! : nameEn;
+
+  /// 兼容旧代码的主要肌群展示值。
+  String get muscleGroup {
+    final muscles = primaryMusclesZh.isNotEmpty ? primaryMusclesZh : primaryMusclesEn;
+    return muscles.isEmpty ? '' : muscles.first;
+  }
+
+  /// 兼容旧代码的器械展示值。
+  String get equipment {
+    if (equipmentZh != null && equipmentZh!.trim().isNotEmpty) {
+      return equipmentZh!;
+    }
+    return equipmentEn ?? '';
+  }
+
+  /// 是否属于默认负重应归零的徒手/拉伸动作。
+  bool get defaultsToZeroWeight {
+    final normalizedEquipmentEn = equipmentEn?.trim().toLowerCase();
+    final normalizedEquipmentZh = equipmentZh?.trim();
+    final normalizedCategoryEn = categoryEn?.trim().toLowerCase();
+    final normalizedCategoryZh = categoryZh?.trim();
+    return normalizedEquipmentEn == 'body only' ||
+        normalizedEquipmentZh == '徒手' ||
+        normalizedCategoryEn == 'stretching' ||
+        normalizedCategoryZh == '拉伸';
+  }
+
+  static List<String> _readStringList(dynamic raw) {
+    if (raw is List) {
+      return raw
+          .map((item) => item?.toString().trim() ?? '')
+          .where((item) => item.isNotEmpty)
+          .toList();
+    }
+    return const [];
+  }
 
   /// 从 JSON 构建动作目录项，缺失字段使用空字符串兜底。
   factory ExerciseCatalogItem.fromJson(Map<String, dynamic> json) {
+    final fallbackMuscle = json['muscleGroup']?.toString().trim();
     return ExerciseCatalogItem(
       id: json['id'] as String? ?? '',
-      name: json['name'] as String? ?? '',
-      muscleGroup: json['muscleGroup'] as String? ?? '',
-      equipment: json['equipment'] as String? ?? '',
+      nameEn:
+          json['name_en'] as String? ??
+          json['name'] as String? ??
+          '',
+      nameZh: json['name_zh'] as String?,
+      primaryMusclesEn:
+          _readStringList(json['primary_muscles_en']).isNotEmpty
+          ? _readStringList(json['primary_muscles_en'])
+          : (fallbackMuscle == null || fallbackMuscle.isEmpty
+                ? const []
+                : [fallbackMuscle]),
+      primaryMusclesZh: _readStringList(json['primary_muscles_zh']),
+      secondaryMusclesEn: _readStringList(json['secondary_muscles_en']),
+      secondaryMusclesZh: _readStringList(json['secondary_muscles_zh']),
+      equipmentEn:
+          json['equipment_en'] as String? ??
+          json['equipment'] as String?,
+      equipmentZh: json['equipment_zh'] as String?,
+      categoryEn: json['category_en'] as String?,
+      categoryZh: json['category_zh'] as String?,
+      instructionsEn: _readStringList(json['instructions_en']),
+      instructionsZh: _readStringList(json['instructions_zh']),
+      coverImageUrl:
+          json['cover_image_url'] as String? ??
+          json['cover_image_path'] as String?,
+      imageUrls:
+          _readStringList(json['image_urls']).isNotEmpty
+          ? _readStringList(json['image_urls'])
+          : _readStringList(json['image_paths']),
     );
   }
 
@@ -96,6 +206,20 @@ class ExerciseCatalogItem {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
+      'name_en': nameEn,
+      'name_zh': nameZh,
+      'primary_muscles_en': primaryMusclesEn,
+      'primary_muscles_zh': primaryMusclesZh,
+      'secondary_muscles_en': secondaryMusclesEn,
+      'secondary_muscles_zh': secondaryMusclesZh,
+      'equipment_en': equipmentEn,
+      'equipment_zh': equipmentZh,
+      'category_en': categoryEn,
+      'category_zh': categoryZh,
+      'instructions_en': instructionsEn,
+      'instructions_zh': instructionsZh,
+      'cover_image_url': coverImageUrl,
+      'image_urls': imageUrls,
       'name': name,
       'muscleGroup': muscleGroup,
       'equipment': equipment,

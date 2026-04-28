@@ -11,6 +11,7 @@
 5. `workout_exercises`
 6. `workout_sets`
 7. `workout_records`
+8. `exercise_catalog_items`
 
 ## 总览
 
@@ -23,6 +24,7 @@
 | `workout_exercises` | 会话动作表 | 存某次训练里包含了哪些动作，以及动作顺序和目标组数。 |
 | `workout_sets` | 训练组明细表 | 存某个动作下每一组的实际训练数据。 |
 | `workout_records` | 训练归档快照表 | 存已归档的历史训练快照，设计上用于追溯，不用于持续编辑。 |
+| `exercise_catalog_items` | 动作目录表 | 存全局共享的动作基础信息、肌群分类和参考图片路径，用于动作库选择。 |
 
 ## 表级说明
 
@@ -230,6 +232,35 @@
 | `duration_minutes` | `integer` | 训练时长快照。 |
 | `exercises` | `jsonb` | 当次训练动作和组数据的 JSON 快照。 |
 | `notes` | `text` | 训练备注快照。 |
+
+### `exercise_catalog_items`
+
+- 表名中文含义：动作目录表
+- 一句话用途：存全局动作模板、肌群/器械分类、动作说明和参考图片路径，供动作库筛选与选择使用。
+- 主键：`id`
+
+| 字段 | 类型 | 含义 |
+| --- | --- | --- |
+| `id` | `text` | 动作目录唯一标识，直接对应导入源里的动作 ID。 |
+| `name_en` | `text` | 动作英文名。 |
+| `name_zh` | `text` | 动作中文名，可为空。 |
+| `equipment_en` | `text` | 器械英文名，可为空。 |
+| `equipment_zh` | `text` | 器械中文名，可为空。 |
+| `category_en` | `text` | 动作分类英文名，如 `strength`、`stretching`。 |
+| `category_zh` | `text` | 动作分类中文名。 |
+| `primary_muscles_en` | `text[]` | 主要目标肌群英文列表。 |
+| `primary_muscles_zh` | `text[]` | 主要目标肌群中文列表。 |
+| `secondary_muscles_en` | `text[]` | 次要目标肌群英文列表。 |
+| `secondary_muscles_zh` | `text[]` | 次要目标肌群中文列表。 |
+| `instructions_en` | `text[]` | 动作说明英文步骤列表。 |
+| `instructions_zh` | `text[]` | 动作说明中文步骤列表，当前可为空。 |
+| `image_paths` | `text[]` | 动作参考图在存储桶中的对象路径列表。 |
+| `cover_image_path` | `text` | 列表封面图在存储桶中的对象路径。 |
+| `source` | `text` | 数据来源标记，当前默认 `free-exercise-db`。 |
+| `source_version` | `text` | 导入时使用的数据源版本标记，如 `main`。 |
+| `is_active` | `boolean` | 当前动作是否启用，用于动作库展示控制。 |
+| `created_at` | `timestamptz` | 目录记录创建时间。 |
+| `updated_at` | `timestamptz` | 目录记录最近更新时间。 |
 
 ## 关系与易混点
 
