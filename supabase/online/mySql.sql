@@ -64,6 +64,7 @@ create table public.users (
   last_sign_in_at timestamp with time zone null,
   updated_at timestamp with time zone not null default now(),
   is_profile_completed boolean not null default false,
+  is_admin boolean not null default false,
   user_type smallint not null default 0,
   constraint users_pkey primary key (id),
   constraint users_user_id_key unique (user_id),
@@ -221,3 +222,73 @@ create table public.workout_sets (
 ) TABLESPACE pg_default;
 
 create index IF not exists idx_workout_sets_user_session on public.workout_sets using btree (user_id, session_id) TABLESPACE pg_default;
+
+
+
+create table public.exercise_catalog_items (
+  id text not null,
+  name_en text not null,
+  name_zh text null,
+  equipment_en text null,
+  equipment_zh text null,
+  category_en text null,
+  category_zh text null,
+  force_en text null,
+  mechanic_en text null,
+  level_en text null,
+  primary_muscles_en text[] not null default '{}'::text[],
+  primary_muscles_zh text[] not null default '{}'::text[],
+  secondary_muscles_en text[] not null default '{}'::text[],
+  secondary_muscles_zh text[] not null default '{}'::text[],
+  instructions_en text[] not null default '{}'::text[],
+  instructions_zh text[] not null default '{}'::text[],
+  image_paths text[] not null default '{}'::text[],
+  cover_image_path text null,
+  source text not null default 'free-exercise-db'::text,
+  source_version text null,
+  is_active boolean not null default true,
+  created_at timestamp with time zone not null default now(),
+  updated_at timestamp with time zone not null default now(),
+  custom_name_zh text null,
+  constraint exercise_catalog_items_pkey primary key (id)
+) TABLESPACE pg_default;
+
+create index IF not exists exercise_catalog_items_source_idx on public.exercise_catalog_items using btree (source, is_active) TABLESPACE pg_default;
+
+create index IF not exists exercise_catalog_items_category_en_idx on public.exercise_catalog_items using btree (category_en) TABLESPACE pg_default;
+
+create index IF not exists exercise_catalog_items_equipment_en_idx on public.exercise_catalog_items using btree (equipment_en) TABLESPACE pg_default;
+
+create index IF not exists exercise_catalog_items_primary_muscles_en_gin_idx on public.exercise_catalog_items using gin (primary_muscles_en) TABLESPACE pg_default;
+
+create index IF not exists exercise_catalog_items_primary_muscles_zh_gin_idx on public.exercise_catalog_items using gin (primary_muscles_zh) TABLESPACE pg_default;
+
+create trigger touch_exercise_catalog_items_updated_at_trigger BEFORE
+update on exercise_catalog_items for EACH row
+execute FUNCTION touch_updated_at ();
+
+
+
+create table public.exercise_catalog_item_orders (
+  id uuid not null default gen_random_uuid (),
+  user_id uuid not null,
+  exercise_id text not null,
+  muscle_group text not null,
+  sort_order integer not null default 0,
+  created_at timestamp with time zone not null default now(),
+  updated_at timestamp with time zone not null default now(),
+  constraint exercise_catalog_item_orders_pkey primary key (id),
+  constraint exercise_catalog_item_orders_exercise_group_unique unique (exercise_id, muscle_group),
+  constraint exercise_catalog_item_orders_user_id_fkey foreign KEY (user_id) references auth.users (id) on delete CASCADE,
+  constraint exercise_catalog_item_orders_exercise_id_fkey foreign KEY (exercise_id) references exercise_catalog_items (id) on delete CASCADE,
+  constraint exercise_catalog_item_orders_sort_order_check check ((sort_order >= 0)),
+  constraint exercise_catalog_item_orders_muscle_group_check check ((btrim(muscle_group) <> ''::text))
+) TABLESPACE pg_default;
+
+create index IF not exists exercise_catalog_item_orders_muscle_group_idx on public.exercise_catalog_item_orders using btree (muscle_group, sort_order) TABLESPACE pg_default;
+
+create index IF not exists exercise_catalog_item_orders_user_id_idx on public.exercise_catalog_item_orders using btree (user_id) TABLESPACE pg_default;
+
+create trigger touch_exercise_catalog_item_orders_updated_at_trigger BEFORE
+update on exercise_catalog_item_orders for EACH row
+execute FUNCTION touch_updated_at ();

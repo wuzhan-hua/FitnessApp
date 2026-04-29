@@ -1,16 +1,55 @@
 import 'package:fitness_client/application/providers/providers.dart';
+import 'package:fitness_client/application/state/app_settings.dart';
+import 'package:fitness_client/application/state/settings_controller.dart';
 import 'package:fitness_client/application/state/auth_status.dart';
+import 'package:fitness_client/data/services/auth_service.dart';
+import 'package:fitness_client/data/services/user_profile_service.dart';
 import 'package:fitness_client/data/repositories/mock_workout_repository.dart';
 import 'package:fitness_client/app/app.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+class _FakeAuthService extends AuthService {
+  _FakeAuthService()
+    : super(
+        SupabaseClient(
+          'http://localhost',
+          'test-key',
+          authOptions: const AuthClientOptions(autoRefreshToken: false),
+        ),
+      );
+
+  @override
+  Session? get currentSession => null;
+}
+
+class _FakeUserProfileService extends UserProfileService {
+  _FakeUserProfileService()
+    : super(
+        SupabaseClient(
+          'http://localhost',
+          'test-key',
+          authOptions: const AuthClientOptions(autoRefreshToken: false),
+        ),
+      );
+}
+
+class _TestSettingsController extends SettingsController {
+  _TestSettingsController()
+    : super(_FakeAuthService(), _FakeUserProfileService()) {
+    state = AppSettings.defaults;
+  }
+}
 
 void main() {
   testWidgets('renders 4 tabs and switches to calendar', (tester) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          settingsProvider.overrideWith((ref) => _TestSettingsController()),
           workoutRepositoryProvider.overrideWithValue(MockWorkoutRepository()),
+          currentUserIsAdminProvider.overrideWith((ref) async => false),
           guestSoftSignedOutProvider.overrideWith((ref) async => false),
           authStatusProvider.overrideWith((ref) {
             return Stream.value(AuthStatus.authenticated);
@@ -36,7 +75,9 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          settingsProvider.overrideWith((ref) => _TestSettingsController()),
           workoutRepositoryProvider.overrideWithValue(MockWorkoutRepository()),
+          currentUserIsAdminProvider.overrideWith((ref) async => false),
           guestSoftSignedOutProvider.overrideWith((ref) async => false),
           authStatusProvider.overrideWith((ref) {
             return Stream.value(AuthStatus.authenticated);
@@ -58,6 +99,8 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          settingsProvider.overrideWith((ref) => _TestSettingsController()),
+          currentUserIsAdminProvider.overrideWith((ref) async => false),
           guestSoftSignedOutProvider.overrideWith((ref) async => false),
           authStatusProvider.overrideWith((ref) {
             return Stream.value(AuthStatus.signedOut);

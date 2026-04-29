@@ -37,6 +37,11 @@ final exerciseCatalogServiceProvider = Provider<ExerciseCatalogService>((ref) {
   return ExerciseCatalogService(Supabase.instance.client);
 });
 
+final currentUserIsAdminProvider = FutureProvider<bool>((ref) async {
+  final service = ref.watch(userProfileServiceProvider);
+  return service.fetchCurrentUserIsAdmin();
+});
+
 final guestSoftSignedOutProvider = FutureProvider<bool>((ref) async {
   final service = ref.watch(authServiceProvider);
   return service.isGuestSoftSignedOut();
@@ -130,4 +135,10 @@ final exerciseCatalogItemsProvider =
         muscleGroup: muscleGroup,
         equipment: equipment,
       );
+    });
+
+final adminExerciseCatalogItemsProvider = FutureProvider.autoDispose
+    .family<List<AdminExerciseCatalogItem>, String>((ref, muscleGroup) async {
+      final service = ref.watch(exerciseCatalogServiceProvider);
+      return service.getAdminExercises(muscleGroup: muscleGroup);
     });

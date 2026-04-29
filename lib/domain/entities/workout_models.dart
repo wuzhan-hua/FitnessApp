@@ -67,6 +67,7 @@ class ExerciseCatalogItem {
     required this.id,
     required this.nameEn,
     this.nameZh,
+    this.customNameZh,
     required this.primaryMusclesEn,
     this.primaryMusclesZh = const [],
     this.secondaryMusclesEn = const [],
@@ -89,6 +90,9 @@ class ExerciseCatalogItem {
 
   /// 动作中文名称。
   final String? nameZh;
+
+  /// 管理员自定义中文展示名。
+  final String? customNameZh;
 
   /// 主要目标肌群（英文）。
   final List<String> primaryMusclesEn;
@@ -126,12 +130,27 @@ class ExerciseCatalogItem {
   /// 动作参考图地址列表。
   final List<String> imageUrls;
 
-  /// 兼容旧代码的展示名称优先级：中文 > 英文。
-  String get name => (nameZh != null && nameZh!.trim().isNotEmpty) ? nameZh! : nameEn;
+  /// 兼容旧代码的展示名称优先级：管理员自定义中文 > 中文 > 英文。
+  String get displayName {
+    final custom = customNameZh?.trim();
+    if (custom != null && custom.isNotEmpty) {
+      return custom;
+    }
+    final zh = nameZh?.trim();
+    if (zh != null && zh.isNotEmpty) {
+      return zh;
+    }
+    return nameEn;
+  }
+
+  /// 兼容旧代码的展示名称优先级：管理员自定义中文 > 中文 > 英文。
+  String get name => displayName;
 
   /// 兼容旧代码的主要肌群展示值。
   String get muscleGroup {
-    final muscles = primaryMusclesZh.isNotEmpty ? primaryMusclesZh : primaryMusclesEn;
+    final muscles = primaryMusclesZh.isNotEmpty
+        ? primaryMusclesZh
+        : primaryMusclesEn;
     return muscles.isEmpty ? '' : muscles.first;
   }
 
@@ -170,13 +189,10 @@ class ExerciseCatalogItem {
     final fallbackMuscle = json['muscleGroup']?.toString().trim();
     return ExerciseCatalogItem(
       id: json['id'] as String? ?? '',
-      nameEn:
-          json['name_en'] as String? ??
-          json['name'] as String? ??
-          '',
+      nameEn: json['name_en'] as String? ?? json['name'] as String? ?? '',
       nameZh: json['name_zh'] as String?,
-      primaryMusclesEn:
-          _readStringList(json['primary_muscles_en']).isNotEmpty
+      customNameZh: json['custom_name_zh'] as String?,
+      primaryMusclesEn: _readStringList(json['primary_muscles_en']).isNotEmpty
           ? _readStringList(json['primary_muscles_en'])
           : (fallbackMuscle == null || fallbackMuscle.isEmpty
                 ? const []
@@ -185,8 +201,7 @@ class ExerciseCatalogItem {
       secondaryMusclesEn: _readStringList(json['secondary_muscles_en']),
       secondaryMusclesZh: _readStringList(json['secondary_muscles_zh']),
       equipmentEn:
-          json['equipment_en'] as String? ??
-          json['equipment'] as String?,
+          json['equipment_en'] as String? ?? json['equipment'] as String?,
       equipmentZh: json['equipment_zh'] as String?,
       categoryEn: json['category_en'] as String?,
       categoryZh: json['category_zh'] as String?,
@@ -195,8 +210,7 @@ class ExerciseCatalogItem {
       coverImageUrl:
           json['cover_image_url'] as String? ??
           json['cover_image_path'] as String?,
-      imageUrls:
-          _readStringList(json['image_urls']).isNotEmpty
+      imageUrls: _readStringList(json['image_urls']).isNotEmpty
           ? _readStringList(json['image_urls'])
           : _readStringList(json['image_paths']),
     );
@@ -208,6 +222,7 @@ class ExerciseCatalogItem {
       'id': id,
       'name_en': nameEn,
       'name_zh': nameZh,
+      'custom_name_zh': customNameZh,
       'primary_muscles_en': primaryMusclesEn,
       'primary_muscles_zh': primaryMusclesZh,
       'secondary_muscles_en': secondaryMusclesEn,
@@ -224,6 +239,54 @@ class ExerciseCatalogItem {
       'muscleGroup': muscleGroup,
       'equipment': equipment,
     };
+  }
+}
+
+@immutable
+/// 管理后台动作目录项实体，包含可编辑展示名和排序信息。
+class AdminExerciseCatalogItem {
+  const AdminExerciseCatalogItem({
+    required this.exerciseId,
+    required this.displayName,
+    this.originalNameZh,
+    required this.nameEn,
+    required this.muscleGroup,
+    required this.sortOrder,
+    this.customNameZh,
+  });
+
+  final String exerciseId;
+  final String displayName;
+  final String? originalNameZh;
+  final String nameEn;
+  final String muscleGroup;
+  final int sortOrder;
+  final String? customNameZh;
+
+  AdminExerciseCatalogItem copyWith({
+    String? exerciseId,
+    String? displayName,
+    String? originalNameZh,
+    String? nameEn,
+    String? muscleGroup,
+    int? sortOrder,
+    String? customNameZh,
+    bool clearOriginalNameZh = false,
+    bool clearCustomNameZh = false,
+  }) {
+    return AdminExerciseCatalogItem(
+      exerciseId: exerciseId ?? this.exerciseId,
+      displayName: displayName ?? this.displayName,
+      originalNameZh: clearOriginalNameZh
+          ? null
+          : (originalNameZh ?? this.originalNameZh),
+      nameEn: nameEn ?? this.nameEn,
+      muscleGroup: muscleGroup ?? this.muscleGroup,
+      sortOrder: sortOrder ?? this.sortOrder,
+      customNameZh: clearCustomNameZh
+          ? null
+          : (customNameZh ?? this.customNameZh),
+    );
   }
 }
 

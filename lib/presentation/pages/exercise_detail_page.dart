@@ -35,7 +35,7 @@ class _ExerciseDetailPageState extends State<ExerciseDetailPage> {
   Widget build(BuildContext context) {
     final colors = AppColors.of(context);
     final item = widget.args.item;
-    final name = item.nameZh?.trim().isNotEmpty == true ? item.nameZh! : item.nameEn;
+    final name = item.displayName;
     final equipment = item.equipmentZh?.trim().isNotEmpty == true
         ? item.equipmentZh!
         : (item.equipmentEn?.trim().isNotEmpty == true
@@ -74,9 +74,9 @@ class _ExerciseDetailPageState extends State<ExerciseDetailPage> {
           const SizedBox(height: AppSpacing.md),
           Text(
             name,
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.w800,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
           ),
           const SizedBox(height: AppSpacing.sm),
           Wrap(
@@ -107,9 +107,9 @@ class _ExerciseDetailPageState extends State<ExerciseDetailPage> {
                 if (instructions.isEmpty)
                   Text(
                     '暂无动作介绍',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: colors.textMuted,
-                    ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodyMedium?.copyWith(color: colors.textMuted),
                   )
                 else
                   ...List.generate(

@@ -53,7 +53,9 @@ class ExerciseCatalogService {
     try {
       final rows = await _client
           .from('exercise_catalog_items')
-          .select('id, equipment_en, equipment_zh, category_en, category_zh')
+          .select(
+            'id, equipment_en, equipment_zh, category_en, category_zh, custom_name_zh',
+          )
           .inFilter('id', ids)
           .eq('is_active', true);
       final result = <String>{};
@@ -65,15 +67,8 @@ class ExerciseCatalogService {
       }
       return result;
     } catch (error, stackTrace) {
-      AppLogger.error(
-        '加载默认零负重动作失败',
-        error: error,
-        stackTrace: stackTrace,
-      );
-      throw AppError.from(
-        error,
-        fallbackMessage: '加载动作元数据失败，请稍后重试。',
-      );
+      AppLogger.error('加载默认零负重动作失败', error: error, stackTrace: stackTrace);
+      throw AppError.from(error, fallbackMessage: '加载动作元数据失败，请稍后重试。');
     }
   }
 
@@ -103,6 +98,7 @@ class ExerciseCatalogService {
     String? equipment,
   }) async {
     final items = await _getCatalogItems();
+    final sortOrders = await _fetchSortOrdersByMuscleGroup(muscleGroup);
     final filtered = items.where((item) {
       if (!_matchesGroup(item, muscleGroup)) {
         return false;
@@ -112,8 +108,134 @@ class ExerciseCatalogService {
       }
       return _equipmentLabelOf(item) == equipment;
     }).toList();
-    filtered.sort((a, b) => _displayNameOf(a).compareTo(_displayNameOf(b)));
+    filtered.sort((a, b) {
+      final orderA = sortOrders[a.id];
+      final orderB = sortOrders[b.id];
+      if (orderA != null && orderB != null && orderA != orderB) {
+        return orderA.compareTo(orderB);
+      }
+      if (orderA != null) {
+        return -1;
+      }
+      if (orderB != null) {
+        return 1;
+      }
+      return _displayNameOf(a).compareTo(_displayNameOf(b));
+    });
     return filtered;
+  }
+
+  Future<bool> isCurrentUserAdmin() async {
+    final user = _client.auth.currentUser;
+    if (user == null || user.isAnonymous) {
+      return false;
+    }
+    try {
+      final row = await _client
+          .from('users')
+          .select('is_admin')
+          .eq('user_id', user.id)
+          .maybeSingle();
+      return row?['is_admin'] == true;
+    } catch (error, stackTrace) {
+      AppLogger.error('加载管理员权限失败', error: error, stackTrace: stackTrace);
+      throw AppError.from(error, fallbackMessage: '加载权限失败，请稍后重试。');
+    }
+  }
+
+  Future<List<AdminExerciseCatalogItem>> getAdminExercises({
+    required String muscleGroup,
+  }) async {
+    final items = await getExercises(muscleGroup: muscleGroup);
+    final sortOrders = await _fetchSortOrdersByMuscleGroup(muscleGroup);
+    return items.asMap().entries.map((entry) {
+      final item = entry.value;
+      return AdminExerciseCatalogItem(
+        exerciseId: item.id,
+        displayName: item.displayName,
+        originalNameZh: item.nameZh,
+        nameEn: item.nameEn,
+        muscleGroup: muscleGroup,
+        sortOrder: sortOrders[item.id] ?? entry.key,
+        customNameZh: item.customNameZh,
+      );
+    }).toList();
+  }
+
+  Future<void> updateExerciseCustomName({
+    required String exerciseId,
+    required String customNameZh,
+  }) async {
+    final user = _client.auth.currentUser;
+    if (user == null || user.isAnonymous) {
+      throw const AppError(message: '请先登录后再操作。', code: 'auth_required');
+    }
+
+    final normalizedName = customNameZh.trim();
+    try {
+      await _client
+          .from('exercise_catalog_items')
+          .update({
+            'custom_name_zh': normalizedName.isEmpty ? null : normalizedName,
+          })
+          .eq('id', exerciseId);
+      await clearCatalogCache();
+    } catch (error, stackTrace) {
+      AppLogger.error('更新动作展示名失败', error: error, stackTrace: stackTrace);
+      throw AppError.from(error, fallbackMessage: '更新动作展示名失败，请稍后重试。');
+    }
+  }
+
+  Future<void> saveExerciseOrders({
+    required String muscleGroup,
+    required List<String> orderedExerciseIds,
+  }) async {
+    final user = _client.auth.currentUser;
+    if (user == null || user.isAnonymous) {
+      throw const AppError(message: '请先登录后再操作。', code: 'auth_required');
+    }
+
+    final normalizedGroup = muscleGroup.trim();
+    if (normalizedGroup.isEmpty) {
+      throw const AppError(message: '肌群不能为空。');
+    }
+
+    final payload = orderedExerciseIds
+        .map((id) => id.trim())
+        .where((id) => id.isNotEmpty)
+        .toList();
+
+    try {
+      await _client
+          .from('exercise_catalog_item_orders')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('muscle_group', normalizedGroup);
+      if (payload.isNotEmpty) {
+        await _client
+            .from('exercise_catalog_item_orders')
+            .insert(
+              payload.asMap().entries.map((entry) {
+                return {
+                  'user_id': user.id,
+                  'exercise_id': entry.value,
+                  'muscle_group': normalizedGroup,
+                  'sort_order': entry.key,
+                };
+              }).toList(),
+            );
+      }
+      await clearCatalogCache();
+    } catch (error, stackTrace) {
+      AppLogger.error('保存动作排序失败', error: error, stackTrace: stackTrace);
+      throw AppError.from(error, fallbackMessage: '保存动作排序失败，请稍后重试。');
+    }
+  }
+
+  Future<void> clearCatalogCache() async {
+    _memoryCache = null;
+    final prefs = await SharedPreferences.getInstance();
+    await _clearCatalogCache(prefs);
   }
 
   Future<bool> refreshCatalogIfStale() {
@@ -285,11 +407,36 @@ class ExerciseCatalogService {
   }
 
   String _displayNameOf(ExerciseCatalogItem item) {
-    final zh = item.nameZh?.trim();
-    if (zh != null && zh.isNotEmpty) {
-      return zh;
+    return item.displayName;
+  }
+
+  Future<Map<String, int>> _fetchSortOrdersByMuscleGroup(
+    String muscleGroup,
+  ) async {
+    final normalizedGroup = muscleGroup.trim();
+    if (normalizedGroup.isEmpty) {
+      return const {};
     }
-    return item.nameEn;
+    try {
+      final rows = await _client
+          .from('exercise_catalog_item_orders')
+          .select('exercise_id, sort_order')
+          .eq('muscle_group', normalizedGroup)
+          .order('sort_order');
+      final mapped = <String, int>{};
+      for (final row in (rows as List<dynamic>).cast<Map<String, dynamic>>()) {
+        final exerciseId = row['exercise_id'] as String?;
+        final sortOrder = (row['sort_order'] as num?)?.toInt();
+        if (exerciseId == null || exerciseId.isEmpty || sortOrder == null) {
+          continue;
+        }
+        mapped[exerciseId] = sortOrder;
+      }
+      return mapped;
+    } catch (error, stackTrace) {
+      AppLogger.error('加载动作排序失败', error: error, stackTrace: stackTrace);
+      throw AppError.from(error, fallbackMessage: '加载动作排序失败，请稍后重试。');
+    }
   }
 
   int _compareEquipments(String a, String b) {

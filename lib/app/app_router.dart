@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../application/state/session_editor_controller.dart';
 import '../domain/entities/workout_models.dart';
 import '../presentation/pages/auth_page.dart';
+import '../presentation/pages/admin_exercise_catalog_page.dart';
 import '../presentation/pages/exercise_detail_page.dart';
 import '../presentation/pages/exercise_library_page.dart';
 import '../presentation/pages/personal_info_page.dart';
@@ -52,10 +53,15 @@ class AppRouter {
         );
       }
     }
+    if (settings.name == AdminExerciseCatalogPage.routeName) {
+      return MaterialPageRoute<void>(
+        builder: (_) => const AdminExerciseCatalogPage(),
+        settings: settings,
+      );
+    }
     if (settings.name == AuthPage.routeName) {
       final args = settings.arguments;
-      final preferUpgrade =
-          args is AuthPageArgs ? args.preferUpgrade : false;
+      final preferUpgrade = args is AuthPageArgs ? args.preferUpgrade : false;
       return MaterialPageRoute<void>(
         builder: (_) => AuthPage(preferUpgrade: preferUpgrade),
         settings: settings,

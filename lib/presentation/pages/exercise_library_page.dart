@@ -35,7 +35,8 @@ class ExerciseLibraryPage extends ConsumerStatefulWidget {
   final ExerciseLibraryPageArgs? args;
 
   @override
-  ConsumerState<ExerciseLibraryPage> createState() => _ExerciseLibraryPageState();
+  ConsumerState<ExerciseLibraryPage> createState() =>
+      _ExerciseLibraryPageState();
 }
 
 class _ExerciseLibraryPageState extends ConsumerState<ExerciseLibraryPage> {
@@ -69,13 +70,19 @@ class _ExerciseLibraryPageState extends ConsumerState<ExerciseLibraryPage> {
       if (!mounted) {
         return;
       }
-      ref.read(selectedExerciseMuscleGroupProvider.notifier).state =
-          preferred != null && groups.contains(preferred) ? preferred : groups.first;
+      ref
+          .read(selectedExerciseMuscleGroupProvider.notifier)
+          .state = preferred != null && groups.contains(preferred)
+          ? preferred
+          : groups.first;
       ref.read(selectedExerciseEquipmentProvider.notifier).state = null;
     });
   }
 
-  void _resetInvalidEquipment(List<String> equipments, String? selectedEquipment) {
+  void _resetInvalidEquipment(
+    List<String> equipments,
+    String? selectedEquipment,
+  ) {
     if (selectedEquipment == null || equipments.contains(selectedEquipment)) {
       return;
     }
@@ -112,9 +119,9 @@ class _ExerciseLibraryPageState extends ConsumerState<ExerciseLibraryPage> {
                 showLatestSnackBar(context, '请输入动作名');
                 return;
               }
-              Navigator.of(context).pop(
-                ExerciseSelectionResult(exerciseName: name),
-              );
+              Navigator.of(
+                context,
+              ).pop(ExerciseSelectionResult(exerciseName: name));
             },
             child: const Text('确认'),
           ),
@@ -163,13 +170,16 @@ class _ExerciseLibraryPageState extends ConsumerState<ExerciseLibraryPage> {
                 groups: groups,
                 selectedGroup: activeGroup,
                 onSelect: (group) {
-                  ref.read(selectedExerciseMuscleGroupProvider.notifier).state = group;
-                  ref.read(selectedExerciseEquipmentProvider.notifier).state = null;
+                  ref.read(selectedExerciseMuscleGroupProvider.notifier).state =
+                      group;
+                  ref.read(selectedExerciseEquipmentProvider.notifier).state =
+                      null;
                 },
               ),
               Expanded(
                 child: equipmentsAsync.when(
-                  loading: () => const Center(child: CircularProgressIndicator()),
+                  loading: () =>
+                      const Center(child: CircularProgressIndicator()),
                   error: (error, _) => Center(
                     child: Text(
                       AppError.from(
@@ -226,7 +236,10 @@ class _MuscleSidebar extends StatelessWidget {
               borderRadius: BorderRadius.circular(14),
               onTap: () => onSelect(group),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 8,
+                  vertical: 12,
+                ),
                 decoration: BoxDecoration(
                   color: selected ? colors.accent : Colors.transparent,
                   borderRadius: BorderRadius.circular(14),
@@ -287,7 +300,8 @@ class _ExerciseContent extends ConsumerWidget {
                 label: const Text('全部'),
                 selected: selectedEquipment == null,
                 onSelected: (_) {
-                  ref.read(selectedExerciseEquipmentProvider.notifier).state = null;
+                  ref.read(selectedExerciseEquipmentProvider.notifier).state =
+                      null;
                 },
               ),
               const SizedBox(width: AppSpacing.xs),
@@ -298,7 +312,9 @@ class _ExerciseContent extends ConsumerWidget {
                     label: Text(equipment),
                     selected: selectedEquipment == equipment,
                     onSelected: (_) {
-                      ref.read(selectedExerciseEquipmentProvider.notifier).state =
+                      ref
+                              .read(selectedExerciseEquipmentProvider.notifier)
+                              .state =
                           equipment;
                     },
                   ),
@@ -324,9 +340,9 @@ class _ExerciseContent extends ConsumerWidget {
                 return Center(
                   child: Text(
                     '当前筛选下暂无动作',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: colors.textMuted,
-                    ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodyMedium?.copyWith(color: colors.textMuted),
                   ),
                 );
               }
@@ -364,7 +380,7 @@ class _ExerciseCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = AppColors.of(context);
-    final name = item.nameZh?.trim().isNotEmpty == true ? item.nameZh! : item.nameEn;
+    final name = item.displayName;
     final equipment = item.equipmentZh?.trim().isNotEmpty == true
         ? item.equipmentZh!
         : (item.equipmentEn?.trim().isNotEmpty == true
@@ -399,7 +415,9 @@ class _ExerciseCard extends StatelessWidget {
                     child: Container(
                       width: double.infinity,
                       color: Colors.white,
-                      child: item.coverImageUrl == null || item.coverImageUrl!.isEmpty
+                      child:
+                          item.coverImageUrl == null ||
+                              item.coverImageUrl!.isEmpty
                           ? Icon(
                               Icons.image_not_supported_outlined,
                               color: colors.textMuted,
@@ -422,9 +440,9 @@ class _ExerciseCard extends StatelessWidget {
                   name,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
                 ),
                 const SizedBox(height: 4),
                 Row(

@@ -7,6 +7,7 @@ import '../../application/state/app_settings.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/app_error.dart';
 import '../../utils/snackbar_helper.dart';
+import 'admin_exercise_catalog_page.dart';
 import 'auth_page.dart';
 import 'personal_info_page.dart';
 import '../widgets/section_card.dart';
@@ -71,6 +72,9 @@ class ProfilePage extends ConsumerWidget {
     final settings = ref.watch(settingsProvider);
     final authStatus =
         ref.watch(authStatusProvider).valueOrNull ?? AuthStatus.signedOut;
+    final isAdminAsync = authStatus.isSignedIn
+        ? ref.watch(currentUserIsAdminProvider)
+        : const AsyncData(false);
     final colors = AppColors.of(context);
     final month = ref.watch(calendarMonthProvider);
 
@@ -201,6 +205,43 @@ class ProfilePage extends ConsumerWidget {
                 ],
               ),
             ),
+            if (authStatus.isSignedIn)
+              ...isAdminAsync.when(
+                data: (isAdmin) {
+                  if (!isAdmin) {
+                    return const <Widget>[];
+                  }
+                  return [
+                    SectionCard(
+                      title: '管理员入口',
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          FilledButton.tonalIcon(
+                            onPressed: () {
+                              Navigator.of(
+                                context,
+                              ).pushNamed(AdminExerciseCatalogPage.routeName);
+                            },
+                            icon: const Icon(
+                              Icons.admin_panel_settings_outlined,
+                            ),
+                            label: const Text('动作库管理'),
+                          ),
+                          const SizedBox(height: AppSpacing.sm),
+                          Text(
+                            '可修改动作展示名并维护各肌群下的动作排序。',
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(color: colors.textMuted),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ];
+                },
+                loading: () => const <Widget>[],
+                error: (_, _) => const <Widget>[],
+              ),
             if (authStatus.isSignedIn)
               SectionCard(
                 title: '账户',

@@ -4,7 +4,7 @@
 
 当前数据库默认展示时区约定为 `Asia/Shanghai`。在 Supabase 后台查看 `timestamptz` 字段时，应直接按北京时间理解，无需再手动加 8 小时。
 
-当前线上导出里共有 7 张业务表：
+当前线上导出里共有 9 张业务表：
 
 1. `users`
 2. `user_profiles`
@@ -14,6 +14,7 @@
 6. `workout_sets`
 7. `records`
 8. `exercise_catalog_items`
+9. `exercise_catalog_item_orders`
 
 ## 总览
 
@@ -27,6 +28,7 @@
 | `workout_sets` | 训练组明细表 | 存某个动作下每一组的实际训练数据。 |
 | `records` | 训练归档快照表 | 存已归档的历史训练快照，设计上用于追溯，不用于持续编辑。 |
 | `exercise_catalog_items` | 动作目录表 | 存全局共享的动作基础信息、肌群分类和参考图片路径，用于动作库选择。 |
+| `exercise_catalog_item_orders` | 动作目录排序表 | 存管理员为各肌群配置的动作展示顺序，用于动作库排序。 |
 
 ## 表级说明
 
@@ -59,6 +61,7 @@
 | `last_sign_in_at` | `timestamptz` | 最近一次登录时间的业务镜像。 |
 | `updated_at` | `timestamptz` | 最近更新时间，由触发器自动维护。 |
 | `is_profile_completed` | `boolean` | 是否已完成个人资料填写。用于流程判断，不代表训练资料一定完整。 |
+| `is_admin` | `boolean` | 是否管理员。当前用于控制动作库改名和排序管理权限。 |
 | `user_type` | `smallint` | 用户类型业务标记。当前约束是 `0=游客`，`1=邮箱账号`。 |
 
 ### `user_profiles`
@@ -269,8 +272,33 @@
 | `source` | `text` | 数据来源标记，当前默认 `free-exercise-db`。 |
 | `source_version` | `text` | 导入时使用的数据源版本标记，如 `main`。 |
 | `is_active` | `boolean` | 当前动作是否启用，用于动作库展示控制。 |
+| `custom_name_zh` | `text` | 管理员自定义中文展示名。为空时回退原始 `name_zh / name_en`。 |
 | `created_at` | `timestamptz` | 目录记录创建时间。 |
 | `updated_at` | `timestamptz` | 目录记录最近更新时间。 |
+
+### `exercise_catalog_item_orders`
+
+- 表名中文含义：动作目录排序表
+- 一句话用途：存管理员按肌群维护的动作展示顺序，供动作库优先按人工顺序展示。
+- 主键：`id`
+- 唯一键：`exercise_id + muscle_group`
+- 外键：
+  - `user_id -> auth.users.id`
+  - `exercise_id -> exercise_catalog_items.id`
+- 备注：
+  - 一个动作在一个肌群下只能有一条排序配置。
+  - 当前只允许管理员写入，普通登录用户只读。
+  - `sort_order` 越小越靠前。
+
+| 字段 | 类型 | 含义 |
+| --- | --- | --- |
+| `id` | `uuid` | 排序配置主键。 |
+| `user_id` | `uuid` | 这条排序配置由哪个管理员账号写入。 |
+| `exercise_id` | `text` | 对应的动作目录 ID。 |
+| `muscle_group` | `text` | 这条顺序配置属于哪个肌群，如“胸”“背”。 |
+| `sort_order` | `integer` | 该动作在该肌群下的显示顺序，从小到大排序。 |
+| `created_at` | `timestamptz` | 排序配置创建时间。 |
+| `updated_at` | `timestamptz` | 排序配置最近更新时间。 |
 
 ## 关系与易混点
 

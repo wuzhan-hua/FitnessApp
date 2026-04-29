@@ -9,6 +9,28 @@ class UserProfileService {
 
   final SupabaseClient _client;
 
+  Future<bool> fetchCurrentUserIsAdmin() async {
+    final user = _client.auth.currentUser;
+    if (user == null || user.isAnonymous) {
+      return false;
+    }
+
+    try {
+      final row = await _client
+          .from('users')
+          .select('is_admin')
+          .eq('user_id', user.id)
+          .maybeSingle();
+      if (row == null) {
+        return false;
+      }
+      return row['is_admin'] == true;
+    } catch (error, stackTrace) {
+      AppLogger.error('加载管理员权限失败', error: error, stackTrace: stackTrace);
+      throw AppError.from(error, fallbackMessage: '加载权限失败，请稍后重试。');
+    }
+  }
+
   Future<UserProfile?> fetchCurrentUserProfile() async {
     final user = _client.auth.currentUser;
     if (user == null || user.isAnonymous) {
