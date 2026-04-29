@@ -122,6 +122,9 @@ class CalendarBody extends StatelessWidget {
                   final inCurrentMonth = day.month == month.month;
                   final today = _day(DateTime.now()) == _day(day);
                   return _CalendarCell(
+                    key: ValueKey<String>(
+                      'calendar-day-${day.year}-${day.month}-${day.day}',
+                    ),
                     day: day,
                     session: session,
                     inMonth: inCurrentMonth,
@@ -160,6 +163,7 @@ class _WeekLabel extends StatelessWidget {
 
 class _CalendarCell extends StatelessWidget {
   const _CalendarCell({
+    super.key,
     required this.day,
     required this.session,
     required this.inMonth,
@@ -174,6 +178,151 @@ class _CalendarCell extends StatelessWidget {
   final bool isToday;
 
   DateTime _day(DateTime date) => DateTime(date.year, date.month, date.day);
+
+  Future<void> _handleTap(BuildContext context) async {
+    final today = _day(DateTime.now());
+    final selectedDay = _day(day);
+    final hasSession = session != null;
+
+    if (selectedDay.isAfter(today)) {
+      showLatestSnackBar(context, '未来日期不可补录');
+      return;
+    }
+
+    if (hasSession && selectedDay == today) {
+      final action = await _showExistingSessionDialog(
+        context,
+        title: '今日训练',
+        editLabel: '补充今日训练',
+        viewLabel: '查看今日训练',
+      );
+      if (!context.mounted || action == null) {
+        return;
+      }
+      await _openEditor(
+        context,
+        mode: SessionMode.backfill,
+        sessionId: session!.id,
+        readOnly: action == _CalendarSessionAction.view,
+      );
+      return;
+    }
+
+    if (hasSession) {
+      final action = await _showExistingSessionDialog(
+        context,
+        title: '历史训练',
+        editLabel: '补录',
+        viewLabel: '查看',
+      );
+      if (!context.mounted || action == null) {
+        return;
+      }
+      await _openEditor(
+        context,
+        mode: SessionMode.backfill,
+        sessionId: session!.id,
+        readOnly: action == _CalendarSessionAction.view,
+      );
+      return;
+    }
+
+    if (selectedDay.isBefore(today)) {
+      final confirmed = await _showCreateBackfillDialog(context);
+      if (!context.mounted || confirmed != true) {
+        return;
+      }
+      await _openEditor(
+        context,
+        mode: SessionMode.backfill,
+        createOnSaveOnly: true,
+      );
+      return;
+    }
+
+    await _openEditor(context, mode: SessionMode.newSession);
+  }
+
+  Future<_CalendarSessionAction?> _showExistingSessionDialog(
+    BuildContext context, {
+    required String title,
+    required String editLabel,
+    required String viewLabel,
+  }) {
+    return showDialog<_CalendarSessionAction>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(title),
+        content: const Text('请选择本次操作。'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('取消'),
+          ),
+          TextButton(
+            onPressed: () =>
+                Navigator.of(dialogContext).pop(_CalendarSessionAction.view),
+            child: Text(viewLabel),
+          ),
+          FilledButton(
+            onPressed: () =>
+                Navigator.of(dialogContext).pop(_CalendarSessionAction.edit),
+            child: Text(editLabel),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<bool?> _showCreateBackfillDialog(BuildContext context) {
+    return showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('补录历史训练'),
+        content: const Text('该日期暂无训练记录，是否开始补录？保存后才会创建训练会话。'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('取消'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('开始补录'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _openEditor(
+    BuildContext context, {
+    required SessionMode mode,
+    String? sessionId,
+    bool readOnly = false,
+    bool createOnSaveOnly = false,
+  }) async {
+    final result = await Navigator.of(context)
+        .pushNamed<SessionEditorExitResult>(
+          SessionEditorPage.routeName,
+          arguments: SessionEditorArgs(
+            date: day,
+            mode: mode,
+            sessionId: sessionId,
+            readOnly: readOnly,
+            createOnSaveOnly: createOnSaveOnly,
+          ),
+        );
+    if (!context.mounted || result == null) {
+      return;
+    }
+    final message = switch (result) {
+      SessionEditorExitResult.savedProgress => '训练进度已保存',
+      SessionEditorExitResult.completed => '训练记录已完成',
+      SessionEditorExitResult.autosaved => '已自动保存当前内容',
+      SessionEditorExitResult.autosaveFailed => '自动保存失败，本次修改未保存',
+    };
+    showLatestSnackBar(context, message);
+  }
 
   String _trainingTypeLabel(String title) {
     final normalized = title.trim();
@@ -213,31 +362,7 @@ class _CalendarCell extends StatelessWidget {
 
     return InkWell(
       borderRadius: AppRadius.card,
-      onTap: () async {
-        if (isFutureDay) {
-          showLatestSnackBar(context, '未来日期不可补录');
-          return;
-        }
-        final result =
-            await Navigator.of(context).pushNamed<SessionEditorExitResult>(
-          SessionEditorPage.routeName,
-          arguments: SessionEditorArgs(
-            date: day,
-            mode: hasSession ? SessionMode.backfill : SessionMode.newSession,
-            sessionId: session?.id,
-          ),
-        );
-        if (!context.mounted || result == null) {
-          return;
-        }
-        final message = switch (result) {
-          SessionEditorExitResult.savedProgress => '训练进度已保存',
-          SessionEditorExitResult.completed => '训练记录已完成',
-          SessionEditorExitResult.autosaved => '已自动保存当前内容',
-          SessionEditorExitResult.autosaveFailed => '自动保存失败，本次修改未保存',
-        };
-        showLatestSnackBar(context, message);
-      },
+      onTap: () => _handleTap(context),
       child: Container(
         decoration: BoxDecoration(
           color: hasSession ? colors.panelAlt : colors.panel,
@@ -306,3 +431,5 @@ class _CalendarCell extends StatelessWidget {
     );
   }
 }
+
+enum _CalendarSessionAction { edit, view }

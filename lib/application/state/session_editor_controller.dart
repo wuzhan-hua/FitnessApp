@@ -12,6 +12,7 @@ class SessionEditorArgs {
     this.sessionId,
     this.preferActiveSession = false,
     this.readOnly = false,
+    this.createOnSaveOnly = false,
   });
 
   final DateTime date;
@@ -19,6 +20,7 @@ class SessionEditorArgs {
   final String? sessionId;
   final bool preferActiveSession;
   final bool readOnly;
+  final bool createOnSaveOnly;
 }
 
 class SessionEditorController extends StateNotifier<SessionEditorState> {
@@ -43,12 +45,14 @@ class SessionEditorController extends StateNotifier<SessionEditorState> {
   Future<void> load() async {
     state = state.copyWith(isLoading: true, error: null);
     try {
-      final session = await _service.startOrGetSession(
-        args.date,
-        mode: args.mode,
-        sessionId: args.sessionId,
-        preferActiveSession: args.preferActiveSession,
-      );
+      final session = _shouldCreateLocalDraft
+          ? _buildLocalDraftSession()
+          : await _service.startOrGetSession(
+              args.date,
+              mode: args.mode,
+              sessionId: args.sessionId,
+              preferActiveSession: args.preferActiveSession,
+            );
       final normalized = await _normalizeZeroWeightExercises(session);
       state = state.copyWith(
         isLoading: false,
@@ -60,6 +64,24 @@ class SessionEditorController extends StateNotifier<SessionEditorState> {
     } catch (error) {
       state = state.copyWith(isLoading: false, error: '加载训练记录失败: $error');
     }
+  }
+
+  bool get _shouldCreateLocalDraft =>
+      args.createOnSaveOnly &&
+      (args.sessionId == null || args.sessionId!.isEmpty);
+
+  DateTime _day(DateTime date) => DateTime(date.year, date.month, date.day);
+
+  WorkoutSession _buildLocalDraftSession() {
+    final normalizedDate = _day(args.date);
+    return WorkoutSession(
+      id: 'draft-${normalizedDate.millisecondsSinceEpoch}',
+      date: normalizedDate,
+      title: '新训练日',
+      status: SessionStatus.draft,
+      durationMinutes: 30,
+      exercises: const [],
+    );
   }
 
   void updateSet({
@@ -280,9 +302,7 @@ class SessionEditorController extends StateNotifier<SessionEditorState> {
     );
 
     _updateSession(
-      _promoteDraftIfNeeded(
-        session.copyWith(exercises: reorderedExercises),
-      ),
+      _promoteDraftIfNeeded(session.copyWith(exercises: reorderedExercises)),
     );
     return true;
   }
@@ -355,7 +375,9 @@ class SessionEditorController extends StateNotifier<SessionEditorState> {
       (index) => remained[index].copyWith(order: index),
     );
 
-    _updateSession(_promoteDraftIfNeeded(session.copyWith(exercises: normalized)));
+    _updateSession(
+      _promoteDraftIfNeeded(session.copyWith(exercises: normalized)),
+    );
   }
 
   bool removeSet({required String exerciseId, required int setIndex}) {
@@ -417,7 +439,9 @@ class SessionEditorController extends StateNotifier<SessionEditorState> {
     );
   }
 
-  List<SessionExercise> _normalizeExercisesForSave(List<SessionExercise> items) {
+  List<SessionExercise> _normalizeExercisesForSave(
+    List<SessionExercise> items,
+  ) {
     return items.map((exercise) {
       final cardioSets = exercise.sets
           .where((set) => set.setType == ExerciseSetType.cardio)
