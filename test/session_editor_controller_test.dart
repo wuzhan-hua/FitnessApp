@@ -22,19 +22,34 @@ void main() {
       expect(controller.state.session?.exercises, isEmpty);
     });
 
-    test('creates session only when saved', () async {
+    test('creates completed session only when completed', () async {
       final repository = _CountingWorkoutRepository();
       final controller = _buildController(repository);
       addTearDown(controller.dispose);
 
       await _waitForLoad(controller);
-      final success = await controller.saveProgress();
+      final success = await controller.completeSession();
 
       expect(success, true);
       expect(repository.startOrGetSessionCalls, 0);
       expect(repository.saveSessionCalls, 1);
       expect(repository.savedSession?.id, startsWith('draft-'));
-      expect(repository.savedSession?.status, SessionStatus.inProgress);
+      expect(repository.savedSession?.status, SessionStatus.completed);
+    });
+
+    test('autosaves past backfill as completed', () async {
+      final repository = _CountingWorkoutRepository();
+      final controller = _buildController(repository);
+      addTearDown(controller.dispose);
+
+      await _waitForLoad(controller);
+      controller.updateDuration(45);
+      final success = await controller.autoSaveBeforeExit();
+
+      expect(success, true);
+      expect(repository.startOrGetSessionCalls, 0);
+      expect(repository.saveSessionCalls, 1);
+      expect(repository.savedSession?.status, SessionStatus.completed);
     });
   });
 }

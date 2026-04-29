@@ -70,6 +70,10 @@ class SessionEditorController extends StateNotifier<SessionEditorState> {
       args.createOnSaveOnly &&
       (args.sessionId == null || args.sessionId!.isEmpty);
 
+  bool get _isPastBackfill =>
+      args.mode == SessionMode.backfill &&
+      _day(args.date).isBefore(_day(DateTime.now()));
+
   DateTime _day(DateTime date) => DateTime(date.year, date.month, date.day);
 
   WorkoutSession _buildLocalDraftSession() {
@@ -485,7 +489,8 @@ class SessionEditorController extends StateNotifier<SessionEditorState> {
     if (session == null) {
       return true;
     }
-    final targetStatus = session.status == SessionStatus.completed
+    final targetStatus =
+        session.status == SessionStatus.completed || _isPastBackfill
         ? SessionStatus.completed
         : SessionStatus.inProgress;
     return _saveWithStatus(
