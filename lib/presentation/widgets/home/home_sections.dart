@@ -12,6 +12,8 @@ typedef OpenEditorHandler =
       required DateTime date,
       required SessionMode mode,
       String? sessionId,
+      bool preferActiveSession,
+      bool readOnly,
     });
 
 class HomeLeftColumn extends StatelessWidget {
@@ -29,6 +31,11 @@ class HomeLeftColumn extends StatelessWidget {
     final colors = AppColors.of(context);
     final formatter = NumberFormat('#,##0');
     final todayText = _formatToday(snapshot.date);
+    final hasInProgress = snapshot.inProgressSession != null;
+    final hasCompletedToday =
+        snapshot.todaySession?.status == SessionStatus.completed;
+    final hasTodaySession = snapshot.todaySession != null;
+    final inProgressSetCount = snapshot.inProgressSession?.totalSets ?? 0;
 
     return Column(
       children: [
@@ -122,84 +129,74 @@ class HomeLeftColumn extends StatelessWidget {
                           ? '今日：已训练'
                           : '今日：待开始',
                     ),
-                    _HeroBadge(
-                      text: snapshot.inProgressSession == null
-                          ? '进行中：0组'
-                          : '进行中：${snapshot.inProgressSession!.completedSets}组',
-                    ),
+                    if (hasInProgress)
+                      _HeroBadge(
+                        text: inProgressSetCount > 0
+                            ? '进行中：$inProgressSetCount组'
+                            : '进行中：待添加',
+                      ),
                   ],
                 ),
                 const SizedBox(height: AppSpacing.md),
-                _HeroActionButton(
-                  icon: Icons.play_arrow_rounded,
-                  label: '开始训练',
-                  isPrimary: true,
-                  onTap: () => openEditor(
-                    context,
-                    date: DateTime.now(),
-                    mode: SessionMode.newSession,
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                _HeroActionButton(
-                  icon: Icons.restart_alt_rounded,
-                  label: snapshot.inProgressSession == null
-                      ? '无进行中训练'
-                      : '继续上次训练 (${snapshot.inProgressSession!.completedSets} 组)',
-                  isPrimary: false,
-                  onTap: snapshot.inProgressSession == null
-                      ? null
-                      : () => openEditor(
+                if (hasInProgress)
+                  _HeroActionButton(
+                    icon: Icons.restart_alt_rounded,
+                    label: inProgressSetCount > 0
+                        ? '继续训练 ($inProgressSetCount 组)'
+                        : '继续训练（待添加）',
+                    isPrimary: true,
+                    onTap: () => openEditor(
+                      context,
+                      date: snapshot.inProgressSession!.date,
+                      mode: SessionMode.continueSession,
+                      sessionId: snapshot.inProgressSession!.id,
+                      preferActiveSession: false,
+                      readOnly: false,
+                    ),
+                  )
+                else if (hasCompletedToday && hasTodaySession)
+                  Column(
+                    children: [
+                      _HeroActionButton(
+                        icon: Icons.playlist_add_rounded,
+                        label: '补充今日训练',
+                        isPrimary: true,
+                        onTap: () => _confirmAppendTodaySession(
                           context,
-                          date: snapshot.date,
-                          mode: SessionMode.continueSession,
-                          sessionId: snapshot.inProgressSession?.id,
+                          session: snapshot.todaySession!,
                         ),
-                ),
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      _HeroActionButton(
+                        icon: Icons.visibility_outlined,
+                        label: '查看今日训练',
+                        isPrimary: false,
+                        onTap: () => openEditor(
+                          context,
+                          date: snapshot.todaySession!.date,
+                          mode: SessionMode.backfill,
+                          sessionId: snapshot.todaySession!.id,
+                          preferActiveSession: false,
+                          readOnly: true,
+                        ),
+                      ),
+                    ],
+                  )
+                else
+                  _HeroActionButton(
+                    icon: Icons.play_arrow_rounded,
+                    label: '开始训练',
+                    isPrimary: true,
+                    onTap: () => openEditor(
+                      context,
+                      date: DateTime.now(),
+                      mode: SessionMode.newSession,
+                      preferActiveSession: true,
+                      readOnly: false,
+                    ),
+                  ),
               ],
             ),
-          ),
-        ),
-        SectionCard(
-          title: '快捷动作',
-          child: Row(
-            children: [
-              Expanded(
-                child: _QuickPillAction(
-                  icon: Icons.history_rounded,
-                  text: '快补昨日',
-                  onTap: () => openEditor(
-                    context,
-                    date: DateTime.now().subtract(const Duration(days: 1)),
-                    mode: SessionMode.backfill,
-                  ),
-                ),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: _QuickPillAction(
-                  icon: Icons.content_copy_rounded,
-                  text: '复制上次',
-                  onTap: () => openEditor(
-                    context,
-                    date: DateTime.now(),
-                    mode: SessionMode.newSession,
-                  ),
-                ),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: _QuickPillAction(
-                  icon: Icons.add_box_rounded,
-                  text: '新建空白',
-                  onTap: () => openEditor(
-                    context,
-                    date: DateTime.now(),
-                    mode: SessionMode.newSession,
-                  ),
-                ),
-              ),
-            ],
           ),
         ),
         SectionCard(
@@ -241,6 +238,43 @@ class HomeLeftColumn extends StatelessWidget {
     } catch (_) {
       return DateFormat('MM月dd日 EEEE').format(date);
     }
+  }
+
+  Future<void> _confirmAppendTodaySession(
+    BuildContext context, {
+    required WorkoutSession session,
+  }) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('补充今日训练'),
+        content: const Text('今天已有训练记录，是否继续在今日训练中补充动作或组数？'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('取消'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('确认补充'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) {
+      return;
+    }
+    if (!context.mounted) {
+      return;
+    }
+    openEditor(
+      context,
+      date: session.date,
+      mode: SessionMode.backfill,
+      sessionId: session.id,
+      preferActiveSession: false,
+      readOnly: false,
+    );
   }
 }
 
@@ -302,7 +336,7 @@ class _HeroActionButton extends StatelessWidget {
                   context,
                 ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
               ),
-              icon: const Icon(Icons.play_arrow_rounded, size: 20),
+              icon: Icon(icon, size: 20),
               label: Text(label),
             )
           : OutlinedButton.icon(
@@ -316,53 +350,9 @@ class _HeroActionButton extends StatelessWidget {
                   context,
                 ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
               ),
-              icon: const Icon(Icons.restart_alt_rounded, size: 20),
+              icon: Icon(icon, size: 20),
               label: Text(label),
             ),
-    );
-  }
-}
-
-class _QuickPillAction extends StatelessWidget {
-  const _QuickPillAction({
-    required this.icon,
-    required this.text,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final String text;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = AppColors.of(context);
-    return InkWell(
-      borderRadius: AppRadius.chip,
-      onTap: onTap,
-      child: Container(
-        constraints: const BoxConstraints(minHeight: 44),
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-        decoration: BoxDecoration(
-          color: colors.panelAlt,
-          borderRadius: AppRadius.chip,
-          border: Border.all(color: colors.accent.withValues(alpha: 0.28)),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 16, color: colors.accent),
-            const SizedBox(width: 6),
-            Text(
-              text,
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.w800,
-                fontSize: 13,
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

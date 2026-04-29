@@ -1,3 +1,5 @@
+-- Database default timezone: Asia/Shanghai
+
 create table public.signup_verification_codes (
   id uuid not null default gen_random_uuid (),
   email text not null,
@@ -103,33 +105,39 @@ create index IF not exists idx_workout_exercises_user_session on public.workout_
 
 
 
-create table public.workout_records (
+create table public.records (
   id uuid not null default gen_random_uuid (),
   user_id uuid not null,
   created_at timestamp with time zone not null default now(),
+  session_id uuid not null,
   session_date date not null,
   title text not null default ''::text,
   status text not null default 'draft'::text,
   duration_minutes integer not null default 0,
   exercises jsonb not null default '[]'::jsonb,
   notes text null,
-  constraint workout_records_pkey primary key (id),
-  constraint workout_records_user_id_fkey foreign KEY (user_id) references auth.users (id) on delete CASCADE
+  constraint records_pkey primary key (id),
+  constraint fk_records_session foreign KEY (session_id, user_id) references workout_sessions (id, user_id) on delete CASCADE,
+  constraint records_user_id_fkey foreign KEY (user_id) references auth.users (id) on delete CASCADE
 ) TABLESPACE pg_default;
 
-create index IF not exists idx_workout_records_user_id on public.workout_records using btree (user_id) TABLESPACE pg_default;
+create index IF not exists idx_records_user_id on public.records using btree (user_id) TABLESPACE pg_default;
 
-create index IF not exists idx_workout_records_session_date on public.workout_records using btree (session_date) TABLESPACE pg_default;
+create index IF not exists idx_records_session_date on public.records using btree (session_date) TABLESPACE pg_default;
 
-create index IF not exists idx_workout_records_created_at on public.workout_records using btree (created_at desc) TABLESPACE pg_default;
+create index IF not exists idx_records_created_at on public.records using btree (created_at desc) TABLESPACE pg_default;
 
-create index IF not exists idx_workout_records_user_created on public.workout_records using btree (user_id, created_at desc) TABLESPACE pg_default;
+create index IF not exists idx_records_user_created on public.records using btree (user_id, created_at desc) TABLESPACE pg_default;
 
-create trigger trg_block_workout_records_delete BEFORE DELETE on workout_records for EACH row
+create index IF not exists idx_records_user_session_created on public.records using btree (user_id, session_id, created_at desc) TABLESPACE pg_default;
+
+create index IF not exists idx_records_session_created on public.records using btree (session_id, created_at desc) TABLESPACE pg_default;
+
+create trigger trg_block_records_delete BEFORE DELETE on records for EACH row
 execute FUNCTION block_workout_records_mutation ();
 
-create trigger trg_block_workout_records_update BEFORE
-update on workout_records for EACH row
+create trigger trg_block_records_update BEFORE
+update on records for EACH row
 execute FUNCTION block_workout_records_mutation ();
 
 
@@ -165,10 +173,6 @@ create table public.workout_sessions (
 create index IF not exists idx_workout_sessions_user_date on public.workout_sessions using btree (user_id, date desc) TABLESPACE pg_default;
 
 create trigger trg_block_completed_session_delete BEFORE DELETE on workout_sessions for EACH row
-execute FUNCTION block_completed_session_mutation ();
-
-create trigger trg_block_completed_session_update BEFORE
-update on workout_sessions for EACH row
 execute FUNCTION block_completed_session_mutation ();
 
 

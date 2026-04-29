@@ -11,10 +11,13 @@ abstract class WorkoutRepository {
 
   Future<WorkoutSession?> getSessionByDate(DateTime date);
 
+  Future<WorkoutSession?> getActiveSessionByDate(DateTime date);
+
   Future<WorkoutSession> startOrGetSession(
     DateTime date, {
     required SessionMode mode,
     String? sessionId,
+    bool preferActiveSession = false,
   });
 
   Future<void> saveSession(WorkoutSession session);

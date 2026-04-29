@@ -13,7 +13,7 @@ class AppRouter {
     if (settings.name == SessionEditorPage.routeName) {
       final args = settings.arguments;
       if (args is SessionEditorArgs) {
-        return MaterialPageRoute<void>(
+        return MaterialPageRoute<SessionEditorExitResult?>(
           builder: (_) => SessionEditorPage(args: args),
           settings: settings,
         );
@@ -23,7 +23,7 @@ class AppRouter {
         date: DateTime.now(),
         mode: SessionMode.newSession,
       );
-      return MaterialPageRoute<void>(
+      return MaterialPageRoute<SessionEditorExitResult?>(
         builder: (_) => SessionEditorPage(args: fallback),
         settings: settings,
       );

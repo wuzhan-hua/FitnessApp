@@ -60,6 +60,7 @@ class SupabaseWorkoutRepository implements WorkoutRepository {
     return HomeSnapshot(
       date: date,
       todaySummary: _buildDailySummary(today, todaySession),
+      todaySession: todaySession,
       inProgressSession: todaySession?.status == SessionStatus.inProgress
           ? todaySession
           : null,
@@ -135,10 +136,37 @@ class SupabaseWorkoutRepository implements WorkoutRepository {
   }
 
   @override
+  Future<WorkoutSession?> getActiveSessionByDate(DateTime date) async {
+    final userId = await _requireUserId();
+    await _ensureProfile(userId);
+    final dayStart = _day(date);
+    final nextDayStart = dayStart.add(const Duration(days: 1));
+    final activeRow = await _client
+        .from('workout_sessions')
+        .select('id')
+        .eq('user_id', userId)
+        .gte('date', AppTime.toUtcIsoString(dayStart))
+        .lt('date', AppTime.toUtcIsoString(nextDayStart))
+        .inFilter('status', [
+          SessionStatus.draft.value,
+          SessionStatus.inProgress.value,
+        ])
+        .order('created_at', ascending: false)
+        .limit(1)
+        .maybeSingle();
+
+    if (activeRow == null) {
+      return null;
+    }
+    return getSessionById('${activeRow['id']}');
+  }
+
+  @override
   Future<WorkoutSession> startOrGetSession(
     DateTime date, {
     required SessionMode mode,
     String? sessionId,
+    bool preferActiveSession = false,
   }) async {
     final userId = await _requireUserId();
     await _ensureProfile(userId);
@@ -147,6 +175,13 @@ class SupabaseWorkoutRepository implements WorkoutRepository {
       final byId = await getSessionById(sessionId);
       if (byId != null) {
         return byId;
+      }
+    }
+
+    if (preferActiveSession) {
+      final activeByDate = await getActiveSessionByDate(date);
+      if (activeByDate != null) {
+        return activeByDate;
       }
     }
 
@@ -170,16 +205,11 @@ class SupabaseWorkoutRepository implements WorkoutRepository {
     final existingSession = _isUuid(session.id)
         ? await _client
               .from('workout_sessions')
-              .select('id, status')
+              .select('id')
               .eq('user_id', userId)
               .eq('id', session.id)
               .maybeSingle()
         : null;
-
-    if (existingSession != null &&
-        (existingSession['status'] as String?) == 'completed') {
-      throw const AppError(message: '该训练已完成归档，不能再次覆盖。', code: 'session_locked');
-    }
 
     String persistedSessionId = session.id;
 
@@ -229,7 +259,6 @@ class SupabaseWorkoutRepository implements WorkoutRepository {
         .eq('user_id', userId)
         .eq('session_id', persistedSessionId);
 
-    final insertedExerciseRows = <_InsertedExercise>[];
     final orderedExercises = [...session.exercises]
       ..sort((a, b) => a.order.compareTo(b.order));
 
@@ -269,46 +298,21 @@ class SupabaseWorkoutRepository implements WorkoutRepository {
       if (setPayloads.isNotEmpty) {
         await _client.from('workout_sets').insert(setPayloads);
       }
-
-      insertedExerciseRows.add(
-        _InsertedExercise(
-          rowId: exerciseRowId,
-          exerciseName: exercise.exerciseName,
-          sets: exercise.sets,
-        ),
-      );
     }
 
     if (session.status == SessionStatus.completed) {
-      final existingRecords = await _client
-          .from('workout_records')
-          .select('id')
-          .eq('user_id', userId)
-          .eq('session_id', persistedSessionId)
-          .limit(1);
-
-      final existingRecordRows = List<Map<String, dynamic>>.from(
-        existingRecords as List<dynamic>,
-      );
-      if (existingRecordRows.isEmpty) {
-        final recordRows = <Map<String, dynamic>>[];
-        for (final exercise in insertedExerciseRows) {
-          for (final set in exercise.sets) {
-            recordRows.add({
-              'user_id': userId,
-              'session_id': persistedSessionId,
-              'exercise_name': exercise.exerciseName,
-              'sets': set.index,
-              'reps': set.reps,
-              'weight': set.weight,
-              'exercise_row_id': exercise.rowId,
-            });
-          }
-        }
-        if (recordRows.isNotEmpty) {
-          await _client.from('workout_records').insert(recordRows);
-        }
-      }
+      await _client.from('records').insert({
+        'user_id': userId,
+        'session_id': persistedSessionId,
+        'session_date': _dateOnlyIso(session.date),
+        'title': session.title,
+        'status': session.status.value,
+        'duration_minutes': session.durationMinutes,
+        'exercises': orderedExercises
+            .map((exercise) => exercise.toJson())
+            .toList(),
+        'notes': session.notes,
+      });
     }
   }
 
@@ -397,7 +401,7 @@ class SupabaseWorkoutRepository implements WorkoutRepository {
           'date': AppTime.toUtcIsoString(normalizedDate),
           'title': withTemplate ? '推训练日' : '新训练日',
           'status': SessionStatus.draft.value,
-          'duration_minutes': 0,
+          'duration_minutes': 30,
           'notes': withTemplate ? '保持肩胛稳定，最后一组可接近力竭。' : null,
         })
         .select()
@@ -655,6 +659,9 @@ class SupabaseWorkoutRepository implements WorkoutRepository {
 
   DateTime _day(DateTime date) => DateTime(date.year, date.month, date.day);
 
+  String _dateOnlyIso(DateTime date) =>
+      _day(date).toIso8601String().split('T').first;
+
   String _buildRecoveryHint(DateTime today, List<WorkoutSession> sessions) {
     if (sessions.isEmpty) {
       return '最近 3 天无训练，建议从中等强度热身开始恢复节奏。';
@@ -680,7 +687,7 @@ class SupabaseWorkoutRepository implements WorkoutRepository {
     return DailySummary(
       date: date,
       hasTraining: true,
-      totalSets: session.completedSets,
+      totalSets: session.totalSets,
       totalVolume: session.totalVolume,
       durationMinutes: session.durationMinutes,
     );
@@ -692,16 +699,4 @@ class SupabaseWorkoutRepository implements WorkoutRepository {
     );
     return regex.hasMatch(value);
   }
-}
-
-class _InsertedExercise {
-  const _InsertedExercise({
-    required this.rowId,
-    required this.exerciseName,
-    required this.sets,
-  });
-
-  final String rowId;
-  final String exerciseName;
-  final List<ExerciseSet> sets;
 }

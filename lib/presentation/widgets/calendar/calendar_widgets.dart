@@ -213,12 +213,13 @@ class _CalendarCell extends StatelessWidget {
 
     return InkWell(
       borderRadius: AppRadius.card,
-      onTap: () {
+      onTap: () async {
         if (isFutureDay) {
           showLatestSnackBar(context, '未来日期不可补录');
           return;
         }
-        Navigator.of(context).pushNamed(
+        final result =
+            await Navigator.of(context).pushNamed<SessionEditorExitResult>(
           SessionEditorPage.routeName,
           arguments: SessionEditorArgs(
             date: day,
@@ -226,6 +227,16 @@ class _CalendarCell extends StatelessWidget {
             sessionId: session?.id,
           ),
         );
+        if (!context.mounted || result == null) {
+          return;
+        }
+        final message = switch (result) {
+          SessionEditorExitResult.savedProgress => '训练进度已保存',
+          SessionEditorExitResult.completed => '训练记录已完成',
+          SessionEditorExitResult.autosaved => '已自动保存当前内容',
+          SessionEditorExitResult.autosaveFailed => '自动保存失败，本次修改未保存',
+        };
+        showLatestSnackBar(context, message);
       },
       child: Container(
         decoration: BoxDecoration(

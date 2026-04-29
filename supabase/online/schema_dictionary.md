@@ -2,6 +2,8 @@
 
 基于 [mySql.sql](/Users/mac/Projects/fitness_Projects/fitness_client/supabase/online/mySql.sql) 整理。本文档只覆盖当前线上导出中的 `public` schema 业务表，不覆盖 `auth.users` 等 Supabase 内建系统表的完整字段字典。
 
+当前数据库默认展示时区约定为 `Asia/Shanghai`。在 Supabase 后台查看 `timestamptz` 字段时，应直接按北京时间理解，无需再手动加 8 小时。
+
 当前线上导出里共有 7 张业务表：
 
 1. `users`
@@ -10,7 +12,7 @@
 4. `workout_sessions`
 5. `workout_exercises`
 6. `workout_sets`
-7. `workout_records`
+7. `records`
 8. `exercise_catalog_items`
 
 ## 总览
@@ -23,7 +25,7 @@
 | `workout_sessions` | 训练会话表 | 存一整次训练的主记录，是可编辑中的训练容器。 |
 | `workout_exercises` | 会话动作表 | 存某次训练里包含了哪些动作，以及动作顺序和目标组数。 |
 | `workout_sets` | 训练组明细表 | 存某个动作下每一组的实际训练数据。 |
-| `workout_records` | 训练归档快照表 | 存已归档的历史训练快照，设计上用于追溯，不用于持续编辑。 |
+| `records` | 训练归档快照表 | 存已归档的历史训练快照，设计上用于追溯，不用于持续编辑。 |
 | `exercise_catalog_items` | 动作目录表 | 存全局共享的动作基础信息、肌群分类和参考图片路径，用于动作库选择。 |
 
 ## 表级说明
@@ -130,14 +132,17 @@
 - 外键：`user_id -> auth.users.id`
 - 备注：
   - `status` 受约束，只能是 `draft`、`in_progress`、`completed`。
-  - 线上有阻止已完成会话更新/删除的触发器，说明已完成训练不应随意改写。
+  - `completed` 表示这次训练已完成，但不再等同于不可修订；用户仍可补录或修正历史训练。
+  - 线上只保留阻止删除已完成会话的保护，避免误删历史训练。
+  - 首页“开始训练”默认优先复用当天最近一条 `draft` / `in_progress` 会话，避免重复创建空草稿。
+  - 首页已移除“快捷动作”卡片；历史补录统一从日历进入。
 
 | 字段 | 类型 | 含义 |
 | --- | --- | --- |
 | `id` | `uuid` | 一次训练会话的主键。 |
 | `user_id` | `uuid` | 这次训练属于哪个用户。 |
-| `created_at` | `timestamptz` | 训练会话创建时间。 |
-| `date` | `timestamptz` | 训练日期/时间。当前代码主要把它当作训练发生日期使用。 |
+| `created_at` | `timestamptz` | 训练会话创建时间。数据库内部保存绝对时间点，后台默认按北京时间展示。 |
+| `date` | `timestamptz` | 训练归属日。它不是实际点击创建时刻，而是用来表达“这次训练属于哪一天”；后台默认按北京时间展示。 |
 | `title` | `text` | 本次训练标题，如“推训练日”“新训练日”。 |
 | `status` | `text` | 训练生命周期状态，不是通用状态。`draft`=草稿，`in_progress`=进行中，`completed`=已完成。 |
 | `duration_minutes` | `integer` | 本次训练总时长，单位分钟。 |
@@ -207,30 +212,35 @@
 | `duration_minutes` | `integer` | 有氧组时长，单位分钟。力量组通常为空。 |
 | `distance_km` | `numeric(10,3)` | 有氧组距离，单位公里。力量组通常为空。 |
 
-### `workout_records`
+### `records`
 
-- 表名中文含义：训练归档快照表
-- 业务用途：存一条已经归档的历史训练快照。
-- 角色定位：偏历史追溯，不是当前训练编辑主表。
+- 表名中文含义：训练历史快照表
+- 业务用途：存某次训练在某个保存时刻的完整历史快照。
+- 角色定位：偏历史追溯与版本留档，不是当前训练编辑主表。
 - 典型场景：
   - 训练完成后留存历史快照
-  - 后续统计、回看、审计
+  - 修订历史训练后追加新的快照版本
+  - 后续回看、审计、版本追溯
 - 主键：`id`
-- 外键：`user_id -> auth.users.id`
+- 外键：
+  - `(session_id, user_id) -> workout_sessions (id, user_id)`
+  - `user_id -> auth.users.id`
 - 备注：
-  - 线上有阻止 `update/delete` 的触发器，说明设计上不可改不可删。
-  - 它和 `workout_sessions` 不同：`workout_sessions` 是可编辑中的结构化训练；`workout_records` 是归档后的历史快照。
+  - 线上有阻止 `update/delete` 的触发器，说明设计上只允许新增，不允许回写或删除。
+  - 一次保存生成一条快照；同一个 `session_id` 可以有多条快照版本。
+  - 它和 `workout_sessions` 不同：`workout_sessions` 是当前可编辑中的结构化训练；`records` 是按时间线追加的历史快照。
 
 | 字段 | 类型 | 含义 |
 | --- | --- | --- |
 | `id` | `uuid` | 归档记录主键。 |
 | `user_id` | `uuid` | 这条归档记录属于哪个用户。 |
 | `created_at` | `timestamptz` | 归档记录创建时间。 |
+| `session_id` | `uuid` | 这条快照对应哪一次训练会话。不是快照自身主键，而是版本归属键。 |
 | `session_date` | `date` | 这次训练对应的训练日期。 |
 | `title` | `text` | 训练标题快照。 |
-| `status` | `text` | 归档时的状态快照。默认值是 `draft`，但业务上通常用于保存完成后的历史状态。 |
+| `status` | `text` | 归档时的状态快照。通常保存完成后的历史状态，也可反映修订时的会话状态。 |
 | `duration_minutes` | `integer` | 训练时长快照。 |
-| `exercises` | `jsonb` | 当次训练动作和组数据的 JSON 快照。 |
+| `exercises` | `jsonb` | 当次训练动作和组数据的完整 JSON 快照，用于回溯保存当时的结构化内容。 |
 | `notes` | `text` | 训练备注快照。 |
 
 ### `exercise_catalog_items`
@@ -278,13 +288,25 @@
 - `workout_sets.weight`：某一组训练时使用的负重。
 - 两者单位都可能是 kg，但业务含义完全不同，不能互相替代。
 
-### `workout_sessions` vs `workout_records`
+### `workout_sessions` vs `records`
 
-- `workout_sessions`：训练过程中的主记录，可创建、编辑、补录，并挂动作和组。
-- `workout_records`：归档后的历史快照，线上触发器已经表明它不应该再被修改或删除。
+- `workout_sessions`：训练过程中的主记录，可创建、编辑、补录，并挂动作和组；历史日期训练也允许继续修订。
+- `records`：每次保存后追加的历史快照版本，线上触发器表明它不应该再被修改或删除。
 - 简单理解：
   - `workout_sessions` 是“活数据”
-  - `workout_records` 是“历史快照”
+  - `records` 是“历史版本快照”
+
+### `workout_sessions.created_at` vs `workout_sessions.date`
+
+- `created_at`：记录这条训练会话是什么时候在数据库里被创建出来的，适合看真实创建时刻。
+- `date`：记录这次训练归属于哪一天，适合做日历归档和按天统计。
+- 两者语义不同：`created_at` 看“什么时候创建”，`date` 看“训练算哪一天”。
+
+### `records.session_id` vs `records.id`
+
+- `records.id`：某一条快照版本自己的主键。
+- `records.session_id`：这条快照属于哪一次训练会话。
+- 一个 `workout_sessions.id` 可以对应多条 `records`，表示同一次训练的多次保存历史。
 
 ### `workout_exercises.exercise_id` vs `workout_exercises.id`
 

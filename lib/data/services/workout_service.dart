@@ -42,12 +42,14 @@ class WorkoutService {
     DateTime date, {
     required SessionMode mode,
     String? sessionId,
+    bool preferActiveSession = false,
   }) async {
     try {
       return await _repository.startOrGetSession(
         date,
         mode: mode,
         sessionId: sessionId,
+        preferActiveSession: preferActiveSession,
       );
     } catch (error, stackTrace) {
       AppLogger.error('加载训练会话失败', error: error, stackTrace: stackTrace);

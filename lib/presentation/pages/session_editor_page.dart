@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 
 import '../../application/providers/providers.dart';
 import '../../application/state/session_editor_controller.dart';
+import '../../application/state/session_editor_state.dart';
 import '../../constants/exercise_catalog_constants.dart';
 import '../../domain/entities/workout_models.dart';
 import '../../theme/app_theme.dart';
@@ -12,6 +13,13 @@ import '../../utils/snackbar_helper.dart';
 import 'exercise_library_page.dart';
 import '../widgets/section_card.dart';
 import '../widgets/session_editor/session_editor_widgets.dart';
+
+enum SessionEditorExitResult {
+  savedProgress,
+  completed,
+  autosaved,
+  autosaveFailed,
+}
 
 class SessionEditorPage extends ConsumerStatefulWidget {
   const SessionEditorPage({super.key, required this.args});
@@ -34,9 +42,11 @@ class _SessionEditorPageState extends ConsumerState<SessionEditorPage> {
   final TextEditingController _restNoteController = TextEditingController();
   String _selectedTrainingType = _trainingTypes.first;
   bool _trainingTypeInitialized = false;
+  bool _isClosing = false;
 
   bool get _isRestDay => _selectedTrainingType == '休息日';
   bool get _isCardio => _selectedTrainingType == '有氧';
+  bool get _isReadOnly => widget.args.readOnly;
 
   @override
   void dispose() {
@@ -258,6 +268,69 @@ class _SessionEditorPageState extends ConsumerState<SessionEditorPage> {
     return ExerciseCatalogConstants.inferSessionGroupFromTitle(title);
   }
 
+  void _refreshSessionQueries() {
+    ref.invalidate(homeSnapshotProvider);
+    ref.invalidate(analyticsSnapshotProvider);
+    ref.invalidate(
+      sessionsByMonthProvider(
+        DateTime(
+          widget.args.date.year,
+          widget.args.date.month,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _closeWithResult([SessionEditorExitResult? result]) async {
+    if (_isClosing || !mounted) {
+      return;
+    }
+    _isClosing = true;
+    Navigator.of(context).pop(result);
+  }
+
+  Future<void> _handleSave({
+    required Future<bool> Function() action,
+    required SessionEditorExitResult successResult,
+  }) async {
+    final success = await action();
+    if (!mounted) {
+      return;
+    }
+    if (success) {
+      _refreshSessionQueries();
+      await _closeWithResult(successResult);
+    }
+  }
+
+  Future<void> _handlePopAttempt() async {
+    if (_isClosing) {
+      return;
+    }
+    if (_isReadOnly) {
+      await _closeWithResult();
+      return;
+    }
+    final state = ref.read(sessionEditorProvider(widget.args));
+    if (state.isSaving) {
+      return;
+    }
+    if (!state.hasUnsavedChanges) {
+      await _closeWithResult();
+      return;
+    }
+    final controller = ref.read(sessionEditorProvider(widget.args).notifier);
+    final success = await controller.autoSaveBeforeExit();
+    if (mounted && success) {
+      _refreshSessionQueries();
+    }
+    await _closeWithResult(
+      success
+          ? SessionEditorExitResult.autosaved
+          : SessionEditorExitResult.autosaveFailed,
+    );
+  }
+
   void _initTrainingTypeIfNeeded(WorkoutSession? session) {
     if (_trainingTypeInitialized || session == null) {
       return;
@@ -288,6 +361,9 @@ class _SessionEditorPageState extends ConsumerState<SessionEditorPage> {
   Future<void> _openExerciseLibrary(
     SessionEditorController controller,
   ) async {
+    if (_isReadOnly) {
+      return;
+    }
     if (_isRestDay) {
       showLatestSnackBar(context, '休息日不支持新增训练动作，请记录恢复备注');
       return;
@@ -329,21 +405,31 @@ class _SessionEditorPageState extends ConsumerState<SessionEditorPage> {
     _initTrainingTypeIfNeeded(state.session);
     _syncRestNoteIfNeeded(state.session);
 
-    return Scaffold(
-      appBar: AppBar(title: Text('训练记录 · $dateText')),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.only(
-            left: AppSpacing.md,
-            right: AppSpacing.md,
-            top: AppSpacing.md,
-            bottom: 96,
-          ),
-          child: state.isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : state.error != null
-              ? Center(child: Text(state.error!))
-              : ListView(
+    final savingAction = state.savingAction;
+
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) {
+          return;
+        }
+        await _handlePopAttempt();
+      },
+      child: Scaffold(
+        appBar: AppBar(title: Text(_isReadOnly ? '查看训练 · $dateText' : '训练记录 · $dateText')),
+        body: SafeArea(
+          child: Padding(
+            padding: EdgeInsets.only(
+              left: AppSpacing.md,
+              right: AppSpacing.md,
+              top: AppSpacing.md,
+              bottom: AppSpacing.md,
+            ),
+            child: state.isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : state.error != null
+                ? Center(child: Text(state.error!))
+                : ListView(
                   children: [
                     SectionCard(
                       title: '会话信息',
@@ -372,20 +458,22 @@ class _SessionEditorPageState extends ConsumerState<SessionEditorPage> {
                                   (item) => ChoiceChip(
                                     label: Text(item),
                                     selected: _selectedTrainingType == item,
-                                    onSelected: (selected) {
-                                      if (!selected) {
-                                        return;
-                                      }
-                                      controller.updateSessionTitle(
-                                        _titleForTrainingType(item),
-                                      );
-                                      if (item == '休息日') {
-                                        controller.clearExercises();
-                                      }
-                                      setState(() {
-                                        _selectedTrainingType = item;
-                                      });
-                                    },
+                                    onSelected: _isReadOnly
+                                        ? null
+                                        : (selected) {
+                                            if (!selected) {
+                                              return;
+                                            }
+                                            controller.updateSessionTitle(
+                                              _titleForTrainingType(item),
+                                            );
+                                            if (item == '休息日') {
+                                              controller.clearExercises();
+                                            }
+                                            setState(() {
+                                              _selectedTrainingType = item;
+                                            });
+                                          },
                                   ),
                                 )
                                 .toList(),
@@ -407,7 +495,7 @@ class _SessionEditorPageState extends ConsumerState<SessionEditorPage> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 FilledButton.icon(
-                                  onPressed: _isRestDay
+                                  onPressed: _isReadOnly || _isRestDay
                                       ? null
                                       : () => _openExerciseLibrary(controller),
                                   icon: const Icon(Icons.add, size: 18),
@@ -443,6 +531,7 @@ class _SessionEditorPageState extends ConsumerState<SessionEditorPage> {
                           controller: _restNoteController,
                           minLines: 3,
                           maxLines: 5,
+                          readOnly: _isReadOnly,
                           decoration: InputDecoration(
                             isDense: true,
                             contentPadding: const EdgeInsets.all(12),
@@ -451,7 +540,7 @@ class _SessionEditorPageState extends ConsumerState<SessionEditorPage> {
                               borderRadius: AppRadius.card,
                             ),
                           ),
-                          onChanged: controller.updateNotes,
+                          onChanged: _isReadOnly ? null : controller.updateNotes,
                         ),
                       ),
                     ...?state.session?.exercises.map((exercise) {
@@ -475,12 +564,14 @@ class _SessionEditorPageState extends ConsumerState<SessionEditorPage> {
                                     ?.copyWith(color: colors.textMuted),
                               ),
                             IconButton(
-                              onPressed: () {
-                                controller.removeExercise(
-                                  exerciseId: exercise.id,
-                                );
-                                showLatestSnackBar(context, '已删除动作');
-                              },
+                              onPressed: _isReadOnly
+                                  ? null
+                                  : () {
+                                      controller.removeExercise(
+                                        exerciseId: exercise.id,
+                                      );
+                                      showLatestSnackBar(context, '已删除动作');
+                                    },
                               icon: Icon(
                                 Icons.delete_outline,
                                 size: 18,
@@ -510,40 +601,46 @@ class _SessionEditorPageState extends ConsumerState<SessionEditorPage> {
                                   durationMinutes:
                                       cardioSet.durationMinutes ?? 20,
                                   distanceKm: cardioSet.distanceKm,
-                                  onDurationChanged: (value) =>
-                                      controller.updateSet(
-                                        exerciseId: exercise.id,
-                                        setIndex: cardioSet.index,
-                                        durationMinutes: value,
-                                      ),
-                                  onDurationValueTap: () =>
-                                      _showDurationInputDialog(
-                                        controller: controller,
-                                        exerciseId: exercise.id,
-                                        setIndex: cardioSet.index,
-                                        current:
-                                            cardioSet.durationMinutes ?? 20,
-                                      ),
-                                  onDistanceChanged: (value) =>
-                                      controller.updateSet(
-                                        exerciseId: exercise.id,
-                                        setIndex: cardioSet.index,
-                                        distanceKm: value,
-                                        clearDistanceKm: value == null,
-                                      ),
-                                  onDistanceValueTap: () =>
-                                      _showDistanceInputDialog(
-                                        controller: controller,
-                                        exerciseId: exercise.id,
-                                        setIndex: cardioSet.index,
-                                        current: cardioSet.distanceKm,
-                                      ),
-                                  onDelete: () {
-                                    controller.removeExercise(
-                                      exerciseId: exercise.id,
-                                    );
-                                    showLatestSnackBar(context, '已删除动作');
-                                  },
+                                  onDurationChanged: _isReadOnly
+                                      ? null
+                                      : (value) => controller.updateSet(
+                                            exerciseId: exercise.id,
+                                            setIndex: cardioSet.index,
+                                            durationMinutes: value,
+                                          ),
+                                  onDurationValueTap: _isReadOnly
+                                      ? null
+                                      : () => _showDurationInputDialog(
+                                            controller: controller,
+                                            exerciseId: exercise.id,
+                                            setIndex: cardioSet.index,
+                                            current:
+                                                cardioSet.durationMinutes ?? 20,
+                                          ),
+                                  onDistanceChanged: _isReadOnly
+                                      ? null
+                                      : (value) => controller.updateSet(
+                                            exerciseId: exercise.id,
+                                            setIndex: cardioSet.index,
+                                            distanceKm: value,
+                                            clearDistanceKm: value == null,
+                                          ),
+                                  onDistanceValueTap: _isReadOnly
+                                      ? null
+                                      : () => _showDistanceInputDialog(
+                                            controller: controller,
+                                            exerciseId: exercise.id,
+                                            setIndex: cardioSet.index,
+                                            current: cardioSet.distanceKm,
+                                          ),
+                                  onDelete: _isReadOnly
+                                      ? null
+                                      : () {
+                                          controller.removeExercise(
+                                            exerciseId: exercise.id,
+                                          );
+                                          showLatestSnackBar(context, '已删除动作');
+                                        },
                                 ),
                             ] else ...[
                               ...exercise.sets.map(
@@ -551,45 +648,54 @@ class _SessionEditorPageState extends ConsumerState<SessionEditorPage> {
                                   setLabel: '第${set.index}组',
                                   weight: set.weight,
                                   reps: set.reps,
-                                  onWeightChanged: (value) =>
-                                      controller.updateSet(
-                                        exerciseId: exercise.id,
-                                        setIndex: set.index,
-                                        weight: value,
-                                      ),
-                                  onWeightValueTap: () =>
-                                      _showWeightInputDialog(
-                                        controller: controller,
-                                        exerciseId: exercise.id,
-                                        setIndex: set.index,
-                                        current: set.weight,
-                                      ),
-                                  onRepsChanged: (value) =>
-                                      controller.updateSet(
-                                        exerciseId: exercise.id,
-                                        setIndex: set.index,
-                                        reps: value,
-                                      ),
-                                  onDelete: () {
-                                    final removed = controller.removeSet(
-                                      exerciseId: exercise.id,
-                                      setIndex: set.index,
-                                    );
-                                    final text = removed
-                                        ? '已删除本组'
-                                        : '每个动作至少保留1组';
-                                    showLatestSnackBar(context, text);
-                                  },
+                                  onWeightChanged: _isReadOnly
+                                      ? null
+                                      : (value) => controller.updateSet(
+                                            exerciseId: exercise.id,
+                                            setIndex: set.index,
+                                            weight: value,
+                                          ),
+                                  onWeightValueTap: _isReadOnly
+                                      ? null
+                                      : () => _showWeightInputDialog(
+                                            controller: controller,
+                                            exerciseId: exercise.id,
+                                            setIndex: set.index,
+                                            current: set.weight,
+                                          ),
+                                  onRepsChanged: _isReadOnly
+                                      ? null
+                                      : (value) => controller.updateSet(
+                                            exerciseId: exercise.id,
+                                            setIndex: set.index,
+                                            reps: value,
+                                          ),
+                                  onDelete: _isReadOnly
+                                      ? null
+                                      : () {
+                                          final removed = controller.removeSet(
+                                            exerciseId: exercise.id,
+                                            setIndex: set.index,
+                                          );
+                                          final text = removed
+                                              ? '已删除本组'
+                                              : '每个动作至少保留1组';
+                                          showLatestSnackBar(context, text);
+                                        },
                                 ),
                               ),
                               const SizedBox(height: AppSpacing.xs),
                               Align(
                                 alignment: Alignment.center,
                                 child: FilledButton.tonal(
-                                  onPressed: () {
-                                    controller.addSet(exerciseId: exercise.id);
-                                    showLatestSnackBar(context, '已新增1组');
-                                  },
+                                  onPressed: _isReadOnly
+                                      ? null
+                                      : () {
+                                          controller.addSet(
+                                            exerciseId: exercise.id,
+                                          );
+                                          showLatestSnackBar(context, '已新增1组');
+                                        },
                                   style: FilledButton.styleFrom(
                                     minimumSize: const Size(88, 36),
                                     padding: const EdgeInsets.symmetric(
@@ -620,63 +726,171 @@ class _SessionEditorPageState extends ConsumerState<SessionEditorPage> {
                               value: (state.session?.durationMinutes ?? 0)
                                   .toDouble()
                                   .clamp(20, 150),
-                              onChanged: (value) {
-                                controller.updateDuration(value.round());
-                              },
+                              onChanged: _isReadOnly
+                                  ? null
+                                  : (value) {
+                                      controller.updateDuration(value.round());
+                                    },
                             ),
                           ),
                           Text('${state.session?.durationMinutes ?? 0} 分钟'),
                         ],
                       ),
                     ),
-                    FilledButton.icon(
-                      onPressed: state.isSaving
-                          ? null
-                          : () async {
-                              final success = await controller.save();
-                              if (!context.mounted) {
-                                return;
-                              }
-                              if (success) {
-                                ref.invalidate(homeSnapshotProvider);
-                                ref.invalidate(analyticsSnapshotProvider);
-                                ref.invalidate(
-                                  sessionsByMonthProvider(
-                                    DateTime(
-                                      widget.args.date.year,
-                                      widget.args.date.month,
-                                    ),
-                                  ),
-                                );
-                                showLatestSnackBar(context, '训练记录已保存');
-                                Navigator.of(context).pop();
-                              }
-                            },
-                      icon: state.isSaving
+                  ],
+                ),
+          ),
+        ),
+        bottomNavigationBar: _isReadOnly
+            ? null
+            : _EditorBottomArea(
+                isRestDay: _isRestDay,
+                isSaving: state.isSaving,
+                savingAction: savingAction,
+                restSeconds: _restSeconds,
+                timerRunning: _timerRunning,
+                onSaveProgress: () => _handleSave(
+                  action: controller.saveProgress,
+                  successResult: SessionEditorExitResult.savedProgress,
+                ),
+                onComplete: () => _handleSave(
+                  action: controller.completeSession,
+                  successResult: SessionEditorExitResult.completed,
+                ),
+                onToggleTimer: _toggleTimer,
+                onResetTimer: _resetTimer,
+                onAdd30: () => setState(() => _restSeconds += 30),
+                onSub30: () => setState(
+                  () => _restSeconds = (_restSeconds - 30).clamp(0, 99999),
+                ),
+              ),
+      ),
+    );
+  }
+}
+
+class _EditorBottomArea extends StatelessWidget {
+  const _EditorBottomArea({
+    required this.isRestDay,
+    required this.isSaving,
+    required this.savingAction,
+    required this.restSeconds,
+    required this.timerRunning,
+    required this.onSaveProgress,
+    required this.onComplete,
+    required this.onToggleTimer,
+    required this.onResetTimer,
+    required this.onAdd30,
+    required this.onSub30,
+  });
+
+  final bool isRestDay;
+  final bool isSaving;
+  final SessionEditorSavingAction savingAction;
+  final int restSeconds;
+  final bool timerRunning;
+  final VoidCallback onSaveProgress;
+  final VoidCallback onComplete;
+  final VoidCallback onToggleTimer;
+  final VoidCallback onResetTimer;
+  final VoidCallback onAdd30;
+  final VoidCallback onSub30;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
+    final saveProgressLoading =
+        savingAction == SessionEditorSavingAction.saveProgress;
+    final completeLoading =
+        savingAction == SessionEditorSavingAction.completeSession;
+    final autoSaving = savingAction == SessionEditorSavingAction.autoSave;
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            color: colors.panel,
+            border: Border(top: BorderSide(color: colors.panelAlt)),
+            boxShadow: [
+              BoxShadow(
+                color: colors.textPrimary.withValues(alpha: 0.04),
+                blurRadius: 12,
+                offset: const Offset(0, -4),
+              ),
+            ],
+          ),
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.md,
+            AppSpacing.sm,
+            AppSpacing.md,
+            AppSpacing.sm,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (autoSaving)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+                  child: Row(
+                    children: [
+                      const SizedBox(
+                        width: 14,
+                        height: 14,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                      const SizedBox(width: AppSpacing.xs),
+                      Text(
+                        '正在自动保存...',
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ],
+                  ),
+                ),
+              Row(
+                children: [
+                  Expanded(
+                    child: FilledButton.tonalIcon(
+                      onPressed: isSaving ? null : onSaveProgress,
+                      icon: saveProgressLoading
                           ? const SizedBox(
                               width: 16,
                               height: 16,
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
-                          : const Icon(Icons.save),
-                      label: const Text('保存训练记录'),
+                          : const Icon(Icons.bookmark_outline),
+                      label: const Text('保存进度'),
                     ),
-                  ],
-                ),
-        ),
-      ),
-      bottomSheet: _isRestDay
-          ? null
-          : RestTimerBar(
-              seconds: _restSeconds,
-              running: _timerRunning,
-              onToggle: _toggleTimer,
-              onReset: _resetTimer,
-              onAdd30: () => setState(() => _restSeconds += 30),
-              onSub30: () => setState(
-                () => _restSeconds = (_restSeconds - 30).clamp(0, 99999),
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: FilledButton.icon(
+                      onPressed: isSaving ? null : onComplete,
+                      icon: completeLoading
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.check_circle_outline),
+                      label: const Text('完成训练'),
+                    ),
+                  ),
+                ],
               ),
-            ),
+            ],
+          ),
+        ),
+        if (!isRestDay)
+          RestTimerBar(
+            seconds: restSeconds,
+            running: timerRunning,
+            onToggle: onToggleTimer,
+            onReset: onResetTimer,
+            onAdd30: onAdd30,
+            onSub30: onSub30,
+          ),
+      ],
     );
   }
 }

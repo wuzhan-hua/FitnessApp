@@ -10,16 +10,23 @@ class SessionEditorArgs {
     required this.date,
     required this.mode,
     this.sessionId,
+    this.preferActiveSession = false,
+    this.readOnly = false,
   });
 
   final DateTime date;
   final SessionMode mode;
   final String? sessionId;
+  final bool preferActiveSession;
+  final bool readOnly;
 }
 
 class SessionEditorController extends StateNotifier<SessionEditorState> {
-  SessionEditorController(this._service, this._exerciseCatalogService, this.args)
-    : super(SessionEditorState.initial) {
+  SessionEditorController(
+    this._service,
+    this._exerciseCatalogService,
+    this.args,
+  ) : super(SessionEditorState.initial) {
     load();
   }
 
@@ -31,6 +38,8 @@ class SessionEditorController extends StateNotifier<SessionEditorState> {
   final ExerciseCatalogService _exerciseCatalogService;
   final SessionEditorArgs args;
 
+  bool get _isReadOnly => args.readOnly;
+
   Future<void> load() async {
     state = state.copyWith(isLoading: true, error: null);
     try {
@@ -38,9 +47,16 @@ class SessionEditorController extends StateNotifier<SessionEditorState> {
         args.date,
         mode: args.mode,
         sessionId: args.sessionId,
+        preferActiveSession: args.preferActiveSession,
       );
       final normalized = await _normalizeZeroWeightExercises(session);
-      state = state.copyWith(isLoading: false, session: normalized, error: null);
+      state = state.copyWith(
+        isLoading: false,
+        hasUnsavedChanges: false,
+        savingAction: SessionEditorSavingAction.none,
+        session: normalized,
+        error: null,
+      );
     } catch (error) {
       state = state.copyWith(isLoading: false, error: '加载训练记录失败: $error');
     }
@@ -56,11 +72,15 @@ class SessionEditorController extends StateNotifier<SessionEditorState> {
     double? distanceKm,
     bool clearDistanceKm = false,
   }) {
+    if (_isReadOnly) {
+      return;
+    }
     final session = state.session;
     if (session == null) {
       return;
     }
 
+    var changed = false;
     final updatedExercises = session.exercises.map((exercise) {
       if (exercise.id != exerciseId) {
         return exercise;
@@ -69,6 +89,21 @@ class SessionEditorController extends StateNotifier<SessionEditorState> {
         if (set.index != setIndex) {
           return set;
         }
+        final nextWeight = weight ?? set.weight;
+        final nextReps = reps ?? set.reps;
+        final nextIsCompleted = isCompleted ?? set.isCompleted;
+        final nextDurationMinutes = durationMinutes ?? set.durationMinutes;
+        final nextDistanceKm = clearDistanceKm
+            ? null
+            : (distanceKm ?? set.distanceKm);
+        if (nextWeight == set.weight &&
+            nextReps == set.reps &&
+            nextIsCompleted == set.isCompleted &&
+            nextDurationMinutes == set.durationMinutes &&
+            nextDistanceKm == set.distanceKm) {
+          return set;
+        }
+        changed = true;
         return set.copyWith(
           weight: weight,
           reps: reps,
@@ -81,48 +116,71 @@ class SessionEditorController extends StateNotifier<SessionEditorState> {
       return exercise.copyWith(sets: updatedSets);
     }).toList();
 
-    state = state.copyWith(
-      session: session.copyWith(exercises: updatedExercises),
+    if (!changed) {
+      return;
+    }
+
+    _updateSession(
+      _promoteDraftIfNeeded(session.copyWith(exercises: updatedExercises)),
     );
   }
 
   void updateDuration(int minutes) {
-    final session = state.session;
-    if (session == null) {
+    if (_isReadOnly) {
       return;
     }
-    state = state.copyWith(session: session.copyWith(durationMinutes: minutes));
+    final session = state.session;
+    if (session == null || session.durationMinutes == minutes) {
+      return;
+    }
+    _updateSession(
+      _promoteDraftIfNeeded(session.copyWith(durationMinutes: minutes)),
+    );
   }
 
   void updateSessionTitle(String title) {
+    if (_isReadOnly) {
+      return;
+    }
     final session = state.session;
     if (session == null) {
       return;
     }
     final normalized = title.trim();
-    if (normalized.isEmpty) {
+    if (normalized.isEmpty || normalized == session.title) {
       return;
     }
-    state = state.copyWith(session: session.copyWith(title: normalized));
+    _updateSession(_promoteDraftIfNeeded(session.copyWith(title: normalized)));
   }
 
   void updateNotes(String notes) {
-    final session = state.session;
-    if (session == null) {
+    if (_isReadOnly) {
       return;
     }
-    state = state.copyWith(session: session.copyWith(notes: notes));
+    final session = state.session;
+    if (session == null || session.notes == notes) {
+      return;
+    }
+    _updateSession(_promoteDraftIfNeeded(session.copyWith(notes: notes)));
   }
 
   void clearExercises() {
-    final session = state.session;
-    if (session == null) {
+    if (_isReadOnly) {
       return;
     }
-    state = state.copyWith(session: session.copyWith(exercises: const []));
+    final session = state.session;
+    if (session == null || session.exercises.isEmpty) {
+      return;
+    }
+    _updateSession(
+      _promoteDraftIfNeeded(session.copyWith(exercises: const [])),
+    );
   }
 
   void addSet({required String exerciseId}) {
+    if (_isReadOnly) {
+      return;
+    }
     final session = state.session;
     if (session == null) {
       return;
@@ -165,8 +223,8 @@ class SessionEditorController extends StateNotifier<SessionEditorState> {
       );
     }).toList();
 
-    state = state.copyWith(
-      session: session.copyWith(exercises: updatedExercises),
+    _updateSession(
+      _promoteDraftIfNeeded(session.copyWith(exercises: updatedExercises)),
     );
   }
 
@@ -177,6 +235,9 @@ class SessionEditorController extends StateNotifier<SessionEditorState> {
     bool canAdd = true,
     bool defaultsToZeroWeight = false,
   }) {
+    if (_isReadOnly) {
+      return false;
+    }
     if (!canAdd) {
       return false;
     }
@@ -185,7 +246,6 @@ class SessionEditorController extends StateNotifier<SessionEditorState> {
       return false;
     }
 
-    final nextOrder = session.exercises.length;
     final normalized = name.trim();
     if (normalized.isEmpty) {
       return false;
@@ -197,7 +257,7 @@ class SessionEditorController extends StateNotifier<SessionEditorState> {
           exerciseId ?? 'custom-${normalized.replaceAll(RegExp(r'\s+'), '-')}',
       exerciseName: normalized,
       targetSets: 1,
-      order: nextOrder,
+      order: 0,
       sets: [
         ExerciseSet(
           index: 1,
@@ -212,9 +272,17 @@ class SessionEditorController extends StateNotifier<SessionEditorState> {
         ),
       ],
     );
+    final reorderedExercises = List<SessionExercise>.generate(
+      session.exercises.length + 1,
+      (index) => index == 0
+          ? newExercise
+          : session.exercises[index - 1].copyWith(order: index),
+    );
 
-    state = state.copyWith(
-      session: session.copyWith(exercises: [...session.exercises, newExercise]),
+    _updateSession(
+      _promoteDraftIfNeeded(
+        session.copyWith(exercises: reorderedExercises),
+      ),
     );
     return true;
   }
@@ -271,6 +339,9 @@ class SessionEditorController extends StateNotifier<SessionEditorState> {
   }
 
   void removeExercise({required String exerciseId}) {
+    if (_isReadOnly) {
+      return;
+    }
     final session = state.session;
     if (session == null) {
       return;
@@ -284,10 +355,13 @@ class SessionEditorController extends StateNotifier<SessionEditorState> {
       (index) => remained[index].copyWith(order: index),
     );
 
-    state = state.copyWith(session: session.copyWith(exercises: normalized));
+    _updateSession(_promoteDraftIfNeeded(session.copyWith(exercises: normalized)));
   }
 
   bool removeSet({required String exerciseId, required int setIndex}) {
+    if (_isReadOnly) {
+      return false;
+    }
     final session = state.session;
     if (session == null) {
       return false;
@@ -315,8 +389,8 @@ class SessionEditorController extends StateNotifier<SessionEditorState> {
     if (blockedByMinSet) {
       return false;
     }
-    state = state.copyWith(
-      session: session.copyWith(exercises: updatedExercises),
+    _updateSession(
+      _promoteDraftIfNeeded(session.copyWith(exercises: updatedExercises)),
     );
     return true;
   }
@@ -328,33 +402,106 @@ class SessionEditorController extends StateNotifier<SessionEditorState> {
     );
   }
 
-  Future<bool> save() async {
+  WorkoutSession _promoteDraftIfNeeded(WorkoutSession session) {
+    if (session.status != SessionStatus.draft) {
+      return session;
+    }
+    return session.copyWith(status: SessionStatus.inProgress);
+  }
+
+  void _updateSession(WorkoutSession session) {
+    state = state.copyWith(
+      session: session,
+      hasUnsavedChanges: true,
+      error: null,
+    );
+  }
+
+  List<SessionExercise> _normalizeExercisesForSave(List<SessionExercise> items) {
+    return items.map((exercise) {
+      final cardioSets = exercise.sets
+          .where((set) => set.setType == ExerciseSetType.cardio)
+          .toList();
+      if (cardioSets.isEmpty) {
+        return exercise;
+      }
+      final single = cardioSets.first.copyWith(index: 1);
+      return exercise.copyWith(sets: [single], targetSets: 1);
+    }).toList();
+  }
+
+  Future<bool> saveProgress() async {
+    if (_isReadOnly) {
+      return true;
+    }
+    return _saveWithStatus(
+      SessionStatus.inProgress,
+      action: SessionEditorSavingAction.saveProgress,
+    );
+  }
+
+  Future<bool> completeSession() async {
+    if (_isReadOnly) {
+      return true;
+    }
+    return _saveWithStatus(
+      SessionStatus.completed,
+      action: SessionEditorSavingAction.completeSession,
+    );
+  }
+
+  Future<bool> autoSaveBeforeExit() async {
+    if (_isReadOnly) {
+      return true;
+    }
+    if (!state.hasUnsavedChanges) {
+      return true;
+    }
+    final session = state.session;
+    if (session == null) {
+      return true;
+    }
+    final targetStatus = session.status == SessionStatus.completed
+        ? SessionStatus.completed
+        : SessionStatus.inProgress;
+    return _saveWithStatus(
+      targetStatus,
+      action: SessionEditorSavingAction.autoSave,
+    );
+  }
+
+  Future<bool> _saveWithStatus(
+    SessionStatus targetStatus, {
+    required SessionEditorSavingAction action,
+  }) async {
     final session = state.session;
     if (session == null) {
       return false;
     }
 
-    state = state.copyWith(isSaving: true, error: null);
+    state = state.copyWith(savingAction: action, error: null);
     try {
-      final normalizedExercises = session.exercises.map((exercise) {
-        final cardioSets = exercise.sets
-            .where((set) => set.setType == ExerciseSetType.cardio)
-            .toList();
-        if (cardioSets.isEmpty) {
-          return exercise;
-        }
-        final single = cardioSets.first.copyWith(index: 1);
-        return exercise.copyWith(sets: [single], targetSets: 1);
-      }).toList();
+      final normalizedExercises = _normalizeExercisesForSave(session.exercises);
+      final resolvedStatus = session.status == SessionStatus.completed
+          ? SessionStatus.completed
+          : targetStatus;
       final saved = session.copyWith(
-        status: SessionStatus.completed,
+        status: resolvedStatus,
         exercises: normalizedExercises,
       );
       await _service.saveSession(saved);
-      state = state.copyWith(isSaving: false, session: saved);
+      state = state.copyWith(
+        savingAction: SessionEditorSavingAction.none,
+        hasUnsavedChanges: false,
+        session: saved,
+        error: null,
+      );
       return true;
     } catch (error) {
-      state = state.copyWith(isSaving: false, error: '保存失败: $error');
+      state = state.copyWith(
+        savingAction: SessionEditorSavingAction.none,
+        error: '保存失败: $error',
+      );
       return false;
     }
   }

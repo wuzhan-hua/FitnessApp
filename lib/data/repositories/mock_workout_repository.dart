@@ -39,7 +39,7 @@ class MockWorkoutRepository implements WorkoutRepository {
     return DailySummary(
       date: date,
       hasTraining: true,
-      totalSets: session.completedSets,
+      totalSets: session.totalSets,
       totalVolume: session.totalVolume,
       durationMinutes: session.durationMinutes,
     );
@@ -51,7 +51,7 @@ class MockWorkoutRepository implements WorkoutRepository {
       date: date,
       title: '推训练日',
       status: SessionStatus.draft,
-      durationMinutes: 0,
+      durationMinutes: 30,
       exercises: const [
         SessionExercise(
           id: 'sq-1',
@@ -207,6 +207,7 @@ class MockWorkoutRepository implements WorkoutRepository {
     return HomeSnapshot(
       date: date,
       todaySummary: _buildDailySummary(today, todaySession),
+      todaySession: todaySession,
       inProgressSession: todaySession?.status == SessionStatus.inProgress
           ? todaySession
           : null,
@@ -230,6 +231,20 @@ class MockWorkoutRepository implements WorkoutRepository {
     return _sessions
         .where((session) => _day(session.date) == target)
         .firstOrNull;
+  }
+
+  @override
+  Future<WorkoutSession?> getActiveSessionByDate(DateTime date) async {
+    final target = _day(date);
+    final candidates = _sessions
+        .where(
+          (session) =>
+              _day(session.date) == target &&
+              (session.status == SessionStatus.draft ||
+                  session.status == SessionStatus.inProgress),
+        )
+        .toList();
+    return candidates.isEmpty ? null : candidates.last;
   }
 
   @override
@@ -270,11 +285,19 @@ class MockWorkoutRepository implements WorkoutRepository {
     DateTime date, {
     required SessionMode mode,
     String? sessionId,
+    bool preferActiveSession = false,
   }) async {
     if (sessionId != null) {
       final session = await getSessionById(sessionId);
       if (session != null) {
         return session;
+      }
+    }
+
+    if (preferActiveSession) {
+      final active = await getActiveSessionByDate(date);
+      if (active != null) {
+        return active;
       }
     }
 

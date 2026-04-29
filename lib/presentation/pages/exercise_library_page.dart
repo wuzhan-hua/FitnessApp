@@ -39,6 +39,25 @@ class ExerciseLibraryPage extends ConsumerStatefulWidget {
 }
 
 class _ExerciseLibraryPageState extends ConsumerState<ExerciseLibraryPage> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _refreshCatalogInBackground();
+    });
+  }
+
+  Future<void> _refreshCatalogInBackground() async {
+    final service = ref.read(exerciseCatalogServiceProvider);
+    final refreshed = await service.refreshCatalogIfStale();
+    if (!mounted || !refreshed) {
+      return;
+    }
+    ref.invalidate(exerciseMuscleGroupsProvider);
+    ref.invalidate(exerciseEquipmentsProvider);
+    ref.invalidate(exerciseCatalogItemsProvider);
+  }
+
   void _ensureDefaultGroup(List<String> groups, String? selectedGroup) {
     if (selectedGroup != null || groups.isEmpty) {
       return;
@@ -422,23 +441,39 @@ class _ExerciseCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: AppSpacing.xs),
-                    TextButton.icon(
+                    TextButton(
                       onPressed: () {
                         Navigator.of(context).pushNamed(
                           ExerciseDetailPage.routeName,
                           arguments: ExerciseDetailPageArgs(item: item),
                         );
                       },
-                      icon: const Icon(Icons.info_outline, size: 16),
-                      label: const Text('介绍'),
                       style: TextButton.styleFrom(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
+                          horizontal: 4,
+                          vertical: 1,
                         ),
-                        minimumSize: const Size(0, 0),
+                        minimumSize: const Size(44, 22),
                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         visualDensity: VisualDensity.compact,
+                        foregroundColor: colors.accent,
+                        textStyle: Theme.of(context).textTheme.labelSmall
+                            ?.copyWith(
+                              fontWeight: FontWeight.w500,
+                              fontSize: 10,
+                            ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.info_outline,
+                            size: 13,
+                            color: colors.accent,
+                          ),
+                          const SizedBox(width: 1),
+                          const Text('介绍'),
+                        ],
                       ),
                     ),
                   ],

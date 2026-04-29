@@ -17,9 +17,9 @@ class SetRow extends StatelessWidget {
   final String setLabel;
   final double weight;
   final int reps;
-  final ValueChanged<double> onWeightChanged;
-  final ValueChanged<int> onRepsChanged;
-  final VoidCallback onWeightValueTap;
+  final ValueChanged<double>? onWeightChanged;
+  final ValueChanged<int>? onRepsChanged;
+  final VoidCallback? onWeightValueTap;
   final VoidCallback? onDelete;
 
   @override
@@ -57,7 +57,9 @@ class SetRow extends StatelessWidget {
           step: 1,
           fractionDigits: 0,
           valueMinWidth: valueMinWidth,
-          onChanged: (value) => onRepsChanged(value.round()),
+          onChanged: onRepsChanged == null
+              ? null
+              : (value) => onRepsChanged!(value.round()),
         );
         return Container(
           margin: const EdgeInsets.only(bottom: AppSpacing.sm),
@@ -112,8 +114,8 @@ class CardioSetRow extends StatelessWidget {
   final String setLabel;
   final int durationMinutes;
   final double? distanceKm;
-  final ValueChanged<int> onDurationChanged;
-  final ValueChanged<double?> onDistanceChanged;
+  final ValueChanged<int>? onDurationChanged;
+  final ValueChanged<double?>? onDistanceChanged;
   final VoidCallback? onDurationValueTap;
   final VoidCallback? onDistanceValueTap;
   final VoidCallback? onDelete;
@@ -165,7 +167,9 @@ class CardioSetRow extends StatelessWidget {
                       fractionDigits: 0,
                       valueMinWidth: valueMinWidth,
                       onValueTap: onDurationValueTap,
-                      onChanged: (value) => onDurationChanged(value.round()),
+                      onChanged: onDurationChanged == null
+                          ? null
+                          : (value) => onDurationChanged!(value.round()),
                     ),
                   ),
                   SizedBox(width: columnGap),
@@ -180,7 +184,9 @@ class CardioSetRow extends StatelessWidget {
                           fractionDigits: 1,
                           valueMinWidth: valueMinWidth,
                           onValueTap: onDistanceValueTap,
-                          onChanged: (value) => onDistanceChanged(value),
+                          onChanged: onDistanceChanged == null
+                              ? null
+                              : (value) => onDistanceChanged!(value),
                         ),
                       ],
                     ),
@@ -201,9 +207,9 @@ class NumericStepper extends StatelessWidget {
     required this.label,
     required this.value,
     required this.step,
-    required this.onChanged,
     required this.fractionDigits,
     required this.valueMinWidth,
+    this.onChanged,
     this.onValueTap,
   });
 
@@ -212,7 +218,7 @@ class NumericStepper extends StatelessWidget {
   final double step;
   final int fractionDigits;
   final double valueMinWidth;
-  final ValueChanged<double> onChanged;
+  final ValueChanged<double>? onChanged;
   final VoidCallback? onValueTap;
 
   @override
@@ -238,8 +244,11 @@ class NumericStepper extends StatelessWidget {
                   width: 36,
                   height: 36,
                 ),
-                onPressed: () =>
-                    onChanged((value - step).clamp(0, 9999).toDouble()),
+                onPressed: onChanged == null
+                    ? null
+                    : () => onChanged!(
+                          (value - step).clamp(0, 9999).toDouble(),
+                        ),
                 icon: const Icon(Icons.remove_circle_outline, size: 20),
                 padding: EdgeInsets.zero,
                 visualDensity: VisualDensity.compact,
@@ -249,7 +258,7 @@ class NumericStepper extends StatelessWidget {
               constraints: BoxConstraints(minWidth: valueMinWidth),
               child: GestureDetector(
                 behavior: HitTestBehavior.opaque,
-                onTap: onValueTap,
+                onTap: onChanged == null ? null : onValueTap,
                 child: Text(
                   value.toStringAsFixed(fractionDigits),
                   textAlign: TextAlign.center,
@@ -273,8 +282,11 @@ class NumericStepper extends StatelessWidget {
                   width: 36,
                   height: 36,
                 ),
-                onPressed: () =>
-                    onChanged((value + step).clamp(0, 9999).toDouble()),
+                onPressed: onChanged == null
+                    ? null
+                    : () => onChanged!(
+                          (value + step).clamp(0, 9999).toDouble(),
+                        ),
                 icon: const Icon(Icons.add_circle_outline, size: 20),
                 padding: EdgeInsets.zero,
                 visualDensity: VisualDensity.compact,

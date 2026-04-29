@@ -1,3 +1,7 @@
+import 'dart:async';
+import 'dart:convert';
+
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../constants/exercise_catalog_constants.dart';
@@ -6,10 +10,13 @@ import '../../utils/app_error.dart';
 import '../../utils/app_logger.dart';
 
 class ExerciseCatalogService {
-  const ExerciseCatalogService(this._client);
+  ExerciseCatalogService(this._client);
 
   static const unlabeledEquipment = '未标注';
   static const _bucketName = 'exercise-reference';
+  static const _cacheDataKey = 'exercise_catalog_cache_json_v1';
+  static const _cacheUpdatedAtKey = 'exercise_catalog_cache_updated_at_v1';
+  static const _refreshInterval = Duration(hours: 24);
 
   static const List<String> _equipmentOrder = [
     '杠铃',
@@ -28,6 +35,9 @@ class ExerciseCatalogService {
   ];
 
   final SupabaseClient _client;
+  List<ExerciseCatalogItem>? _memoryCache;
+  Future<List<ExerciseCatalogItem>>? _catalogLoadFuture;
+  Future<bool>? _refreshFuture;
 
   Future<Set<String>> getDefaultZeroWeightExerciseIds(
     Iterable<String> exerciseIds,
@@ -68,7 +78,7 @@ class ExerciseCatalogService {
   }
 
   Future<List<String>> getPrimaryMuscleGroups() async {
-    final items = await _fetchAllActiveExercises();
+    final items = await _getCatalogItems();
     final available = <String>[];
     for (final entry in ExerciseCatalogConstants.muscleTargets.entries) {
       if (items.any((item) => _matchesMuscleGroup(item, entry.key))) {
@@ -92,7 +102,7 @@ class ExerciseCatalogService {
     required String muscleGroup,
     String? equipment,
   }) async {
-    final items = await _fetchAllActiveExercises();
+    final items = await _getCatalogItems();
     final filtered = items.where((item) {
       if (!_matchesGroup(item, muscleGroup)) {
         return false;
@@ -106,7 +116,71 @@ class ExerciseCatalogService {
     return filtered;
   }
 
-  Future<List<ExerciseCatalogItem>> _fetchAllActiveExercises() async {
+  Future<bool> refreshCatalogIfStale() {
+    final ongoing = _refreshFuture;
+    if (ongoing != null) {
+      return ongoing;
+    }
+    final future = _refreshCatalogIfStaleInternal();
+    _refreshFuture = future;
+    future.whenComplete(() {
+      _refreshFuture = null;
+    });
+    return future;
+  }
+
+  Future<List<ExerciseCatalogItem>> _getCatalogItems() {
+    if (_memoryCache != null) {
+      return Future.value(_memoryCache!);
+    }
+    final ongoing = _catalogLoadFuture;
+    if (ongoing != null) {
+      return ongoing;
+    }
+    final future = _loadCatalogItems();
+    _catalogLoadFuture = future;
+    future.whenComplete(() {
+      _catalogLoadFuture = null;
+    });
+    return future;
+  }
+
+  Future<List<ExerciseCatalogItem>> _loadCatalogItems() async {
+    final cachedItems = await _readCatalogCache();
+    if (cachedItems.isNotEmpty) {
+      _memoryCache = cachedItems;
+      return cachedItems;
+    }
+    final remoteItems = await _fetchAllActiveExercisesRemote();
+    _memoryCache = remoteItems;
+    await _writeCatalogCache(remoteItems);
+    return remoteItems;
+  }
+
+  Future<bool> _refreshCatalogIfStaleInternal() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final updatedAtMillis = prefs.getInt(_cacheUpdatedAtKey);
+      final updatedAt = updatedAtMillis == null
+          ? null
+          : DateTime.fromMillisecondsSinceEpoch(updatedAtMillis);
+      final isFresh =
+          updatedAt != null &&
+          DateTime.now().difference(updatedAt) < _refreshInterval;
+      if (isFresh) {
+        return false;
+      }
+      final remoteItems = await _fetchAllActiveExercisesRemote();
+      _memoryCache = remoteItems;
+      await _writeCatalogCache(remoteItems, prefs: prefs);
+      return true;
+    } catch (error, stackTrace) {
+      AppLogger.error('后台刷新动作目录失败', error: error, stackTrace: stackTrace);
+      return false;
+    }
+  }
+
+  Future<List<ExerciseCatalogItem>> _fetchAllActiveExercisesRemote() async {
     try {
       final rows = await _client
           .from('exercise_catalog_items')
@@ -120,6 +194,48 @@ class ExerciseCatalogService {
       AppLogger.error('加载动作目录失败', error: error, stackTrace: stackTrace);
       throw AppError.from(error, fallbackMessage: '加载动作目录失败，请稍后重试。');
     }
+  }
+
+  Future<List<ExerciseCatalogItem>> _readCatalogCache() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final raw = prefs.getString(_cacheDataKey);
+      if (raw == null || raw.isEmpty) {
+        return const [];
+      }
+      final decoded = jsonDecode(raw);
+      if (decoded is! List) {
+        await _clearCatalogCache(prefs);
+        return const [];
+      }
+      return decoded
+          .whereType<Map<String, dynamic>>()
+          .map(ExerciseCatalogItem.fromJson)
+          .toList();
+    } catch (error, stackTrace) {
+      AppLogger.error('读取动作目录缓存失败', error: error, stackTrace: stackTrace);
+      final prefs = await SharedPreferences.getInstance();
+      await _clearCatalogCache(prefs);
+      return const [];
+    }
+  }
+
+  Future<void> _writeCatalogCache(
+    List<ExerciseCatalogItem> items, {
+    SharedPreferences? prefs,
+  }) async {
+    final resolvedPrefs = prefs ?? await SharedPreferences.getInstance();
+    final raw = jsonEncode(items.map((item) => item.toJson()).toList());
+    await resolvedPrefs.setString(_cacheDataKey, raw);
+    await resolvedPrefs.setInt(
+      _cacheUpdatedAtKey,
+      DateTime.now().millisecondsSinceEpoch,
+    );
+  }
+
+  Future<void> _clearCatalogCache(SharedPreferences prefs) async {
+    await prefs.remove(_cacheDataKey);
+    await prefs.remove(_cacheUpdatedAtKey);
   }
 
   ExerciseCatalogItem _mapRow(Map<String, dynamic> row) {

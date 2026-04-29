@@ -568,6 +568,7 @@ class HomeSnapshot {
   const HomeSnapshot({
     required this.date,
     required this.todaySummary,
+    required this.todaySession,
     required this.inProgressSession,
     required this.quickSuggestions,
     required this.weekTrainingDays,
@@ -583,6 +584,9 @@ class HomeSnapshot {
 
   /// 今日训练摘要。
   final DailySummary todaySummary;
+
+  /// 当天训练会话（若存在）。
+  final WorkoutSession? todaySession;
 
   /// 当前进行中的训练会话（若存在）。
   final WorkoutSession? inProgressSession;
@@ -616,6 +620,11 @@ class HomeSnapshot {
       todaySummary: DailySummary.fromJson(
         json['todaySummary'] as Map<String, dynamic>? ?? const {},
       ),
+      todaySession: (json['todaySession'] as Map<String, dynamic>?) == null
+          ? null
+          : WorkoutSession.fromJson(
+              json['todaySession'] as Map<String, dynamic>,
+            ),
       inProgressSession:
           (json['inProgressSession'] as Map<String, dynamic>?) == null
           ? null
@@ -641,6 +650,7 @@ class HomeSnapshot {
     return {
       'date': date.toIso8601String(),
       'todaySummary': todaySummary.toJson(),
+      'todaySession': todaySession?.toJson(),
       'inProgressSession': inProgressSession?.toJson(),
       'quickSuggestions': quickSuggestions,
       'weekTrainingDays': weekTrainingDays,
