@@ -1,11 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/services.dart';
 
 import '../../application/providers/providers.dart';
 import '../../domain/entities/workout_models.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/app_error.dart';
 import '../../utils/snackbar_helper.dart';
+
+List<AdminExerciseCatalogItem> _rebuildSortOrders(
+  List<AdminExerciseCatalogItem> items,
+) {
+  return items.asMap().entries.map((entry) {
+    return entry.value.copyWith(sortOrder: entry.key);
+  }).toList();
+}
 
 class AdminExerciseCatalogPage extends ConsumerStatefulWidget {
   const AdminExerciseCatalogPage({super.key});
@@ -20,68 +29,43 @@ class AdminExerciseCatalogPage extends ConsumerStatefulWidget {
 class _AdminExerciseCatalogPageState
     extends ConsumerState<AdminExerciseCatalogPage> {
   String? _selectedGroup;
-  String? _loadedGroup;
   List<AdminExerciseCatalogItem> _items = const [];
   bool _hasOrderChanges = false;
   bool _isSavingOrder = false;
   final Set<String> _savingNameIds = <String>{};
 
-  void _ensureSelectedGroup(List<String> groups) {
-    if (_selectedGroup != null || groups.isEmpty) {
-      return;
-    }
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) {
-        return;
-      }
-      setState(() {
-        _selectedGroup = groups.first;
-      });
+  void _applyReorderedItems(List<AdminExerciseCatalogItem> items) {
+    setState(() {
+      _items = _rebuildSortOrders(items);
+      _hasOrderChanges = true;
     });
   }
 
-  void _syncItems(String group, List<AdminExerciseCatalogItem> items) {
-    if (_loadedGroup == group && _hasOrderChanges) {
-      return;
-    }
-    final normalized = items.asMap().entries.map((entry) {
-      return entry.value.copyWith(sortOrder: entry.key);
-    }).toList();
-    if (_loadedGroup == group && _sameItemState(_items, normalized)) {
-      return;
-    }
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) {
-        return;
-      }
-      setState(() {
-        _loadedGroup = group;
-        _items = normalized;
-        _hasOrderChanges = false;
-      });
-    });
-  }
-
-  bool _sameItemState(
-    List<AdminExerciseCatalogItem> a,
-    List<AdminExerciseCatalogItem> b,
+  void _moveItemToPosition(
+    AdminExerciseCatalogItem item,
+    int targetPosition,
+    List<AdminExerciseCatalogItem> currentItems,
   ) {
-    if (a.length != b.length) {
-      return false;
+    final currentIndex = currentItems.indexWhere(
+      (current) => current.exerciseId == item.exerciseId,
+    );
+    if (currentIndex == -1 || currentItems.isEmpty) {
+      return;
     }
-    for (var i = 0; i < a.length; i++) {
-      if (a[i].exerciseId != b[i].exerciseId ||
-          a[i].displayName != b[i].displayName ||
-          a[i].sortOrder != b[i].sortOrder) {
-        return false;
-      }
+
+    final clampedIndex = (targetPosition - 1).clamp(0, currentItems.length - 1);
+    if (clampedIndex == currentIndex) {
+      return;
     }
-    return true;
+
+    final reordered = [...currentItems];
+    final moved = reordered.removeAt(currentIndex);
+    reordered.insert(clampedIndex, moved);
+    _applyReorderedItems(reordered);
   }
 
-  Future<void> _saveOrder() async {
-    final group = _selectedGroup;
-    if (group == null || _isSavingOrder || !_hasOrderChanges) {
+  Future<void> _saveOrder(String group) async {
+    if (_isSavingOrder || !_hasOrderChanges) {
       return;
     }
     setState(() => _isSavingOrder = true);
@@ -100,9 +84,7 @@ class _AdminExerciseCatalogPageState
         return;
       }
       setState(() {
-        _items = _items.asMap().entries.map((entry) {
-          return entry.value.copyWith(sortOrder: entry.key);
-        }).toList();
+        _items = _rebuildSortOrders(_items);
         _hasOrderChanges = false;
       });
       showLatestSnackBar(context, '动作排序已保存');
@@ -121,36 +103,43 @@ class _AdminExerciseCatalogPageState
     }
   }
 
-  Future<void> _renameItem(AdminExerciseCatalogItem item) async {
-    final controller = TextEditingController(text: item.customNameZh ?? '');
+  Future<void> _editItemOrder(
+    AdminExerciseCatalogItem item,
+    List<AdminExerciseCatalogItem> currentItems,
+  ) async {
     final result = await showDialog<String>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('修改动作展示名'),
-        content: TextField(
-          controller: controller,
-          decoration: InputDecoration(
-            labelText: '展示名',
-            hintText: item.originalNameZh?.trim().isNotEmpty == true
-                ? item.originalNameZh
-                : item.nameEn,
-          ),
-          maxLength: 30,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('取消'),
-          ),
-          FilledButton(
-            onPressed: () =>
-                Navigator.of(dialogContext).pop(controller.text.trim()),
-            child: const Text('保存'),
-          ),
-        ],
+      builder: (_) => _EditOrderDialog(currentPosition: item.sortOrder + 1),
+    );
+
+    if (!mounted || result == null) {
+      return;
+    }
+
+    final parsed = int.tryParse(result);
+    if (parsed == null) {
+      showLatestSnackBar(context, '请输入有效排序名次');
+      return;
+    }
+
+    final targetPosition = parsed.clamp(1, currentItems.length);
+    if (targetPosition == item.sortOrder + 1) {
+      return;
+    }
+    _moveItemToPosition(item, targetPosition, currentItems);
+    showLatestSnackBar(context, '已移动到第 $targetPosition 位');
+  }
+
+  Future<void> _renameItem(AdminExerciseCatalogItem item) async {
+    final result = await showDialog<String>(
+      context: context,
+      builder: (_) => _RenameExerciseDialog(
+        initialName: item.customNameZh ?? '',
+        hintName: item.originalNameZh?.trim().isNotEmpty == true
+            ? item.originalNameZh!
+            : item.nameEn,
       ),
     );
-    controller.dispose();
     if (result == null) {
       return;
     }
@@ -184,10 +173,7 @@ class _AdminExerciseCatalogPageState
           );
         }).toList();
       });
-      final group = _selectedGroup;
-      if (group != null) {
-        ref.invalidate(adminExerciseCatalogItemsProvider(group));
-      }
+      ref.invalidate(adminExerciseCatalogItemsProvider(item.muscleGroup));
       ref.invalidate(exerciseCatalogItemsProvider);
       ref.invalidate(exerciseEquipmentsProvider);
       ref.invalidate(exerciseMuscleGroupsProvider);
@@ -212,6 +198,8 @@ class _AdminExerciseCatalogPageState
   @override
   Widget build(BuildContext context) {
     final isAdminAsync = ref.watch(currentUserIsAdminProvider);
+    final groupsAsync = ref.watch(exerciseMuscleGroupsProvider);
+
     return Scaffold(
       appBar: AppBar(title: const Text('动作库管理')),
       body: isAdminAsync.when(
@@ -226,34 +214,31 @@ class _AdminExerciseCatalogPageState
             return const Center(child: Text('当前账号没有管理员权限'));
           }
           return _AdminBody(
+            groupsAsync: groupsAsync,
             selectedGroup: _selectedGroup,
             items: _items,
             hasOrderChanges: _hasOrderChanges,
             isSavingOrder: _isSavingOrder,
             savingNameIds: _savingNameIds,
-            onEnsureSelectedGroup: _ensureSelectedGroup,
-            onSyncItems: _syncItems,
             onSelectGroup: (group) {
               setState(() {
                 _selectedGroup = group;
-                _loadedGroup = null;
                 _hasOrderChanges = false;
                 _items = const [];
               });
             },
             onRename: _renameItem,
+            onEditOrder: _editItemOrder,
             onSaveOrder: _saveOrder,
-            onReorder: (oldIndex, newIndex) {
+            onReorder: (currentItems, oldIndex, newIndex) {
               setState(() {
                 if (newIndex > oldIndex) {
                   newIndex -= 1;
                 }
-                final reordered = [..._items];
+                final reordered = [...currentItems];
                 final moved = reordered.removeAt(oldIndex);
                 reordered.insert(newIndex, moved);
-                _items = reordered.asMap().entries.map((entry) {
-                  return entry.value.copyWith(sortOrder: entry.key);
-                }).toList();
+                _items = _rebuildSortOrders(reordered);
                 _hasOrderChanges = true;
               });
             },
@@ -266,35 +251,42 @@ class _AdminExerciseCatalogPageState
 
 class _AdminBody extends ConsumerWidget {
   const _AdminBody({
+    required this.groupsAsync,
     required this.selectedGroup,
     required this.items,
     required this.hasOrderChanges,
     required this.isSavingOrder,
     required this.savingNameIds,
-    required this.onEnsureSelectedGroup,
-    required this.onSyncItems,
     required this.onSelectGroup,
     required this.onRename,
+    required this.onEditOrder,
     required this.onSaveOrder,
     required this.onReorder,
   });
 
+  final AsyncValue<List<String>> groupsAsync;
   final String? selectedGroup;
   final List<AdminExerciseCatalogItem> items;
   final bool hasOrderChanges;
   final bool isSavingOrder;
   final Set<String> savingNameIds;
-  final ValueChanged<List<String>> onEnsureSelectedGroup;
-  final void Function(String group, List<AdminExerciseCatalogItem> items)
-  onSyncItems;
   final ValueChanged<String> onSelectGroup;
   final ValueChanged<AdminExerciseCatalogItem> onRename;
-  final VoidCallback onSaveOrder;
-  final void Function(int oldIndex, int newIndex) onReorder;
+  final void Function(
+    AdminExerciseCatalogItem item,
+    List<AdminExerciseCatalogItem> currentItems,
+  )
+  onEditOrder;
+  final ValueChanged<String> onSaveOrder;
+  final void Function(
+    List<AdminExerciseCatalogItem> currentItems,
+    int oldIndex,
+    int newIndex,
+  )
+  onReorder;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final groupsAsync = ref.watch(exerciseMuscleGroupsProvider);
     final colors = AppColors.of(context);
     return groupsAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
@@ -304,7 +296,6 @@ class _AdminBody extends ConsumerWidget {
         ),
       ),
       data: (groups) {
-        onEnsureSelectedGroup(groups);
         if (groups.isEmpty) {
           return const Center(child: Text('暂无可管理动作'));
         }
@@ -331,7 +322,9 @@ class _AdminBody extends ConsumerWidget {
                   ),
                 ),
                 data: (data) {
-                  onSyncItems(activeGroup, data);
+                  final displayItems = hasOrderChanges
+                      ? items
+                      : _rebuildSortOrders(data);
                   return Column(
                     children: [
                       Container(
@@ -353,7 +346,7 @@ class _AdminBody extends ConsumerWidget {
                             ),
                             FilledButton.icon(
                               onPressed: hasOrderChanges && !isSavingOrder
-                                  ? onSaveOrder
+                                  ? () => onSaveOrder(activeGroup)
                                   : null,
                               icon: isSavingOrder
                                   ? const SizedBox(
@@ -370,14 +363,15 @@ class _AdminBody extends ConsumerWidget {
                         ),
                       ),
                       Expanded(
-                        child: items.isEmpty
+                        child: displayItems.isEmpty
                             ? const Center(child: Text('当前肌群暂无动作'))
                             : ReorderableListView.builder(
                                 padding: const EdgeInsets.all(AppSpacing.md),
-                                itemCount: items.length,
-                                onReorder: onReorder,
+                                itemCount: displayItems.length,
+                                onReorder: (oldIndex, newIndex) =>
+                                    onReorder(displayItems, oldIndex, newIndex),
                                 itemBuilder: (context, index) {
-                                  final item = items[index];
+                                  final item = displayItems[index];
                                   return _ExerciseAdminTile(
                                     key: ValueKey(item.exerciseId),
                                     item: item,
@@ -385,6 +379,8 @@ class _AdminBody extends ConsumerWidget {
                                       item.exerciseId,
                                     ),
                                     onRename: () => onRename(item),
+                                    onEditOrder: () =>
+                                        onEditOrder(item, displayItems),
                                   );
                                 },
                               ),
@@ -462,11 +458,13 @@ class _ExerciseAdminTile extends StatelessWidget {
     required this.item,
     required this.isSavingName,
     required this.onRename,
+    required this.onEditOrder,
   });
 
   final AdminExerciseCatalogItem item;
   final bool isSavingName;
   final VoidCallback onRename;
+  final VoidCallback onEditOrder;
 
   @override
   Widget build(BuildContext context) {
@@ -477,56 +475,177 @@ class _ExerciseAdminTile extends StatelessWidget {
     return Card(
       key: key,
       margin: const EdgeInsets.only(bottom: AppSpacing.sm),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md,
-          vertical: AppSpacing.xs,
-        ),
-        title: Text(
-          item.displayName,
-          style: Theme.of(
-            context,
-          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
-        ),
-        subtitle: Padding(
-          padding: const EdgeInsets.only(top: 6),
-          child: Text(
-            '原始名：$originalName',
-            style: Theme.of(
-              context,
-            ).textTheme.bodySmall?.copyWith(color: colors.textMuted),
-          ),
-        ),
-        leading: CircleAvatar(
-          radius: 16,
-          backgroundColor: colors.accent.withValues(alpha: 0.12),
-          foregroundColor: colors.accent,
-          child: Text('${item.sortOrder + 1}'),
-        ),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            IconButton(
-              onPressed: isSavingName ? null : onRename,
-              tooltip: '修改展示名',
-              icon: isSavingName
-                  ? const SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.edit_outlined),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CircleAvatar(
+                  radius: 16,
+                  backgroundColor: colors.accent.withValues(alpha: 0.12),
+                  foregroundColor: colors.accent,
+                  child: Text('${item.sortOrder + 1}'),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: Text(
+                    item.displayName,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ],
             ),
-            ReorderableDragStartListener(
-              index: item.sortOrder,
-              child: const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 4),
-                child: Icon(Icons.drag_handle),
+            const SizedBox(height: AppSpacing.xs),
+            Padding(
+              padding: const EdgeInsets.only(left: 40),
+              child: Text(
+                '原始名：$originalName',
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(color: colors.textMuted),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Padding(
+              padding: const EdgeInsets.only(left: 40),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  OutlinedButton(
+                    onPressed: onEditOrder,
+                    child: const Text('排序'),
+                  ),
+                  const SizedBox(height: AppSpacing.xs),
+                  OutlinedButton(
+                    onPressed: isSavingName ? null : onRename,
+                    child: Text(isSavingName ? '保存中' : '改名'),
+                  ),
+                  const SizedBox(height: AppSpacing.xs),
+                  ReorderableDragStartListener(
+                    index: item.sortOrder,
+                    child: OutlinedButton(
+                      onPressed: () {},
+                      child: const Text('拖动'),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+}
+
+class _EditOrderDialog extends StatefulWidget {
+  const _EditOrderDialog({required this.currentPosition});
+
+  final int currentPosition;
+
+  @override
+  State<_EditOrderDialog> createState() => _EditOrderDialogState();
+}
+
+class _EditOrderDialogState extends State<_EditOrderDialog> {
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: '${widget.currentPosition}');
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('调整排序名次'),
+      content: TextField(
+        controller: _controller,
+        keyboardType: TextInputType.number,
+        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+        decoration: InputDecoration(
+          labelText: '目标名次',
+          hintText: '请输入排序位置',
+          helperText: '当前第 ${widget.currentPosition} 位',
+        ),
+        autofocus: true,
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('取消'),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.of(context).pop(_controller.text.trim()),
+          child: const Text('确认'),
+        ),
+      ],
+    );
+  }
+}
+
+class _RenameExerciseDialog extends StatefulWidget {
+  const _RenameExerciseDialog({
+    required this.initialName,
+    required this.hintName,
+  });
+
+  final String initialName;
+  final String hintName;
+
+  @override
+  State<_RenameExerciseDialog> createState() => _RenameExerciseDialogState();
+}
+
+class _RenameExerciseDialogState extends State<_RenameExerciseDialog> {
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.initialName);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('修改动作展示名'),
+      content: TextField(
+        controller: _controller,
+        decoration: InputDecoration(
+          labelText: '展示名',
+          hintText: widget.hintName,
+        ),
+        maxLength: 30,
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('取消'),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.of(context).pop(_controller.text.trim()),
+          child: const Text('保存'),
+        ),
+      ],
     );
   }
 }
