@@ -367,6 +367,7 @@ class _AdminBody extends ConsumerWidget {
                             ? const Center(child: Text('当前肌群暂无动作'))
                             : ReorderableListView.builder(
                                 padding: const EdgeInsets.all(AppSpacing.md),
+                                buildDefaultDragHandles: false,
                                 itemCount: displayItems.length,
                                 onReorder: (oldIndex, newIndex) =>
                                     onReorder(displayItems, oldIndex, newIndex),
@@ -513,24 +514,38 @@ class _ExerciseAdminTile extends StatelessWidget {
             const SizedBox(height: AppSpacing.sm),
             Padding(
               padding: const EdgeInsets.only(left: 40),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
+              child: Row(
                 children: [
-                  OutlinedButton(
-                    onPressed: onEditOrder,
-                    child: const Text('排序'),
-                  ),
-                  const SizedBox(height: AppSpacing.xs),
-                  OutlinedButton(
-                    onPressed: isSavingName ? null : onRename,
-                    child: Text(isSavingName ? '保存中' : '改名'),
-                  ),
-                  const SizedBox(height: AppSpacing.xs),
-                  ReorderableDragStartListener(
-                    index: item.sortOrder,
+                  Expanded(
                     child: OutlinedButton(
-                      onPressed: () {},
-                      child: const Text('拖动'),
+                      onPressed: onEditOrder,
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                      ),
+                      child: const Text('排序'),
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.xs),
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: isSavingName ? null : onRename,
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                      ),
+                      child: Text(isSavingName ? '保存中' : '改名'),
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.xs),
+                  Expanded(
+                    child: ReorderableDragStartListener(
+                      index: item.sortOrder,
+                      child: OutlinedButton(
+                        onPressed: () {},
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                        ),
+                        child: const Text('拖动'),
+                      ),
                     ),
                   ),
                 ],
