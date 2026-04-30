@@ -47,6 +47,7 @@ class ExerciseLibraryPage extends ConsumerStatefulWidget {
 
 class _ExerciseLibraryPageState extends ConsumerState<ExerciseLibraryPage> {
   late final TextEditingController _searchController;
+  bool _didApplyInitialMuscleGroup = false;
 
   bool get _isSelectionMode =>
       (widget.args?.mode ?? ExerciseLibraryMode.selection) ==
@@ -86,17 +87,26 @@ class _ExerciseLibraryPageState extends ConsumerState<ExerciseLibraryPage> {
       widget.args?.initialMuscleGroup,
     );
     final nextGroup =
-        _isSelectionMode && preferred != null && groups.contains(preferred)
+        _isSelectionMode &&
+            !_didApplyInitialMuscleGroup &&
+            preferred != null &&
+            groups.contains(preferred)
         ? preferred
         : (selectedGroup != null && groups.contains(selectedGroup)
               ? selectedGroup
               : groups.first);
     if (selectedGroup == nextGroup) {
+      if (_isSelectionMode && !_didApplyInitialMuscleGroup) {
+        _didApplyInitialMuscleGroup = true;
+      }
       return;
     }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) {
         return;
+      }
+      if (_isSelectionMode && !_didApplyInitialMuscleGroup) {
+        _didApplyInitialMuscleGroup = true;
       }
       ref.read(selectedExerciseMuscleGroupProvider.notifier).state = nextGroup;
       ref.read(selectedExerciseEquipmentProvider.notifier).state = null;

@@ -43,6 +43,25 @@ void main() {
     expect(_selectedSidebarLabel('胸部'), findsOneWidget);
     expect(_selectedSidebarLabel('手臂'), findsNothing);
   });
+
+  testWidgets('selection mode allows manual sidebar switch after default', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _buildPage(
+        args: const ExerciseLibraryPageArgs(initialMuscleGroup: '腿部'),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(_selectedSidebarLabel('腿部'), findsOneWidget);
+
+    await tester.tap(find.text('胸部'));
+    await tester.pumpAndSettle();
+
+    expect(_selectedSidebarLabel('胸部'), findsOneWidget);
+    expect(_selectedSidebarLabel('腿部'), findsNothing);
+  });
 }
 
 Widget _buildPage({
@@ -57,6 +76,7 @@ Widget _buildPage({
       ),
       exerciseMuscleGroupsProvider.overrideWith((ref) async => [
         '胸部',
+        '腿部',
         '手臂',
         '有氧',
       ]),
@@ -67,6 +87,9 @@ Widget _buildPage({
         }
         if (group == '胸部') {
           return ['杠铃'];
+        }
+        if (group == '腿部') {
+          return ['器械'];
         }
         return <String>[];
       }),
