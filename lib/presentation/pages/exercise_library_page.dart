@@ -22,10 +22,16 @@ class ExerciseSelectionResult {
   final bool defaultsToZeroWeight;
 }
 
+enum ExerciseLibraryMode { selection, browse }
+
 class ExerciseLibraryPageArgs {
-  const ExerciseLibraryPageArgs({this.initialMuscleGroup});
+  const ExerciseLibraryPageArgs({
+    this.initialMuscleGroup,
+    this.mode = ExerciseLibraryMode.selection,
+  });
 
   final String? initialMuscleGroup;
+  final ExerciseLibraryMode mode;
 }
 
 class ExerciseLibraryPage extends ConsumerStatefulWidget {
@@ -40,6 +46,10 @@ class ExerciseLibraryPage extends ConsumerStatefulWidget {
 }
 
 class _ExerciseLibraryPageState extends ConsumerState<ExerciseLibraryPage> {
+  bool get _isSelectionMode =>
+      (widget.args?.mode ?? ExerciseLibraryMode.selection) ==
+      ExerciseLibraryMode.selection;
+
   @override
   void initState() {
     super.initState();
@@ -95,6 +105,9 @@ class _ExerciseLibraryPageState extends ConsumerState<ExerciseLibraryPage> {
   }
 
   Future<void> _showCustomExerciseDialog() async {
+    if (!_isSelectionMode) {
+      return;
+    }
     final controller = TextEditingController();
     final result = await showDialog<ExerciseSelectionResult>(
       context: context,
@@ -142,13 +155,15 @@ class _ExerciseLibraryPageState extends ConsumerState<ExerciseLibraryPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('动作库'),
-        actions: [
-          TextButton.icon(
-            onPressed: _showCustomExerciseDialog,
-            icon: const Icon(Icons.edit_outlined),
-            label: const Text('自定义'),
-          ),
-        ],
+        actions: _isSelectionMode
+            ? [
+                TextButton.icon(
+                  onPressed: _showCustomExerciseDialog,
+                  icon: const Icon(Icons.edit_outlined),
+                  label: const Text('自定义'),
+                ),
+              ]
+            : null,
       ),
       body: groupsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -194,6 +209,7 @@ class _ExerciseLibraryPageState extends ConsumerState<ExerciseLibraryPage> {
                       selectedGroup: activeGroup,
                       equipments: equipments,
                       selectedEquipment: selectedEquipment,
+                      mode: widget.args?.mode ?? ExerciseLibraryMode.selection,
                     );
                   },
                 ),
@@ -266,11 +282,13 @@ class _ExerciseContent extends ConsumerWidget {
     required this.selectedGroup,
     required this.equipments,
     required this.selectedEquipment,
+    required this.mode,
   });
 
   final String selectedGroup;
   final List<String> equipments;
   final String? selectedEquipment;
+  final ExerciseLibraryMode mode;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -361,7 +379,7 @@ class _ExerciseContent extends ConsumerWidget {
                 ),
                 itemCount: items.length,
                 itemBuilder: (context, index) {
-                  return _ExerciseCard(item: items[index]);
+                  return _ExerciseCard(item: items[index], mode: mode);
                 },
               );
             },
@@ -373,9 +391,17 @@ class _ExerciseContent extends ConsumerWidget {
 }
 
 class _ExerciseCard extends StatelessWidget {
-  const _ExerciseCard({required this.item});
+  const _ExerciseCard({required this.item, required this.mode});
 
   final ExerciseCatalogItem item;
+  final ExerciseLibraryMode mode;
+
+  void _openDetail(BuildContext context) {
+    Navigator.of(context).pushNamed(
+      ExerciseDetailPage.routeName,
+      arguments: ExerciseDetailPageArgs(item: item),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -391,13 +417,17 @@ class _ExerciseCard extends StatelessWidget {
       child: InkWell(
         borderRadius: AppRadius.card,
         onTap: () {
-          Navigator.of(context).pop(
-            ExerciseSelectionResult(
-              exerciseId: item.id,
-              exerciseName: name,
-              defaultsToZeroWeight: item.defaultsToZeroWeight,
-            ),
-          );
+          if (mode == ExerciseLibraryMode.selection) {
+            Navigator.of(context).pop(
+              ExerciseSelectionResult(
+                exerciseId: item.id,
+                exerciseName: name,
+                defaultsToZeroWeight: item.defaultsToZeroWeight,
+              ),
+            );
+            return;
+          }
+          _openDetail(context);
         },
         child: Ink(
           decoration: BoxDecoration(
@@ -460,12 +490,7 @@ class _ExerciseCard extends StatelessWidget {
                     ),
                     const SizedBox(width: AppSpacing.xs),
                     TextButton(
-                      onPressed: () {
-                        Navigator.of(context).pushNamed(
-                          ExerciseDetailPage.routeName,
-                          arguments: ExerciseDetailPageArgs(item: item),
-                        );
-                      },
+                      onPressed: () => _openDetail(context),
                       style: TextButton.styleFrom(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 4,

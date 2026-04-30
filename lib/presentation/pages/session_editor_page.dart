@@ -514,13 +514,14 @@ class _SessionEditorPageState extends ConsumerState<SessionEditorPage> {
         : ExerciseSetType.strength;
     final result = await Navigator.of(context)
         .pushNamed<ExerciseSelectionResult>(
-          ExerciseLibraryPage.routeName,
-          arguments: ExerciseLibraryPageArgs(
-            initialMuscleGroup: ExerciseCatalogConstants.normalizeLibraryGroup(
-              _selectedTrainingType,
-            ),
-          ),
-        );
+      ExerciseLibraryPage.routeName,
+      arguments: ExerciseLibraryPageArgs(
+        initialMuscleGroup: ExerciseCatalogConstants.normalizeLibraryGroup(
+          _selectedTrainingType,
+        ),
+        mode: ExerciseLibraryMode.selection,
+      ),
+    );
     if (!mounted || result == null) {
       return;
     }
