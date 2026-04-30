@@ -14,6 +14,7 @@ typedef OpenEditorHandler =
       String? sessionId,
       bool preferActiveSession,
       bool readOnly,
+      bool createOnSaveOnly,
     });
 
 class HomeLeftColumn extends StatelessWidget {
@@ -152,6 +153,7 @@ class HomeLeftColumn extends StatelessWidget {
                       sessionId: snapshot.inProgressSession!.id,
                       preferActiveSession: false,
                       readOnly: false,
+                      createOnSaveOnly: false,
                     ),
                   )
                 else if (hasCompletedToday && hasTodaySession)
@@ -178,6 +180,7 @@ class HomeLeftColumn extends StatelessWidget {
                           sessionId: snapshot.todaySession!.id,
                           preferActiveSession: false,
                           readOnly: true,
+                          createOnSaveOnly: false,
                         ),
                       ),
                     ],
@@ -193,6 +196,7 @@ class HomeLeftColumn extends StatelessWidget {
                       mode: SessionMode.newSession,
                       preferActiveSession: true,
                       readOnly: false,
+                      createOnSaveOnly: true,
                     ),
                   ),
               ],
@@ -274,6 +278,7 @@ class HomeLeftColumn extends StatelessWidget {
       sessionId: session.id,
       preferActiveSession: false,
       readOnly: false,
+      createOnSaveOnly: false,
     );
   }
 }

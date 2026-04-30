@@ -48,4 +48,44 @@ void main() {
     expect(find.text('保存进度'), findsNothing);
     expect(find.text('完成训练'), findsNothing);
   });
+
+  testWidgets('createOnSaveOnly draft does not preselect training type', (
+    tester,
+  ) async {
+    final past = DateTime.now().subtract(const Duration(days: 2));
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          workoutRepositoryProvider.overrideWithValue(MockWorkoutRepository()),
+          exerciseCatalogServiceProvider.overrideWithValue(
+            ExerciseCatalogService(
+              SupabaseClient(
+                'http://localhost',
+                'test-key',
+                authOptions: const AuthClientOptions(autoRefreshToken: false),
+              ),
+            ),
+          ),
+        ],
+        child: MaterialApp(
+          theme: AppTheme.light,
+          home: SessionEditorPage(
+            args: SessionEditorArgs(
+              date: past,
+              mode: SessionMode.backfill,
+              createOnSaveOnly: true,
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('请先选择训练类型'), findsOneWidget);
+    expect(
+      tester.widget<ChoiceChip>(find.widgetWithText(ChoiceChip, '胸部')).selected,
+      isFalse,
+    );
+  });
 }

@@ -60,10 +60,16 @@ class CalendarMonthHeader extends StatelessWidget {
 }
 
 class CalendarBody extends StatelessWidget {
-  const CalendarBody({super.key, required this.month, required this.sessions});
+  const CalendarBody({
+    super.key,
+    required this.month,
+    required this.sessions,
+    required this.onSessionChanged,
+  });
 
   final DateTime month;
   final List<WorkoutSession> sessions;
+  final VoidCallback onSessionChanged;
 
   DateTime _day(DateTime date) => DateTime(date.year, date.month, date.day);
 
@@ -130,6 +136,7 @@ class CalendarBody extends StatelessWidget {
                     inMonth: inCurrentMonth,
                     compact: compact,
                     isToday: today,
+                    onSessionChanged: onSessionChanged,
                   );
                 },
               );
@@ -169,6 +176,7 @@ class _CalendarCell extends StatelessWidget {
     required this.inMonth,
     required this.compact,
     required this.isToday,
+    required this.onSessionChanged,
   });
 
   final DateTime day;
@@ -176,6 +184,7 @@ class _CalendarCell extends StatelessWidget {
   final bool inMonth;
   final bool compact;
   final bool isToday;
+  final VoidCallback onSessionChanged;
 
   DateTime _day(DateTime date) => DateTime(date.year, date.month, date.day);
 
@@ -189,40 +198,12 @@ class _CalendarCell extends StatelessWidget {
       return;
     }
 
-    if (hasSession && selectedDay == today) {
-      final action = await _showExistingSessionDialog(
-        context,
-        title: '今日训练',
-        editLabel: '补充今日训练',
-        viewLabel: '查看今日训练',
-      );
-      if (!context.mounted || action == null) {
-        return;
-      }
-      await _openEditor(
-        context,
-        mode: SessionMode.backfill,
-        sessionId: session!.id,
-        readOnly: action == _CalendarSessionAction.view,
-      );
-      return;
-    }
-
     if (hasSession) {
-      final action = await _showExistingSessionDialog(
-        context,
-        title: '历史训练',
-        editLabel: '补录',
-        viewLabel: '查看',
-      );
-      if (!context.mounted || action == null) {
-        return;
-      }
       await _openEditor(
         context,
         mode: SessionMode.backfill,
         sessionId: session!.id,
-        readOnly: action == _CalendarSessionAction.view,
+        readOnly: true,
       );
       return;
     }
@@ -240,37 +221,10 @@ class _CalendarCell extends StatelessWidget {
       return;
     }
 
-    await _openEditor(context, mode: SessionMode.newSession);
-  }
-
-  Future<_CalendarSessionAction?> _showExistingSessionDialog(
-    BuildContext context, {
-    required String title,
-    required String editLabel,
-    required String viewLabel,
-  }) {
-    return showDialog<_CalendarSessionAction>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(title),
-        content: const Text('请选择本次操作。'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('取消'),
-          ),
-          TextButton(
-            onPressed: () =>
-                Navigator.of(dialogContext).pop(_CalendarSessionAction.view),
-            child: Text(viewLabel),
-          ),
-          FilledButton(
-            onPressed: () =>
-                Navigator.of(dialogContext).pop(_CalendarSessionAction.edit),
-            child: Text(editLabel),
-          ),
-        ],
-      ),
+    await _openEditor(
+      context,
+      mode: SessionMode.newSession,
+      createOnSaveOnly: true,
     );
   }
 
@@ -314,6 +268,14 @@ class _CalendarCell extends StatelessWidget {
         );
     if (!context.mounted || result == null) {
       return;
+    }
+    switch (result) {
+      case SessionEditorExitResult.savedProgress:
+      case SessionEditorExitResult.completed:
+      case SessionEditorExitResult.autosaved:
+        onSessionChanged();
+      case SessionEditorExitResult.autosaveFailed:
+        break;
     }
     final message = switch (result) {
       SessionEditorExitResult.savedProgress => '训练进度已保存',
@@ -417,7 +379,7 @@ class _CalendarCell extends StatelessWidget {
               )
             else if (!isFutureDay)
               Text(
-                '补录',
+                isToday ? '未训练' : '补录',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: colors.textMuted,
                   fontSize: compact ? 9.5 : null,
@@ -431,5 +393,3 @@ class _CalendarCell extends StatelessWidget {
     );
   }
 }
-
-enum _CalendarSessionAction { edit, view }

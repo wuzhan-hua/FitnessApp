@@ -20,6 +20,7 @@ class HomePage extends ConsumerWidget {
     String? sessionId,
     bool preferActiveSession = false,
     bool readOnly = false,
+    bool createOnSaveOnly = false,
   }) async {
     final result = await Navigator.of(context).pushNamed<SessionEditorExitResult>(
       SessionEditorPage.routeName,
@@ -29,6 +30,7 @@ class HomePage extends ConsumerWidget {
         sessionId: sessionId,
         preferActiveSession: preferActiveSession,
         readOnly: readOnly,
+        createOnSaveOnly: createOnSaveOnly,
       ),
     );
     if (!context.mounted || result == null) {

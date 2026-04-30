@@ -198,7 +198,7 @@ class SupabaseWorkoutRepository implements WorkoutRepository {
   }
 
   @override
-  Future<void> saveSession(WorkoutSession session) async {
+  Future<WorkoutSession> saveSession(WorkoutSession session) async {
     final userId = await _requireUserId();
     await _ensureProfile(userId);
 
@@ -314,6 +314,8 @@ class SupabaseWorkoutRepository implements WorkoutRepository {
         'notes': session.notes,
       });
     }
+
+    return session.copyWith(id: persistedSessionId);
   }
 
   @override

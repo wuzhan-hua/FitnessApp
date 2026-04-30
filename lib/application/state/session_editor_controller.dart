@@ -518,11 +518,11 @@ class SessionEditorController extends StateNotifier<SessionEditorState> {
         status: resolvedStatus,
         exercises: normalizedExercises,
       );
-      await _service.saveSession(saved);
+      final persisted = await _service.saveSession(saved);
       state = state.copyWith(
         savingAction: SessionEditorSavingAction.none,
         hasUnsavedChanges: false,
-        session: saved,
+        session: persisted,
         error: null,
       );
       return true;

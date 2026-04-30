@@ -124,9 +124,10 @@ class _CountingWorkoutRepository implements WorkoutRepository {
   }
 
   @override
-  Future<void> saveSession(WorkoutSession session) async {
+  Future<WorkoutSession> saveSession(WorkoutSession session) async {
     saveSessionCalls += 1;
     savedSession = session;
+    return session.copyWith(id: 'persisted-session');
   }
 
   @override

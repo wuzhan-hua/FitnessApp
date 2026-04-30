@@ -271,13 +271,17 @@ class MockWorkoutRepository implements WorkoutRepository {
   }
 
   @override
-  Future<void> saveSession(WorkoutSession session) async {
-    final index = _sessions.indexWhere((item) => item.id == session.id);
+  Future<WorkoutSession> saveSession(WorkoutSession session) async {
+    final persisted = session.id.startsWith('draft-')
+        ? session.copyWith(id: 'session-${DateTime.now().millisecondsSinceEpoch}')
+        : session;
+    final index = _sessions.indexWhere((item) => item.id == persisted.id);
     if (index == -1) {
-      _sessions.add(session);
+      _sessions.add(persisted);
     } else {
-      _sessions[index] = session;
+      _sessions[index] = persisted;
     }
+    return persisted;
   }
 
   @override

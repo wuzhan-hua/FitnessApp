@@ -57,9 +57,9 @@ class WorkoutService {
     }
   }
 
-  Future<void> saveSession(WorkoutSession session) async {
+  Future<WorkoutSession> saveSession(WorkoutSession session) async {
     try {
-      await _repository.saveSession(session);
+      return await _repository.saveSession(session);
     } catch (error, stackTrace) {
       AppLogger.error('保存训练记录失败', error: error, stackTrace: stackTrace);
       throw AppError.from(error, fallbackMessage: '保存训练记录失败，请稍后重试。');

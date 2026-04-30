@@ -35,17 +35,19 @@ class SessionEditorPage extends ConsumerStatefulWidget {
 class _SessionEditorPageState extends ConsumerState<SessionEditorPage> {
   static const List<String> _trainingTypes =
       ExerciseCatalogConstants.sessionEditorGroups;
+  static const String _defaultNewSessionTitle = '新训练日';
 
   Timer? _timer;
   int _restSeconds = 120;
   bool _timerRunning = false;
   final TextEditingController _restNoteController = TextEditingController();
-  String _selectedTrainingType = _trainingTypes.first;
+  String? _selectedTrainingType;
   bool _trainingTypeInitialized = false;
   bool _isClosing = false;
 
   bool get _isRestDay => _selectedTrainingType == '休息日';
   bool get _isCardio => _selectedTrainingType == '有氧';
+  bool get _hasTrainingTypeSelected => _selectedTrainingType != null;
   bool get _isReadOnly => widget.args.readOnly;
   bool get _isPastBackfill =>
       widget.args.mode == SessionMode.backfill &&
@@ -86,6 +88,25 @@ class _SessionEditorPageState extends ConsumerState<SessionEditorPage> {
       _timerRunning = false;
       _restSeconds = defaults;
     });
+  }
+
+  Future<void> _openEditableBackfill(WorkoutSession? session) async {
+    final sessionId = widget.args.sessionId ?? session?.id;
+    if (sessionId == null || sessionId.isEmpty) {
+      showLatestSnackBar(context, '未找到训练记录，暂时无法补录');
+      return;
+    }
+    await Navigator.of(
+      context,
+    ).pushReplacementNamed<SessionEditorExitResult, SessionEditorExitResult>(
+      SessionEditorPage.routeName,
+      arguments: SessionEditorArgs(
+        date: widget.args.date,
+        mode: SessionMode.backfill,
+        sessionId: sessionId,
+        readOnly: false,
+      ),
+    );
   }
 
   Future<void> _showWeightInputDialog({
@@ -337,6 +358,10 @@ class _SessionEditorPageState extends ConsumerState<SessionEditorPage> {
     if (_trainingTypeInitialized || session == null) {
       return;
     }
+    if (_shouldKeepTrainingTypeUnselected(session)) {
+      _trainingTypeInitialized = true;
+      return;
+    }
     final inferred = _inferTrainingTypeFromTitle(session.title);
     _trainingTypeInitialized = true;
     if (_selectedTrainingType == inferred) {
@@ -352,6 +377,13 @@ class _SessionEditorPageState extends ConsumerState<SessionEditorPage> {
     });
   }
 
+  bool _shouldKeepTrainingTypeUnselected(WorkoutSession session) {
+    return widget.args.createOnSaveOnly &&
+        session.status == SessionStatus.draft &&
+        session.exercises.isEmpty &&
+        session.title == _defaultNewSessionTitle;
+  }
+
   bool _isCardioExercise(SessionExercise exercise) {
     return exercise.sets.any((set) => set.setType == ExerciseSetType.cardio);
   }
@@ -362,6 +394,10 @@ class _SessionEditorPageState extends ConsumerState<SessionEditorPage> {
 
   Future<void> _openExerciseLibrary(SessionEditorController controller) async {
     if (_isReadOnly) {
+      return;
+    }
+    if (!_hasTrainingTypeSelected) {
+      showLatestSnackBar(context, '请先选择训练类型');
       return;
     }
     if (_isRestDay) {
@@ -419,6 +455,16 @@ class _SessionEditorPageState extends ConsumerState<SessionEditorPage> {
       child: Scaffold(
         appBar: AppBar(
           title: Text(_isReadOnly ? '查看训练 · $dateText' : '训练记录 · $dateText'),
+          actions: _isReadOnly
+              ? [
+                  TextButton(
+                    onPressed: state.isLoading
+                        ? null
+                        : () => _openEditableBackfill(state.session),
+                    child: const Text('补录'),
+                  ),
+                ]
+              : null,
         ),
         body: SafeArea(
           child: Padding(
@@ -502,7 +548,9 @@ class _SessionEditorPageState extends ConsumerState<SessionEditorPage> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   FilledButton.icon(
-                                    onPressed: _isReadOnly || _isRestDay
+                                    onPressed: _isReadOnly ||
+                                            !_hasTrainingTypeSelected ||
+                                            _isRestDay
                                         ? null
                                         : () =>
                                               _openExerciseLibrary(controller),
@@ -515,7 +563,11 @@ class _SessionEditorPageState extends ConsumerState<SessionEditorPage> {
                                       ),
                                     ),
                                     label: Text(
-                                      _isRestDay ? '休息日无需新增动作' : '新增动作',
+                                      !_hasTrainingTypeSelected
+                                          ? '请先选择训练类型'
+                                          : _isRestDay
+                                          ? '休息日无需新增动作'
+                                          : '新增动作',
                                     ),
                                   ),
                                   if (_isRestDay) ...[

@@ -20,7 +20,7 @@ abstract class WorkoutRepository {
     bool preferActiveSession = false,
   });
 
-  Future<void> saveSession(WorkoutSession session);
+  Future<WorkoutSession> saveSession(WorkoutSession session);
 
   Future<AnalyticsSnapshot> getAnalyticsSnapshot({
     required DateTime from,

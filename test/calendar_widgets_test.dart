@@ -1,11 +1,15 @@
 import 'package:fitness_client/domain/entities/workout_models.dart';
+import 'package:fitness_client/application/state/session_editor_controller.dart';
+import 'package:fitness_client/presentation/pages/session_editor_page.dart';
 import 'package:fitness_client/presentation/widgets/calendar/calendar_widgets.dart';
 import 'package:fitness_client/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  testWidgets('today with session asks to supplement or view', (tester) async {
+  testWidgets('today with session opens read only page directly', (
+    tester,
+  ) async {
     final today = _day(DateTime.now());
 
     await tester.pumpWidget(
@@ -18,12 +22,16 @@ void main() {
     await tester.tap(find.byKey(_calendarDayKey(today)));
     await tester.pumpAndSettle();
 
-    expect(find.text('今日训练'), findsOneWidget);
-    expect(find.text('补充今日训练'), findsOneWidget);
-    expect(find.text('查看今日训练'), findsOneWidget);
+    expect(find.text('readOnly=true'), findsOneWidget);
+    expect(
+      find.text('date=${today.year}-${today.month}-${today.day}'),
+      findsOneWidget,
+    );
   });
 
-  testWidgets('past day with session asks to backfill or view', (tester) async {
+  testWidgets('past day with session opens read only page directly', (
+    tester,
+  ) async {
     final past = _day(DateTime.now()).subtract(const Duration(days: 1));
 
     await tester.pumpWidget(
@@ -36,9 +44,11 @@ void main() {
     await tester.tap(find.byKey(_calendarDayKey(past)));
     await tester.pumpAndSettle();
 
-    expect(find.text('历史训练'), findsOneWidget);
-    expect(find.widgetWithText(FilledButton, '补录'), findsOneWidget);
-    expect(find.widgetWithText(TextButton, '查看'), findsOneWidget);
+    expect(find.text('readOnly=true'), findsOneWidget);
+    expect(
+      find.text('date=${past.year}-${past.month}-${past.day}'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('past day without session asks before creating draft', (
@@ -64,11 +74,33 @@ Widget _buildCalendar({
 }) {
   return MaterialApp(
     theme: AppTheme.light,
+    onGenerateRoute: (settings) {
+      if (settings.name == SessionEditorPage.routeName) {
+        final args = settings.arguments! as SessionEditorArgs;
+        return MaterialPageRoute<void>(
+          builder: (_) => Scaffold(
+            body: Column(
+              children: [
+                Text('readOnly=${args.readOnly}'),
+                Text(
+                  'date=${args.date.year}-${args.date.month}-${args.date.day}',
+                ),
+              ],
+            ),
+          ),
+        );
+      }
+      return null;
+    },
     home: Scaffold(
       body: SizedBox(
         width: 700,
         height: 900,
-        child: CalendarBody(month: month, sessions: sessions),
+        child: CalendarBody(
+          month: month,
+          sessions: sessions,
+          onSessionChanged: () {},
+        ),
       ),
     ),
   );

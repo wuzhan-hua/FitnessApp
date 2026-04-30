@@ -96,6 +96,10 @@ class CalendarPage extends ConsumerWidget {
     final sessionsAsync = ref.watch(sessionsByMonthProvider(month));
     final monthNotifier = ref.read(calendarMonthProvider.notifier);
 
+    void refreshMonthSessions() {
+      ref.invalidate(sessionsByMonthProvider(month));
+    }
+
     Future<void> pickMonthYear() async {
       final selected = await _showYearMonthPicker(context, month);
       if (selected == null || !context.mounted) {
@@ -122,8 +126,11 @@ class CalendarPage extends ConsumerWidget {
               child: AsyncTabContent<List<WorkoutSession>>(
                 asyncValue: sessionsAsync,
                 errorPrefix: '日历加载失败',
-                builder: (context, sessions) =>
-                    CalendarBody(month: month, sessions: sessions),
+                builder: (context, sessions) => CalendarBody(
+                  month: month,
+                  sessions: sessions,
+                  onSessionChanged: refreshMonthSessions,
+                ),
               ),
             ),
           ],
