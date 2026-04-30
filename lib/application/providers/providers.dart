@@ -111,6 +111,10 @@ final selectedExerciseEquipmentProvider = StateProvider.autoDispose<String?>(
   (ref) => null,
 );
 
+final selectedExerciseSearchKeywordProvider = StateProvider.autoDispose<String>(
+  (ref) => '',
+);
+
 final exerciseMuscleGroupsProvider = FutureProvider.autoDispose<List<String>>((
   ref,
 ) async {
@@ -132,11 +136,16 @@ final exerciseEquipmentsProvider = FutureProvider.autoDispose<List<String>>((
 final exerciseCatalogItemsProvider =
     FutureProvider.autoDispose<List<ExerciseCatalogItem>>((ref) async {
       final muscleGroup = ref.watch(selectedExerciseMuscleGroupProvider);
+      final searchKeyword = ref.watch(selectedExerciseSearchKeywordProvider);
+      final normalizedKeyword = searchKeyword.trim();
+      final service = ref.watch(exerciseCatalogServiceProvider);
+      if (normalizedKeyword.isNotEmpty) {
+        return service.searchExercises(keyword: normalizedKeyword);
+      }
       if (muscleGroup == null || muscleGroup.isEmpty) {
         return const [];
       }
       final equipment = ref.watch(selectedExerciseEquipmentProvider);
-      final service = ref.watch(exerciseCatalogServiceProvider);
       return service.getExercises(
         muscleGroup: muscleGroup,
         equipment: equipment,

@@ -126,6 +126,21 @@ class ExerciseCatalogService {
     return filtered;
   }
 
+  Future<List<ExerciseCatalogItem>> searchExercises({
+    required String keyword,
+  }) async {
+    final normalizedKeyword = keyword.trim();
+    if (normalizedKeyword.isEmpty) {
+      return const [];
+    }
+    final items = await _getCatalogItems();
+    final filtered = items
+        .where((item) => _matchesChineseKeyword(item, normalizedKeyword))
+        .toList();
+    filtered.sort((a, b) => _displayNameOf(a).compareTo(_displayNameOf(b)));
+    return filtered;
+  }
+
   Future<bool> isCurrentUserAdmin() async {
     final user = _client.auth.currentUser;
     if (user == null || user.isAnonymous) {
@@ -412,6 +427,21 @@ class ExerciseCatalogService {
 
   String _displayNameOf(ExerciseCatalogItem item) {
     return item.displayName;
+  }
+
+  bool _matchesChineseKeyword(ExerciseCatalogItem item, String keyword) {
+    final normalizedKeyword = keyword.trim();
+    if (normalizedKeyword.isEmpty) {
+      return false;
+    }
+    final candidates = <String>[
+      item.customNameZh?.trim() ?? '',
+      item.nameZh?.trim() ?? '',
+    ];
+    return candidates.any(
+      (candidate) =>
+          candidate.isNotEmpty && candidate.contains(normalizedKeyword),
+    );
   }
 
   Future<Map<String, int>> _fetchSortOrdersByMuscleGroup(

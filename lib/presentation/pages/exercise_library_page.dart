@@ -46,6 +46,8 @@ class ExerciseLibraryPage extends ConsumerStatefulWidget {
 }
 
 class _ExerciseLibraryPageState extends ConsumerState<ExerciseLibraryPage> {
+  late final TextEditingController _searchController;
+
   bool get _isSelectionMode =>
       (widget.args?.mode ?? ExerciseLibraryMode.selection) ==
       ExerciseLibraryMode.selection;
@@ -53,9 +55,16 @@ class _ExerciseLibraryPageState extends ConsumerState<ExerciseLibraryPage> {
   @override
   void initState() {
     super.initState();
+    _searchController = TextEditingController();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _refreshCatalogInBackground();
     });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   Future<void> _refreshCatalogInBackground() async {
@@ -70,21 +79,26 @@ class _ExerciseLibraryPageState extends ConsumerState<ExerciseLibraryPage> {
   }
 
   void _ensureDefaultGroup(List<String> groups, String? selectedGroup) {
-    if (selectedGroup != null || groups.isEmpty) {
+    if (groups.isEmpty) {
       return;
     }
     final preferred = ExerciseCatalogConstants.normalizeLibraryGroup(
       widget.args?.initialMuscleGroup,
     );
+    final nextGroup =
+        _isSelectionMode && preferred != null && groups.contains(preferred)
+        ? preferred
+        : (selectedGroup != null && groups.contains(selectedGroup)
+              ? selectedGroup
+              : groups.first);
+    if (selectedGroup == nextGroup) {
+      return;
+    }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) {
         return;
       }
-      ref
-          .read(selectedExerciseMuscleGroupProvider.notifier)
-          .state = preferred != null && groups.contains(preferred)
-          ? preferred
-          : groups.first;
+      ref.read(selectedExerciseMuscleGroupProvider.notifier).state = nextGroup;
       ref.read(selectedExerciseEquipmentProvider.notifier).state = null;
     });
   }
@@ -151,6 +165,7 @@ class _ExerciseLibraryPageState extends ConsumerState<ExerciseLibraryPage> {
     final groupsAsync = ref.watch(exerciseMuscleGroupsProvider);
     final selectedGroup = ref.watch(selectedExerciseMuscleGroupProvider);
     final selectedEquipment = ref.watch(selectedExerciseEquipmentProvider);
+    final searchKeyword = ref.watch(selectedExerciseSearchKeywordProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -209,6 +224,8 @@ class _ExerciseLibraryPageState extends ConsumerState<ExerciseLibraryPage> {
                       selectedGroup: activeGroup,
                       equipments: equipments,
                       selectedEquipment: selectedEquipment,
+                      searchKeyword: searchKeyword,
+                      searchController: _searchController,
                       mode: widget.args?.mode ?? ExerciseLibraryMode.selection,
                     );
                   },
@@ -282,66 +299,196 @@ class _ExerciseContent extends ConsumerWidget {
     required this.selectedGroup,
     required this.equipments,
     required this.selectedEquipment,
+    required this.searchKeyword,
+    required this.searchController,
     required this.mode,
   });
 
   final String selectedGroup;
   final List<String> equipments;
   final String? selectedEquipment;
+  final String searchKeyword;
+  final TextEditingController searchController;
   final ExerciseLibraryMode mode;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = AppColors.of(context);
+    final isSearching = searchKeyword.trim().isNotEmpty;
     final itemsAsync = ref.watch(exerciseCatalogItemsProvider);
+    final titleStyle = Theme.of(context).textTheme.titleLarge?.copyWith(
+      fontWeight: FontWeight.w700,
+      fontSize: 18,
+      height: 1.05,
+      color: colors.textPrimary,
+    );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(
             AppSpacing.md,
-            AppSpacing.md,
-            AppSpacing.md,
             AppSpacing.sm,
+            AppSpacing.md,
+            4,
           ),
-          child: Text(
-            selectedGroup,
-            style: Theme.of(context).textTheme.headlineSmall,
-          ),
+          child: Text(isSearching ? '搜索结果' : selectedGroup, style: titleStyle),
         ),
-        SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children: [
-              ChoiceChip(
-                label: const Text('全部'),
-                selected: selectedEquipment == null,
-                onSelected: (_) {
-                  ref.read(selectedExerciseEquipmentProvider.notifier).state =
-                      null;
-                },
+        Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.md,
+            0,
+            AppSpacing.md,
+            6,
+          ),
+          child: TextField(
+            controller: searchController,
+            onChanged: (value) {
+              ref.read(selectedExerciseSearchKeywordProvider.notifier).state =
+                  value;
+            },
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              fontSize: 15,
+              fontWeight: FontWeight.w500,
+              color: colors.textPrimary,
+            ),
+            decoration: InputDecoration(
+              hintText: '搜索动作名',
+              hintStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                fontSize: 15,
+                fontWeight: FontWeight.w500,
+                color: colors.textMuted,
               ),
-              const SizedBox(width: AppSpacing.xs),
-              ...equipments.map(
-                (equipment) => Padding(
-                  padding: const EdgeInsets.only(right: AppSpacing.xs),
-                  child: ChoiceChip(
-                    label: Text(equipment),
-                    selected: selectedEquipment == equipment,
-                    onSelected: (_) {
-                      ref
-                              .read(selectedExerciseEquipmentProvider.notifier)
-                              .state =
-                          equipment;
-                    },
-                  ),
+              isDense: true,
+              filled: true,
+              fillColor: colors.panel.withValues(alpha: 0.78),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 10,
+              ),
+              prefixIcon: Padding(
+                padding: const EdgeInsets.only(left: 10, right: 8),
+                child: Icon(
+                  Icons.search_rounded,
+                  size: 20,
+                  color: colors.textMuted,
                 ),
               ),
-            ],
+              prefixIconConstraints: const BoxConstraints(
+                minWidth: 38,
+                minHeight: 38,
+              ),
+              suffixIcon: searchKeyword.trim().isEmpty
+                  ? null
+                  : IconButton(
+                      onPressed: () {
+                        searchController.clear();
+                        ref
+                                .read(
+                                  selectedExerciseSearchKeywordProvider
+                                      .notifier,
+                                )
+                                .state =
+                            '';
+                      },
+                      icon: Icon(
+                        Icons.close_rounded,
+                        size: 18,
+                        color: colors.textMuted,
+                      ),
+                      splashRadius: 18,
+                      visualDensity: VisualDensity.compact,
+                    ),
+              suffixIconConstraints: const BoxConstraints(
+                minWidth: 34,
+                minHeight: 34,
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: BorderSide(
+                  color: colors.textMuted.withValues(alpha: 0.16),
+                ),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: BorderSide(
+                  color: colors.accent.withValues(alpha: 0.42),
+                ),
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: BorderSide(
+                  color: colors.textMuted.withValues(alpha: 0.16),
+                ),
+              ),
+            ),
           ),
         ),
-        const SizedBox(height: AppSpacing.sm),
+        if (!isSearching)
+          SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                ChoiceChip(
+                  label: const Text('全部'),
+                  selected: selectedEquipment == null,
+                  labelStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: colors.textPrimary,
+                  ),
+                  visualDensity: const VisualDensity(
+                    horizontal: -2,
+                    vertical: -2,
+                  ),
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  labelPadding: const EdgeInsets.symmetric(horizontal: 2),
+                  side: BorderSide(
+                    color: colors.textMuted.withValues(alpha: 0.22),
+                  ),
+                  onSelected: (_) {
+                    ref.read(selectedExerciseEquipmentProvider.notifier).state =
+                        null;
+                  },
+                ),
+                const SizedBox(width: AppSpacing.xs),
+                ...equipments.map(
+                  (equipment) => Padding(
+                    padding: const EdgeInsets.only(right: AppSpacing.xs),
+                    child: ChoiceChip(
+                      label: Text(equipment),
+                      selected: selectedEquipment == equipment,
+                      labelStyle: Theme.of(context).textTheme.bodyMedium
+                          ?.copyWith(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: colors.textPrimary,
+                          ),
+                      visualDensity: const VisualDensity(
+                        horizontal: -2,
+                        vertical: -2,
+                      ),
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      labelPadding: const EdgeInsets.symmetric(horizontal: 2),
+                      side: BorderSide(
+                        color: colors.textMuted.withValues(alpha: 0.22),
+                      ),
+                      onSelected: (_) {
+                        ref
+                                .read(
+                                  selectedExerciseEquipmentProvider.notifier,
+                                )
+                                .state =
+                            equipment;
+                      },
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        const SizedBox(height: 6),
         Expanded(
           child: itemsAsync.when(
             loading: () => const Center(child: CircularProgressIndicator()),
@@ -357,7 +504,7 @@ class _ExerciseContent extends ConsumerWidget {
               if (items.isEmpty) {
                 return Center(
                   child: Text(
-                    '当前筛选下暂无动作',
+                    isSearching ? '未找到相关动作' : '当前筛选下暂无动作',
                     style: Theme.of(
                       context,
                     ).textTheme.bodyMedium?.copyWith(color: colors.textMuted),
