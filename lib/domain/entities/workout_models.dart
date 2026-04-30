@@ -78,6 +78,7 @@ class ExerciseCatalogItem {
     this.categoryZh,
     this.instructionsEn = const [],
     this.instructionsZh = const [],
+    this.coverImagePath,
     this.coverImageUrl,
     this.imageUrls = const [],
   });
@@ -123,6 +124,9 @@ class ExerciseCatalogItem {
 
   /// 动作说明（中文）。
   final List<String> instructionsZh;
+
+  /// 列表封面图存储路径。
+  final String? coverImagePath;
 
   /// 列表缩略图地址。
   final String? coverImageUrl;
@@ -207,6 +211,7 @@ class ExerciseCatalogItem {
       categoryZh: json['category_zh'] as String?,
       instructionsEn: _readStringList(json['instructions_en']),
       instructionsZh: _readStringList(json['instructions_zh']),
+      coverImagePath: json['cover_image_path'] as String?,
       coverImageUrl:
           json['cover_image_url'] as String? ??
           json['cover_image_path'] as String?,
@@ -233,6 +238,7 @@ class ExerciseCatalogItem {
       'category_zh': categoryZh,
       'instructions_en': instructionsEn,
       'instructions_zh': instructionsZh,
+      'cover_image_path': coverImagePath,
       'cover_image_url': coverImageUrl,
       'image_urls': imageUrls,
       'name': name,
@@ -253,6 +259,8 @@ class AdminExerciseCatalogItem {
     required this.muscleGroup,
     required this.sortOrder,
     this.customNameZh,
+    this.coverImagePath,
+    this.coverImageUrl,
   });
 
   final String exerciseId;
@@ -262,6 +270,8 @@ class AdminExerciseCatalogItem {
   final String muscleGroup;
   final int sortOrder;
   final String? customNameZh;
+  final String? coverImagePath;
+  final String? coverImageUrl;
 
   AdminExerciseCatalogItem copyWith({
     String? exerciseId,
@@ -271,6 +281,8 @@ class AdminExerciseCatalogItem {
     String? muscleGroup,
     int? sortOrder,
     String? customNameZh,
+    String? coverImagePath,
+    String? coverImageUrl,
     bool clearOriginalNameZh = false,
     bool clearCustomNameZh = false,
   }) {
@@ -286,6 +298,8 @@ class AdminExerciseCatalogItem {
       customNameZh: clearCustomNameZh
           ? null
           : (customNameZh ?? this.customNameZh),
+      coverImagePath: coverImagePath ?? this.coverImagePath,
+      coverImageUrl: coverImageUrl ?? this.coverImageUrl,
     );
   }
 }

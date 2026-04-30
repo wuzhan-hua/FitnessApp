@@ -473,6 +473,8 @@ class _ExerciseAdminTile extends StatelessWidget {
     final originalName = item.originalNameZh?.trim().isNotEmpty == true
         ? item.originalNameZh!
         : item.nameEn;
+    final coverImageUrl = item.coverImageUrl?.trim();
+    final hasCover = coverImageUrl != null && coverImageUrl.isNotEmpty;
     return Card(
       key: key,
       margin: const EdgeInsets.only(bottom: AppSpacing.sm),
@@ -501,6 +503,58 @@ class _ExerciseAdminTile extends StatelessWidget {
                 ),
               ],
             ),
+            if (hasCover) ...[
+              const SizedBox(height: AppSpacing.sm),
+              Padding(
+                padding: const EdgeInsets.only(left: 40),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: AspectRatio(
+                    aspectRatio: 16 / 9,
+                    child: ColoredBox(
+                      color: colors.panelAlt,
+                      child: Image.network(
+                        coverImageUrl,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, _, _) => Container(
+                          color: colors.panelAlt,
+                          alignment: Alignment.center,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.broken_image_outlined,
+                                color: colors.textMuted,
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                '封面图加载失败',
+                                style: Theme.of(context).textTheme.bodySmall
+                                    ?.copyWith(color: colors.textMuted),
+                              ),
+                            ],
+                          ),
+                        ),
+                        loadingBuilder: (context, child, progress) {
+                          if (progress == null) {
+                            return child;
+                          }
+                          return Container(
+                            color: colors.panelAlt,
+                            alignment: Alignment.center,
+                            child: const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
             const SizedBox(height: AppSpacing.xs),
             Padding(
               padding: const EdgeInsets.only(left: 40),

@@ -158,6 +158,8 @@ class ExerciseCatalogService {
         muscleGroup: muscleGroup,
         sortOrder: sortOrders[item.id] ?? entry.key,
         customNameZh: item.customNameZh,
+        coverImagePath: item.coverImagePath,
+        coverImageUrl: item.coverImageUrl,
       );
     }).toList();
   }

@@ -19,7 +19,10 @@ enum SessionEditorExitResult {
   completed,
   autosaved,
   autosaveFailed,
+  discarded,
 }
+
+enum _LeavePageAction { save, discard, cancel }
 
 class SessionEditorPage extends ConsumerStatefulWidget {
   const SessionEditorPage({super.key, required this.args});
@@ -342,6 +345,14 @@ class _SessionEditorPageState extends ConsumerState<SessionEditorPage> {
       await _closeWithResult();
       return;
     }
+    final decision = await _showLeaveConfirmationDialog();
+    if (!mounted || decision == null || decision == _LeavePageAction.cancel) {
+      return;
+    }
+    if (decision == _LeavePageAction.discard) {
+      await _closeWithResult(SessionEditorExitResult.discarded);
+      return;
+    }
     final controller = ref.read(sessionEditorProvider(widget.args).notifier);
     final success = await controller.autoSaveBeforeExit();
     if (mounted && success) {
@@ -351,6 +362,33 @@ class _SessionEditorPageState extends ConsumerState<SessionEditorPage> {
       success
           ? SessionEditorExitResult.autosaved
           : SessionEditorExitResult.autosaveFailed,
+    );
+  }
+
+  Future<_LeavePageAction?> _showLeaveConfirmationDialog() {
+    return showDialog<_LeavePageAction>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('保存当前修改？'),
+        content: const Text('你有未保存的修改，离开前是否先保存当前内容？'),
+        actions: [
+          TextButton(
+            onPressed: () =>
+                Navigator.of(dialogContext).pop(_LeavePageAction.cancel),
+            child: const Text('取消'),
+          ),
+          TextButton(
+            onPressed: () =>
+                Navigator.of(dialogContext).pop(_LeavePageAction.discard),
+            child: const Text('不保存'),
+          ),
+          FilledButton(
+            onPressed: () =>
+                Navigator.of(dialogContext).pop(_LeavePageAction.save),
+            child: const Text('保存并离开'),
+          ),
+        ],
+      ),
     );
   }
 
@@ -384,6 +422,73 @@ class _SessionEditorPageState extends ConsumerState<SessionEditorPage> {
         session.title == _defaultNewSessionTitle;
   }
 
+  Future<void> _showTrainingTypeDialog(
+    SessionEditorController controller,
+    WorkoutSession? session,
+  ) async {
+    if (_isReadOnly) {
+      return;
+    }
+    final result = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('选择训练肌群'),
+        content: SizedBox(
+          width: 320,
+          child: SingleChildScrollView(
+            child: Wrap(
+              spacing: AppSpacing.sm,
+              runSpacing: AppSpacing.sm,
+              children: _trainingTypes
+                  .map(
+                    (item) => ChoiceChip(
+                      label: Text(item),
+                      selected: _selectedTrainingType == item,
+                      onSelected: (selected) {
+                        if (!selected) {
+                          return;
+                        }
+                        Navigator.of(dialogContext).pop(item);
+                      },
+                    ),
+                  )
+                  .toList(),
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('取消'),
+          ),
+        ],
+      ),
+    );
+    if (!mounted || result == null) {
+      return;
+    }
+    _handleTrainingTypeSelected(result, controller, session);
+  }
+
+  void _handleTrainingTypeSelected(
+    String item,
+    SessionEditorController controller,
+    WorkoutSession? session,
+  ) {
+    if (_isReadOnly) {
+      return;
+    }
+    if (session != null && session.title != _titleForTrainingType(item)) {
+      controller.updateSessionTitle(_titleForTrainingType(item));
+    }
+    if (item == '休息日') {
+      controller.clearExercises();
+    }
+    setState(() {
+      _selectedTrainingType = item;
+    });
+  }
+
   bool _isCardioExercise(SessionExercise exercise) {
     return exercise.sets.any((set) => set.setType == ExerciseSetType.cardio);
   }
@@ -397,7 +502,7 @@ class _SessionEditorPageState extends ConsumerState<SessionEditorPage> {
       return;
     }
     if (!_hasTrainingTypeSelected) {
-      showLatestSnackBar(context, '请先选择训练类型');
+      showLatestSnackBar(context, '请先选择训练肌群');
       return;
     }
     if (_isRestDay) {
@@ -482,68 +587,77 @@ class _SessionEditorPageState extends ConsumerState<SessionEditorPage> {
                     children: [
                       SectionCard(
                         title: '会话信息',
-                        child: Row(
+                        trailing: ModePill(
+                          text: sessionModeText(widget.args.mode),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Expanded(
-                              child: Text(
-                                state.session?.title ?? '未命名训练',
-                                style: Theme.of(
-                                  context,
-                                ).textTheme.headlineSmall,
-                              ),
+                            Text(
+                              state.session?.title ?? '未命名训练',
+                              style: Theme.of(context).textTheme.headlineSmall,
                             ),
-                            ModePill(text: sessionModeText(widget.args.mode)),
+                            const SizedBox(height: AppSpacing.sm),
+                            if (!_isReadOnly)
+                              Wrap(
+                                spacing: AppSpacing.sm,
+                                runSpacing: AppSpacing.xs,
+                                crossAxisAlignment: WrapCrossAlignment.center,
+                                children: [
+                                  OutlinedButton.icon(
+                                    onPressed: state.session == null
+                                        ? null
+                                        : () => _showTrainingTypeDialog(
+                                            controller,
+                                            state.session,
+                                          ),
+                                    icon: const Icon(
+                                      Icons.tune_rounded,
+                                      size: 18,
+                                    ),
+                                    label: Text(
+                                      _hasTrainingTypeSelected
+                                          ? '更换训练肌群'
+                                          : '选择训练肌群',
+                                    ),
+                                  ),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 8,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: colors.panelAlt,
+                                      borderRadius: AppRadius.chip,
+                                      border: Border.all(
+                                        color: colors.textMuted.withValues(
+                                          alpha: 0.2,
+                                        ),
+                                      ),
+                                    ),
+                                    child: Text(
+                                      _selectedTrainingType ?? '未选择',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodyMedium
+                                          ?.copyWith(
+                                            color: colors.textMuted,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                    ),
+                                  ),
+                                ],
+                              ),
                           ],
                         ),
                       ),
                       SectionCard(
-                        title: '动作管理',
+                        title: '新增动作',
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Wrap(
-                              spacing: AppSpacing.sm,
-                              runSpacing: AppSpacing.sm,
-                              children: _trainingTypes
-                                  .map(
-                                    (item) => ChoiceChip(
-                                      label: Text(item),
-                                      selected: _selectedTrainingType == item,
-                                      onSelected: _isReadOnly
-                                          ? null
-                                          : (selected) {
-                                              if (!selected) {
-                                                return;
-                                              }
-                                              controller.updateSessionTitle(
-                                                _titleForTrainingType(item),
-                                              );
-                                              if (item == '休息日') {
-                                                controller.clearExercises();
-                                              }
-                                              setState(() {
-                                                _selectedTrainingType = item;
-                                              });
-                                            },
-                                    ),
-                                  )
-                                  .toList(),
-                            ),
-                            const SizedBox(height: AppSpacing.md),
-                            Container(
+                            SizedBox(
                               width: double.infinity,
-                              padding: const EdgeInsets.only(
-                                top: AppSpacing.sm,
-                              ),
-                              decoration: BoxDecoration(
-                                border: Border(
-                                  top: BorderSide(
-                                    color: colors.textMuted.withValues(
-                                      alpha: 0.16,
-                                    ),
-                                  ),
-                                ),
-                              ),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
@@ -564,7 +678,7 @@ class _SessionEditorPageState extends ConsumerState<SessionEditorPage> {
                                     ),
                                     label: Text(
                                       !_hasTrainingTypeSelected
-                                          ? '请先选择训练类型'
+                                          ? '请先选择训练肌群'
                                           : _isRestDay
                                           ? '休息日无需新增动作'
                                           : '新增动作',

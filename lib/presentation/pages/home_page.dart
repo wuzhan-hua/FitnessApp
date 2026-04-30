@@ -41,8 +41,11 @@ class HomePage extends ConsumerWidget {
       SessionEditorExitResult.completed => '训练记录已完成',
       SessionEditorExitResult.autosaved => '已自动保存当前内容',
       SessionEditorExitResult.autosaveFailed => '自动保存失败，本次修改未保存',
+      SessionEditorExitResult.discarded => null,
     };
-    showLatestSnackBar(context, message);
+    if (message != null) {
+      showLatestSnackBar(context, message);
+    }
   }
 
   @override
