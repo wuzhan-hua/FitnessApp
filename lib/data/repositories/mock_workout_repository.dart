@@ -19,10 +19,17 @@ class MockWorkoutRepository implements WorkoutRepository {
 
     final latest = sessions.first;
     final gap = _day(today).difference(_day(latest.date)).inDays;
-    final lastGroup = latest.exercises.isEmpty
-        ? '全身'
-        : latest.exercises.first.exerciseName;
-    return '距离上次 $lastGroup 训练已 $gap 天，今天可重点冲击主要工作组。';
+    final lastFocus = _sessionFocusLabel(latest);
+    if (gap <= 0) {
+      return '今天已完成 $lastFocus 训练，建议以拉伸、走路和复盘记录为主。';
+    }
+    if (gap == 1) {
+      return '昨天刚完成 $lastFocus 训练，今天尽量避免连续高强度冲击同类动作。';
+    }
+    if (gap <= 3) {
+      return '距离上次 $lastFocus 训练已 $gap 天，今天可以恢复主要工作组强度。';
+    }
+    return '最近 $gap 天未训练，建议先用中等强度热身把节奏找回来。';
   }
 
   DailySummary _buildDailySummary(DateTime date, WorkoutSession? session) {
@@ -43,6 +50,128 @@ class MockWorkoutRepository implements WorkoutRepository {
       totalVolume: session.totalVolume,
       durationMinutes: session.durationMinutes,
     );
+  }
+
+  List<HomeRecommendationItem> _buildRecommendations({
+    required DateTime today,
+    required WorkoutSession? todaySession,
+    required List<WorkoutSession> recentSessions,
+    required int weekTrainingDays,
+  }) {
+    final items = <HomeRecommendationItem>[];
+    final latest = recentSessions.firstOrNull;
+    final latestGap = latest == null
+        ? null
+        : _day(today).difference(_day(latest.date)).inDays;
+
+    if (todaySession?.status == SessionStatus.inProgress) {
+      final totalSets = todaySession?.totalSets ?? 0;
+      items.add(
+        HomeRecommendationItem(
+          title: '继续今日训练',
+          message: totalSets > 0
+              ? '当前已安排 $totalSets 组，优先补完主要动作，再检查是否需要追加辅助动作。'
+              : '今日训练已创建但还没有组数，先补充动作和组数，再开始正式记录。',
+          type: HomeRecommendationType.continueSession,
+          priority: 3,
+        ),
+      );
+    } else if (todaySession?.status == SessionStatus.completed) {
+      items.add(
+        HomeRecommendationItem(
+          title: '完成后复盘',
+          message: '今天的训练已记录完成，建议补充备注、检查动作质量，再决定是否需要微调下次安排。',
+          type: HomeRecommendationType.review,
+          priority: 3,
+        ),
+      );
+    } else if (latest == null || (latestGap != null && latestGap >= 3)) {
+      final gapText = latestGap == null ? '最近几天' : '最近 $latestGap 天';
+      items.add(
+        HomeRecommendationItem(
+          title: '先找回训练节奏',
+          message: '$gapText没有完整训练，今天建议先从中等强度和基础动作开始恢复。',
+          type: HomeRecommendationType.recovery,
+          priority: 3,
+        ),
+      );
+    } else if (latestGap == 1) {
+      items.add(
+        HomeRecommendationItem(
+          title: '安排互补训练',
+          message: '昨天刚完成${_sessionFocusLabel(latest)}训练，今天更适合安排互补部位或中等容量训练。',
+          type: HomeRecommendationType.trainingFocus,
+          priority: 2,
+        ),
+      );
+    } else {
+      items.add(
+        HomeRecommendationItem(
+          title: '推进主要工作组',
+          message: '今天适合把重点放在主要工作组，先完成核心动作，再补充辅助训练。',
+          type: HomeRecommendationType.trainingFocus,
+          priority: 2,
+        ),
+      );
+    }
+
+    if (todaySession?.status != SessionStatus.inProgress &&
+        weekTrainingDays <= 1) {
+      items.add(
+        HomeRecommendationItem(
+          title: '补足本周频率',
+          message: weekTrainingDays == 0
+              ? '本周还没有完成训练，今天完成一次完整训练更容易把节奏拉回来。'
+              : '本周目前只完成了 $weekTrainingDays 次训练，还可以补 1 次容量训练。',
+          type: HomeRecommendationType.trainingFocus,
+          priority: 1,
+        ),
+      );
+    }
+
+    if (todaySession?.status == SessionStatus.completed) {
+      items.add(
+        HomeRecommendationItem(
+          title: '查看今日记录',
+          message: '如果还想补充动作或组数，请直接进入今天这条训练记录继续完善。',
+          type: HomeRecommendationType.review,
+          priority: 2,
+        ),
+      );
+    } else if (todaySession == null) {
+      items.add(
+        HomeRecommendationItem(
+          title: '开始前先定重点',
+          message: '先确定今天的主动作和目标组数，再开练会更顺手，也更方便后续复盘。',
+          type: HomeRecommendationType.trainingFocus,
+          priority: 1,
+        ),
+      );
+    }
+
+    if (items.isEmpty) {
+      items.add(
+        const HomeRecommendationItem(
+          title: '保持今天的节奏',
+          message: '按计划完成主要动作和核心组数，结束后记得检查是否需要补充备注。',
+          type: HomeRecommendationType.trainingFocus,
+          priority: 0,
+        ),
+      );
+    }
+
+    items.sort((a, b) => b.priority.compareTo(a.priority));
+    return items.take(3).toList();
+  }
+
+  String _sessionFocusLabel(WorkoutSession session) {
+    if (session.title.trim().isNotEmpty) {
+      return session.title.trim();
+    }
+    if (session.exercises.isNotEmpty) {
+      return session.exercises.first.exerciseName;
+    }
+    return '训练';
   }
 
   WorkoutSession _defaultSession(DateTime date) {
@@ -189,7 +318,7 @@ class MockWorkoutRepository implements WorkoutRepository {
         .length;
     final totalSets = weekCompleted.fold<int>(
       0,
-      (sum, item) => sum + item.completedSets,
+      (sum, item) => sum + item.totalSets,
     );
     final totalVolume = weekCompleted.fold<double>(
       0,
@@ -204,6 +333,13 @@ class MockWorkoutRepository implements WorkoutRepository {
                   weekCompleted.length)
               .round();
 
+    final recommendations = _buildRecommendations(
+      today: today,
+      todaySession: todaySession,
+      recentSessions: recent,
+      weekTrainingDays: trainingDays,
+    );
+
     return HomeSnapshot(
       date: date,
       todaySummary: _buildDailySummary(today, todaySession),
@@ -211,11 +347,8 @@ class MockWorkoutRepository implements WorkoutRepository {
       inProgressSession: todaySession?.status == SessionStatus.inProgress
           ? todaySession
           : null,
-      quickSuggestions: const [
-        '胸推主项已 5 天未做，可安排重组',
-        '背部训练密度偏低，建议加 1 个划船动作',
-        '今日可尝试工作组 +2.5kg',
-      ],
+      recommendations: recommendations,
+      quickSuggestions: recommendations.map((item) => item.message).toList(),
       weekTrainingDays: trainingDays,
       weekTotalSets: totalSets,
       weekTotalVolume: totalVolume,
@@ -273,7 +406,9 @@ class MockWorkoutRepository implements WorkoutRepository {
   @override
   Future<WorkoutSession> saveSession(WorkoutSession session) async {
     final persisted = session.id.startsWith('draft-')
-        ? session.copyWith(id: 'session-${DateTime.now().millisecondsSinceEpoch}')
+        ? session.copyWith(
+            id: 'session-${DateTime.now().millisecondsSinceEpoch}',
+          )
         : session;
     final index = _sessions.indexWhere((item) => item.id == persisted.id);
     if (index == -1) {

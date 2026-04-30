@@ -68,6 +68,12 @@ final homeSnapshotProvider = FutureProvider<HomeSnapshot>((ref) async {
   return service.getHomeSnapshot(DateTime.now());
 });
 
+final workoutSessionByIdProvider =
+    FutureProvider.family<WorkoutSession?, String>((ref, sessionId) async {
+      final service = ref.watch(workoutServiceProvider);
+      return service.getSessionById(sessionId);
+    });
+
 final calendarMonthProvider = StateProvider<DateTime>((ref) => DateTime.now());
 
 final sessionsByMonthProvider =

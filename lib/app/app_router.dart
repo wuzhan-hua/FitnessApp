@@ -7,6 +7,7 @@ import '../presentation/pages/admin_exercise_catalog_page.dart';
 import '../presentation/pages/exercise_detail_page.dart';
 import '../presentation/pages/exercise_library_page.dart';
 import '../presentation/pages/personal_info_page.dart';
+import '../presentation/pages/session_analysis_page.dart';
 import '../presentation/pages/session_editor_page.dart';
 
 class AppRouter {
@@ -49,6 +50,15 @@ class AppRouter {
       if (args is ExerciseDetailPageArgs) {
         return MaterialPageRoute<void>(
           builder: (_) => ExerciseDetailPage(args: args),
+          settings: settings,
+        );
+      }
+    }
+    if (settings.name == SessionAnalysisPage.routeName) {
+      final args = settings.arguments;
+      if (args is SessionAnalysisPageArgs) {
+        return MaterialPageRoute<void>(
+          builder: (_) => SessionAnalysisPage(args: args),
           settings: settings,
         );
       }

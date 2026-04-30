@@ -639,6 +639,46 @@ class DailySummary {
   }
 }
 
+/// 首页推荐卡片类型。
+enum HomeRecommendationType { recovery, trainingFocus, continueSession, review }
+
+@immutable
+/// 首页推荐项，用于今日计划与建议展示。
+class HomeRecommendationItem {
+  const HomeRecommendationItem({
+    required this.title,
+    required this.message,
+    required this.type,
+    this.priority = 0,
+  });
+
+  final String title;
+  final String message;
+  final HomeRecommendationType type;
+  final int priority;
+
+  factory HomeRecommendationItem.fromJson(Map<String, dynamic> json) {
+    return HomeRecommendationItem(
+      title: json['title'] as String? ?? '',
+      message: json['message'] as String? ?? '',
+      type: HomeRecommendationType.values.firstWhere(
+        (item) => item.name == json['type'],
+        orElse: () => HomeRecommendationType.trainingFocus,
+      ),
+      priority: (json['priority'] as num? ?? 0).toInt(),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'title': title,
+      'message': message,
+      'type': type.name,
+      'priority': priority,
+    };
+  }
+}
+
 @immutable
 /// 首页快照数据，聚合今日状态、周统计与近期训练信息。
 class HomeSnapshot {
@@ -647,6 +687,7 @@ class HomeSnapshot {
     required this.todaySummary,
     required this.todaySession,
     required this.inProgressSession,
+    required this.recommendations,
     required this.quickSuggestions,
     required this.weekTrainingDays,
     required this.weekTotalSets,
@@ -667,6 +708,9 @@ class HomeSnapshot {
 
   /// 当前进行中的训练会话（若存在）。
   final WorkoutSession? inProgressSession;
+
+  /// 首页推荐卡片列表。
+  final List<HomeRecommendationItem> recommendations;
 
   /// 首页快捷建议文案列表。
   final List<String> quickSuggestions;
@@ -692,6 +736,8 @@ class HomeSnapshot {
   /// 从 JSON 构建首页快照，缺失嵌套对象时使用默认空对象/空列表。
   factory HomeSnapshot.fromJson(Map<String, dynamic> json) {
     final rawSessions = json['recentSessions'] as List<dynamic>? ?? const [];
+    final rawRecommendations =
+        json['recommendations'] as List<dynamic>? ?? const [];
     return HomeSnapshot(
       date: DateTime.tryParse(json['date'] as String? ?? '') ?? DateTime.now(),
       todaySummary: DailySummary.fromJson(
@@ -708,6 +754,12 @@ class HomeSnapshot {
           : WorkoutSession.fromJson(
               json['inProgressSession'] as Map<String, dynamic>,
             ),
+      recommendations: rawRecommendations
+          .map(
+            (item) =>
+                HomeRecommendationItem.fromJson(item as Map<String, dynamic>),
+          )
+          .toList(),
       quickSuggestions: (json['quickSuggestions'] as List<dynamic>? ?? const [])
           .map((item) => '$item')
           .toList(),
@@ -729,6 +781,7 @@ class HomeSnapshot {
       'todaySummary': todaySummary.toJson(),
       'todaySession': todaySession?.toJson(),
       'inProgressSession': inProgressSession?.toJson(),
+      'recommendations': recommendations.map((item) => item.toJson()).toList(),
       'quickSuggestions': quickSuggestions,
       'weekTrainingDays': weekTrainingDays,
       'weekTotalSets': weekTotalSets,

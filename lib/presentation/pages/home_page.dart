@@ -8,6 +8,7 @@ import '../../theme/app_theme.dart';
 import '../../utils/snackbar_helper.dart';
 import '../widgets/async_tab_content.dart';
 import '../widgets/home/home_sections.dart';
+import 'session_analysis_page.dart';
 import 'session_editor_page.dart';
 
 class HomePage extends ConsumerWidget {
@@ -22,17 +23,18 @@ class HomePage extends ConsumerWidget {
     bool readOnly = false,
     bool createOnSaveOnly = false,
   }) async {
-    final result = await Navigator.of(context).pushNamed<SessionEditorExitResult>(
-      SessionEditorPage.routeName,
-      arguments: SessionEditorArgs(
-        date: date,
-        mode: mode,
-        sessionId: sessionId,
-        preferActiveSession: preferActiveSession,
-        readOnly: readOnly,
-        createOnSaveOnly: createOnSaveOnly,
-      ),
-    );
+    final result = await Navigator.of(context)
+        .pushNamed<SessionEditorExitResult>(
+          SessionEditorPage.routeName,
+          arguments: SessionEditorArgs(
+            date: date,
+            mode: mode,
+            sessionId: sessionId,
+            preferActiveSession: preferActiveSession,
+            readOnly: readOnly,
+            createOnSaveOnly: createOnSaveOnly,
+          ),
+        );
     if (!context.mounted || result == null) {
       return;
     }
@@ -46,6 +48,16 @@ class HomePage extends ConsumerWidget {
     if (message != null) {
       showLatestSnackBar(context, message);
     }
+  }
+
+  Future<void> _openSessionAnalysis(
+    BuildContext context, {
+    required String sessionId,
+  }) async {
+    await Navigator.of(context).pushNamed<void>(
+      SessionAnalysisPage.routeName,
+      arguments: SessionAnalysisPageArgs(sessionId: sessionId),
+    );
   }
 
   @override
@@ -78,7 +90,10 @@ class HomePage extends ConsumerWidget {
                       Expanded(
                         flex: 5,
                         child: SingleChildScrollView(
-                          child: HomeRightColumn(snapshot: snapshot),
+                          child: HomeRightColumn(
+                            snapshot: snapshot,
+                            openSessionAnalysis: _openSessionAnalysis,
+                          ),
                         ),
                       ),
                     ],
@@ -92,7 +107,10 @@ class HomePage extends ConsumerWidget {
                         snapshot: snapshot,
                         openEditor: _openEditor,
                       ),
-                      HomeRightColumn(snapshot: snapshot),
+                      HomeRightColumn(
+                        snapshot: snapshot,
+                        openSessionAnalysis: _openSessionAnalysis,
+                      ),
                     ],
                   ),
                 );

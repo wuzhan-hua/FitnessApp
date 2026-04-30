@@ -26,6 +26,15 @@ class WorkoutService {
     }
   }
 
+  Future<WorkoutSession?> getSessionById(String id) async {
+    try {
+      return await _repository.getSessionById(id);
+    } catch (error, stackTrace) {
+      AppLogger.error('加载训练详情失败', error: error, stackTrace: stackTrace);
+      throw AppError.from(error, fallbackMessage: '加载训练详情失败，请稍后重试。');
+    }
+  }
+
   Future<AnalyticsSnapshot> getAnalyticsSnapshot({
     required DateTime from,
     required DateTime to,

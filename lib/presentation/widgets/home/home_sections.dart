@@ -17,6 +17,9 @@ typedef OpenEditorHandler =
       bool createOnSaveOnly,
     });
 
+typedef OpenSessionAnalysisHandler =
+    void Function(BuildContext context, {required String sessionId});
+
 class HomeLeftColumn extends StatelessWidget {
   const HomeLeftColumn({
     super.key,
@@ -208,26 +211,8 @@ class HomeLeftColumn extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              ...snapshot.quickSuggestions.map(
-                (tip) => Padding(
-                  padding: const EdgeInsets.only(bottom: AppSpacing.xs),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(top: 5),
-                        child: Icon(Icons.bolt, size: 14, color: colors.accent),
-                      ),
-                      const SizedBox(width: AppSpacing.xs),
-                      Expanded(
-                        child: Text(
-                          tip,
-                          style: TextStyle(color: colors.textPrimary),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+              ...snapshot.recommendations.map(
+                (item) => _RecommendationCard(recommendation: item),
               ),
             ],
           ),
@@ -388,10 +373,78 @@ class _HeroBadge extends StatelessWidget {
   }
 }
 
+class _RecommendationCard extends StatelessWidget {
+  const _RecommendationCard({required this.recommendation});
+
+  final HomeRecommendationItem recommendation;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
+    final icon = switch (recommendation.type) {
+      HomeRecommendationType.recovery => Icons.refresh_rounded,
+      HomeRecommendationType.trainingFocus => Icons.track_changes_rounded,
+      HomeRecommendationType.continueSession => Icons.play_circle_outline,
+      HomeRecommendationType.review => Icons.rate_review_outlined,
+    };
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: colors.panelAlt,
+        borderRadius: AppRadius.card,
+        border: Border.all(color: colors.accent.withValues(alpha: 0.16)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: colors.accent.withValues(alpha: 0.12),
+              borderRadius: AppRadius.card,
+            ),
+            child: Icon(icon, size: 18, color: colors.accent),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  recommendation.title,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: colors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.xs),
+                Text(
+                  recommendation.message,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: colors.textMuted,
+                    height: 1.45,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class HomeRightColumn extends StatelessWidget {
-  const HomeRightColumn({super.key, required this.snapshot});
+  const HomeRightColumn({
+    super.key,
+    required this.snapshot,
+    required this.openSessionAnalysis,
+  });
 
   final HomeSnapshot snapshot;
+  final OpenSessionAnalysisHandler openSessionAnalysis;
 
   @override
   Widget build(BuildContext context) {
@@ -424,36 +477,67 @@ class HomeRightColumn extends StatelessWidget {
         ),
         SectionCard(
           title: '最近2次训练',
-          child: Column(
-            children: snapshot.recentSessions
-                .map(
-                  (session) => ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    title: Text(session.title),
-                    subtitle: Text(
-                      '${DateFormat('MM/dd').format(session.date)} · ${session.completedSets} 组 · ${session.durationMinutes} 分钟',
-                    ),
-                    trailing: const Icon(Icons.chevron_right),
-                  ),
-                )
-                .toList(),
-          ),
+          child: snapshot.recentSessions.isEmpty
+              ? const Text('最近还没有训练记录')
+              : Column(
+                  children: snapshot.recentSessions
+                      .map(
+                        (session) => ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          onTap: () => openSessionAnalysis(
+                            context,
+                            sessionId: session.id,
+                          ),
+                          title: Text(session.title),
+                          subtitle: Text(
+                            '${DateFormat('MM/dd').format(session.date)} · ${session.totalSets} 组 · ${session.durationMinutes} 分钟',
+                          ),
+                          trailing: const Icon(Icons.chevron_right),
+                        ),
+                      )
+                      .toList(),
+                ),
         ),
         SectionCard(
           title: '恢复提醒',
-          child: Row(
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: const BoxDecoration(
-                  color: Color(0x1AF59E0B),
-                  borderRadius: AppRadius.card,
-                ),
-                child: Icon(Icons.local_fire_department, color: colors.warning),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: const BoxDecoration(
+                      color: Color(0x1AF59E0B),
+                      borderRadius: AppRadius.card,
+                    ),
+                    child: Icon(
+                      Icons.local_fire_department,
+                      color: colors.warning,
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '恢复节奏提醒',
+                          style: Theme.of(context).textTheme.titleSmall
+                              ?.copyWith(fontWeight: FontWeight.w700),
+                        ),
+                        const SizedBox(height: AppSpacing.xs),
+                        Text(
+                          snapshot.recoveryHint,
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(color: colors.textMuted, height: 1.45),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(child: Text(snapshot.recoveryHint)),
             ],
           ),
         ),
