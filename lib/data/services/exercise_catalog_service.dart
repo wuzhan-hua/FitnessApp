@@ -98,9 +98,10 @@ class ExerciseCatalogService {
     String? equipment,
   }) async {
     final items = await _getCatalogItems();
-    final sortOrders = await _fetchSortOrdersByMuscleGroup(muscleGroup);
+    final normalizedGroup = _normalizeMuscleGroup(muscleGroup);
+    final sortOrders = await _fetchSortOrdersByMuscleGroup(normalizedGroup);
     final filtered = items.where((item) {
-      if (!_matchesGroup(item, muscleGroup)) {
+      if (!_matchesGroup(item, normalizedGroup)) {
         return false;
       }
       if (equipment == null || equipment.isEmpty) {
@@ -146,8 +147,9 @@ class ExerciseCatalogService {
   Future<List<AdminExerciseCatalogItem>> getAdminExercises({
     required String muscleGroup,
   }) async {
-    final items = await getExercises(muscleGroup: muscleGroup);
-    final sortOrders = await _fetchSortOrdersByMuscleGroup(muscleGroup);
+    final normalizedGroup = _normalizeMuscleGroup(muscleGroup);
+    final items = await getExercises(muscleGroup: normalizedGroup);
+    final sortOrders = await _fetchSortOrdersByMuscleGroup(normalizedGroup);
     return items.asMap().entries.map((entry) {
       final item = entry.value;
       return AdminExerciseCatalogItem(
@@ -155,7 +157,7 @@ class ExerciseCatalogService {
         displayName: item.displayName,
         originalNameZh: item.nameZh,
         nameEn: item.nameEn,
-        muscleGroup: muscleGroup,
+        muscleGroup: normalizedGroup,
         sortOrder: sortOrders[item.id] ?? entry.key,
         customNameZh: item.customNameZh,
         coverImagePath: item.coverImagePath,
@@ -197,7 +199,7 @@ class ExerciseCatalogService {
       throw const AppError(message: '请先登录后再操作。', code: 'auth_required');
     }
 
-    final normalizedGroup = muscleGroup.trim();
+    final normalizedGroup = _normalizeMuscleGroup(muscleGroup);
     if (normalizedGroup.isEmpty) {
       throw const AppError(message: '肌群不能为空。');
     }
@@ -415,7 +417,7 @@ class ExerciseCatalogService {
   Future<Map<String, int>> _fetchSortOrdersByMuscleGroup(
     String muscleGroup,
   ) async {
-    final normalizedGroup = muscleGroup.trim();
+    final normalizedGroup = _normalizeMuscleGroup(muscleGroup);
     if (normalizedGroup.isEmpty) {
       return const {};
     }
@@ -464,5 +466,10 @@ class ExerciseCatalogService {
           .toList();
     }
     return const [];
+  }
+
+  String _normalizeMuscleGroup(String muscleGroup) {
+    return ExerciseCatalogConstants.normalizeLibraryGroup(muscleGroup) ??
+        muscleGroup.trim();
   }
 }

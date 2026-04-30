@@ -26,19 +26,64 @@ class SessionAnalysisPage extends ConsumerWidget {
 
   Future<void> _openReadOnlySession(
     BuildContext context,
+    WidgetRef ref,
     WorkoutSession session,
   ) async {
-    await Navigator.of(context).pushNamed<void>(
-      SessionEditorPage.routeName,
-      arguments: SessionEditorArgs(
-        date: session.date,
-        mode: SessionMode.backfill,
-        sessionId: session.id,
-        preferActiveSession: false,
-        readOnly: true,
-        createOnSaveOnly: false,
-      ),
-    );
+    final result = await Navigator.of(context)
+        .pushNamed<SessionEditorExitResult>(
+          SessionEditorPage.routeName,
+          arguments: SessionEditorArgs(
+            date: session.date,
+            mode: SessionMode.backfill,
+            sessionId: session.id,
+            preferActiveSession: false,
+            readOnly: true,
+            createOnSaveOnly: false,
+          ),
+        );
+    _refreshSessionAnalysis(ref, session: session, result: result);
+  }
+
+  Future<void> _openEditableSession(
+    BuildContext context,
+    WidgetRef ref,
+    WorkoutSession session,
+  ) async {
+    final result = await Navigator.of(context)
+        .pushNamed<SessionEditorExitResult>(
+          SessionEditorPage.routeName,
+          arguments: SessionEditorArgs(
+            date: session.date,
+            mode: SessionMode.backfill,
+            sessionId: session.id,
+            preferActiveSession: false,
+            readOnly: false,
+            createOnSaveOnly: false,
+          ),
+        );
+    _refreshSessionAnalysis(ref, session: session, result: result);
+  }
+
+  void _refreshSessionAnalysis(
+    WidgetRef ref, {
+    required WorkoutSession session,
+    required SessionEditorExitResult? result,
+  }) {
+    switch (result) {
+      case SessionEditorExitResult.savedProgress:
+      case SessionEditorExitResult.completed:
+      case SessionEditorExitResult.autosaved:
+        ref.invalidate(workoutSessionByIdProvider(args.sessionId));
+        ref.invalidate(
+          sessionsByMonthProvider(
+            DateTime(session.date.year, session.date.month),
+          ),
+        );
+      case SessionEditorExitResult.autosaveFailed:
+      case SessionEditorExitResult.discarded:
+      case null:
+        break;
+    }
   }
 
   @override
@@ -135,13 +180,28 @@ class SessionAnalysisPage extends ConsumerWidget {
                   ),
                   SectionCard(
                     title: '查看记录',
-                    child: SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton.icon(
-                        onPressed: () => _openReadOnlySession(context, session),
-                        icon: const Icon(Icons.visibility_outlined),
-                        label: const Text('查看训练详情'),
-                      ),
+                    child: Column(
+                      children: [
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton.icon(
+                            onPressed: () =>
+                                _openReadOnlySession(context, ref, session),
+                            icon: const Icon(Icons.visibility_outlined),
+                            label: const Text('查看训练详情'),
+                          ),
+                        ),
+                        const SizedBox(height: AppSpacing.sm),
+                        SizedBox(
+                          width: double.infinity,
+                          child: FilledButton.icon(
+                            onPressed: () =>
+                                _openEditableSession(context, ref, session),
+                            icon: const Icon(Icons.edit_outlined),
+                            label: const Text('补录'),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],

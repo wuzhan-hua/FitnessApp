@@ -1,5 +1,6 @@
 import 'package:fitness_client/domain/entities/workout_models.dart';
 import 'package:fitness_client/application/state/session_editor_controller.dart';
+import 'package:fitness_client/presentation/pages/session_analysis_page.dart';
 import 'package:fitness_client/presentation/pages/session_editor_page.dart';
 import 'package:fitness_client/presentation/widgets/calendar/calendar_widgets.dart';
 import 'package:fitness_client/theme/app_theme.dart';
@@ -29,26 +30,23 @@ void main() {
     );
   });
 
-  testWidgets('past day with session opens read only page directly', (
+  testWidgets('past day with session opens session analysis page directly', (
     tester,
   ) async {
     final past = _day(DateTime.now()).subtract(const Duration(days: 1));
+    final session = _sessionOn(past);
 
     await tester.pumpWidget(
       _buildCalendar(
         month: DateTime(past.year, past.month),
-        sessions: [_sessionOn(past)],
+        sessions: [session],
       ),
     );
 
     await tester.tap(find.byKey(_calendarDayKey(past)));
     await tester.pumpAndSettle();
 
-    expect(find.text('readOnly=true'), findsOneWidget);
-    expect(
-      find.text('date=${past.year}-${past.month}-${past.day}'),
-      findsOneWidget,
-    );
+    expect(find.text('sessionId=${session.id}'), findsOneWidget);
   });
 
   testWidgets('past day without session asks before creating draft', (
@@ -77,7 +75,7 @@ Widget _buildCalendar({
     onGenerateRoute: (settings) {
       if (settings.name == SessionEditorPage.routeName) {
         final args = settings.arguments! as SessionEditorArgs;
-        return MaterialPageRoute<void>(
+        return MaterialPageRoute<SessionEditorExitResult?>(
           builder: (_) => Scaffold(
             body: Column(
               children: [
@@ -88,6 +86,12 @@ Widget _buildCalendar({
               ],
             ),
           ),
+        );
+      }
+      if (settings.name == SessionAnalysisPage.routeName) {
+        final args = settings.arguments! as SessionAnalysisPageArgs;
+        return MaterialPageRoute<void>(
+          builder: (_) => Scaffold(body: Text('sessionId=${args.sessionId}')),
         );
       }
       return null;

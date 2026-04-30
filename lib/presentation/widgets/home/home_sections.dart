@@ -211,8 +211,11 @@ class HomeLeftColumn extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              ...snapshot.recommendations.map(
-                (item) => _RecommendationCard(recommendation: item),
+              ...snapshot.recommendations.asMap().entries.map(
+                (entry) => _RecommendationTipCard(
+                  recommendation: entry.value,
+                  isPrimary: entry.key == 0,
+                ),
               ),
             ],
           ),
@@ -373,64 +376,160 @@ class _HeroBadge extends StatelessWidget {
   }
 }
 
-class _RecommendationCard extends StatelessWidget {
-  const _RecommendationCard({required this.recommendation});
+class _RecommendationVisualSpec {
+  const _RecommendationVisualSpec({
+    required this.label,
+    required this.icon,
+    required this.tintColor,
+  });
+
+  final String label;
+  final IconData icon;
+  final Color tintColor;
+}
+
+_RecommendationVisualSpec _recommendationSpec(
+  BuildContext context,
+  HomeRecommendationType type,
+) {
+  final colors = AppColors.of(context);
+  return switch (type) {
+    HomeRecommendationType.recovery => _RecommendationVisualSpec(
+      label: '恢复建议',
+      icon: Icons.waves_rounded,
+      tintColor: Color.lerp(colors.accent, colors.success, 0.35)!,
+    ),
+    HomeRecommendationType.trainingFocus => _RecommendationVisualSpec(
+      label: '训练安排',
+      icon: Icons.track_changes_rounded,
+      tintColor: colors.accent,
+    ),
+    HomeRecommendationType.continueSession => _RecommendationVisualSpec(
+      label: '继续训练',
+      icon: Icons.play_circle_outline_rounded,
+      tintColor: Color.lerp(colors.accent, colors.textPrimary, 0.18)!,
+    ),
+    HomeRecommendationType.review => _RecommendationVisualSpec(
+      label: '训练复盘',
+      icon: Icons.rate_review_outlined,
+      tintColor: Color.lerp(colors.accent, colors.warning, 0.28)!,
+    ),
+  };
+}
+
+class _RecommendationTipCard extends StatelessWidget {
+  const _RecommendationTipCard({
+    required this.recommendation,
+    required this.isPrimary,
+  });
 
   final HomeRecommendationItem recommendation;
+  final bool isPrimary;
 
   @override
   Widget build(BuildContext context) {
     final colors = AppColors.of(context);
-    final icon = switch (recommendation.type) {
-      HomeRecommendationType.recovery => Icons.refresh_rounded,
-      HomeRecommendationType.trainingFocus => Icons.track_changes_rounded,
-      HomeRecommendationType.continueSession => Icons.play_circle_outline,
-      HomeRecommendationType.review => Icons.rate_review_outlined,
-    };
+    final spec = _recommendationSpec(context, recommendation.type);
 
     return Container(
-      margin: const EdgeInsets.only(bottom: AppSpacing.sm),
-      padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(
-        color: colors.panelAlt,
-        borderRadius: AppRadius.card,
-        border: Border.all(color: colors.accent.withValues(alpha: 0.16)),
+      margin: EdgeInsets.only(
+        bottom: isPrimary ? AppSpacing.sm : AppSpacing.xs,
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: colors.accent.withValues(alpha: 0.12),
-              borderRadius: AppRadius.card,
-            ),
-            child: Icon(icon, size: 18, color: colors.accent),
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  recommendation.title,
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: colors.textPrimary,
-                  ),
+      decoration: BoxDecoration(
+        color: isPrimary ? colors.panel : colors.panel.withValues(alpha: 0.94),
+        borderRadius: const BorderRadius.all(Radius.circular(14)),
+        border: Border.all(
+          color: isPrimary
+              ? colors.textMuted.withValues(alpha: 0.10)
+              : colors.textMuted.withValues(alpha: 0.08),
+          width: 1,
+        ),
+        boxShadow: isPrimary
+            ? [
+                BoxShadow(
+                  color: colors.textPrimary.withValues(alpha: 0.03),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
                 ),
-                const SizedBox(height: AppSpacing.xs),
-                Text(
-                  recommendation.message,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: colors.textMuted,
-                    height: 1.45,
-                  ),
+              ]
+            : null,
+      ),
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Container(
+              width: isPrimary ? 5 : 4,
+              decoration: BoxDecoration(
+                color: spec.tintColor.withValues(
+                  alpha: isPrimary ? 0.82 : 0.68,
                 ),
-              ],
+                borderRadius: const BorderRadius.horizontal(
+                  left: Radius.circular(14),
+                ),
+              ),
             ),
-          ),
-        ],
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(
+                  14,
+                  isPrimary ? 14 : 12,
+                  14,
+                  isPrimary ? 14 : 12,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(spec.icon, size: 14, color: spec.tintColor),
+                        const SizedBox(width: 6),
+                        Text(
+                          spec.label,
+                          style: Theme.of(context).textTheme.labelSmall
+                              ?.copyWith(
+                                color: spec.tintColor,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 0.2,
+                              ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      recommendation.title,
+                      style:
+                          (isPrimary
+                                  ? Theme.of(context).textTheme.titleMedium
+                                  : Theme.of(context).textTheme.titleSmall)
+                              ?.copyWith(
+                                fontWeight: FontWeight.w800,
+                                color: colors.textPrimary,
+                                height: 1.18,
+                              ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      recommendation.message,
+                      style:
+                          (isPrimary
+                                  ? Theme.of(context).textTheme.bodyMedium
+                                  : Theme.of(context).textTheme.bodySmall)
+                              ?.copyWith(
+                                color: colors.textMuted,
+                                height: 1.5,
+                                fontWeight: FontWeight.w500,
+                              ),
+                      maxLines: isPrimary ? 3 : 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

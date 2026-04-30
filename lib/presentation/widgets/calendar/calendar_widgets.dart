@@ -5,6 +5,7 @@ import '../../../application/state/session_editor_controller.dart';
 import '../../../domain/entities/workout_models.dart';
 import '../../../theme/app_theme.dart';
 import '../../../utils/snackbar_helper.dart';
+import '../../pages/session_analysis_page.dart';
 import '../../pages/session_editor_page.dart';
 
 class CalendarMonthHeader extends StatelessWidget {
@@ -198,6 +199,11 @@ class _CalendarCell extends StatelessWidget {
       return;
     }
 
+    if (hasSession && selectedDay.isBefore(today)) {
+      await _openSessionAnalysis(context, sessionId: session!.id);
+      return;
+    }
+
     if (hasSession) {
       await _openEditor(
         context,
@@ -225,6 +231,16 @@ class _CalendarCell extends StatelessWidget {
       context,
       mode: SessionMode.newSession,
       createOnSaveOnly: true,
+    );
+  }
+
+  Future<void> _openSessionAnalysis(
+    BuildContext context, {
+    required String sessionId,
+  }) async {
+    await Navigator.of(context).pushNamed<void>(
+      SessionAnalysisPage.routeName,
+      arguments: SessionAnalysisPageArgs(sessionId: sessionId),
     );
   }
 

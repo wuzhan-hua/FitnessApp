@@ -2,8 +2,6 @@ class ExerciseCatalogConstants {
   static const List<String> libraryMuscleGroups = [
     '胸部',
     '背部',
-    '中背',
-    '下背',
     '肩部',
     '手臂',
     '核心',
@@ -19,16 +17,11 @@ class ExerciseCatalogConstants {
     cardioGroup,
   ];
 
-  static const List<String> sessionEditorGroups = [
-    ...libraryGroups,
-    '休息日',
-  ];
+  static const List<String> sessionEditorGroups = [...libraryGroups, '休息日'];
 
   static const Map<String, List<String>> muscleTargets = {
     '胸部': ['胸部'],
-    '背部': ['背阔肌', '斜方肌'],
-    '中背': ['中背'],
-    '下背': ['下背'],
+    '背部': ['背阔肌', '斜方肌', '中背', '下背'],
     '肩部': ['肩部'],
     '手臂': ['肱二头肌', '肱三头肌', '前臂'],
     '核心': ['腹肌'],
@@ -52,11 +45,8 @@ class ExerciseCatalogConstants {
     if (normalized.contains('有氧')) {
       return '有氧';
     }
-    if (normalized.contains('中背')) {
-      return '中背';
-    }
-    if (normalized.contains('下背')) {
-      return '下背';
+    if (normalized.contains('中背') || normalized.contains('下背')) {
+      return '背部';
     }
     if (normalized.contains('臀')) {
       return '臀部';
@@ -117,6 +107,8 @@ class ExerciseCatalogConstants {
       case '胸':
         return '胸部';
       case '背':
+      case '中背':
+      case '下背':
         return '背部';
       case '腿':
         return '腿部';
