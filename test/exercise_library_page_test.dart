@@ -48,9 +48,7 @@ void main() {
     tester,
   ) async {
     await tester.pumpWidget(
-      _buildPage(
-        args: const ExerciseLibraryPageArgs(initialMuscleGroup: '腿部'),
-      ),
+      _buildPage(args: const ExerciseLibraryPageArgs(initialMuscleGroup: '腿部')),
     );
     await tester.pumpAndSettle();
 
@@ -74,12 +72,9 @@ Widget _buildPage({
       exerciseCatalogServiceProvider.overrideWithValue(
         _FakeExerciseCatalogService(),
       ),
-      exerciseMuscleGroupsProvider.overrideWith((ref) async => [
-        '胸部',
-        '腿部',
-        '手臂',
-        '有氧',
-      ]),
+      exerciseMuscleGroupsProvider.overrideWith(
+        (ref) async => ['胸部', '腿部', '手臂', '有氧'],
+      ),
       exerciseEquipmentsProvider.overrideWith((ref) async {
         final group = ref.watch(selectedExerciseMuscleGroupProvider);
         if (group == '手臂') {
@@ -93,7 +88,9 @@ Widget _buildPage({
         }
         return <String>[];
       }),
-      exerciseCatalogItemsProvider.overrideWith((ref) async => const []),
+      exerciseCatalogItemsProvider.overrideWith(
+        (ref, searchScope) async => const [],
+      ),
       selectedExerciseMuscleGroupProvider.overrideWith(
         (ref) => initialSelectedGroup,
       ),

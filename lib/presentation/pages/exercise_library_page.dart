@@ -57,6 +57,22 @@ class _ExerciseLibraryPageState extends ConsumerState<ExerciseLibraryPage> {
   void initState() {
     super.initState();
     _searchController = TextEditingController();
+    if (_isSelectionMode) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) {
+          return;
+        }
+        _searchController.clear();
+        ref
+                .read(
+                  selectedExerciseSearchKeywordProvider(
+                    selectionExerciseLibrarySearchScope,
+                  ).notifier,
+                )
+                .state =
+            '';
+      });
+    }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _refreshCatalogInBackground();
     });
@@ -175,7 +191,13 @@ class _ExerciseLibraryPageState extends ConsumerState<ExerciseLibraryPage> {
     final groupsAsync = ref.watch(exerciseMuscleGroupsProvider);
     final selectedGroup = ref.watch(selectedExerciseMuscleGroupProvider);
     final selectedEquipment = ref.watch(selectedExerciseEquipmentProvider);
-    final searchKeyword = ref.watch(selectedExerciseSearchKeywordProvider);
+    final currentMode = widget.args?.mode ?? ExerciseLibraryMode.selection;
+    final searchScope = _isSelectionMode
+        ? selectionExerciseLibrarySearchScope
+        : browseExerciseLibrarySearchScope;
+    final searchKeyword = ref.watch(
+      selectedExerciseSearchKeywordProvider(searchScope),
+    );
 
     return Scaffold(
       appBar: AppBar(
@@ -235,8 +257,9 @@ class _ExerciseLibraryPageState extends ConsumerState<ExerciseLibraryPage> {
                       equipments: equipments,
                       selectedEquipment: selectedEquipment,
                       searchKeyword: searchKeyword,
+                      searchScope: searchScope,
                       searchController: _searchController,
-                      mode: widget.args?.mode ?? ExerciseLibraryMode.selection,
+                      mode: currentMode,
                     );
                   },
                 ),
@@ -310,6 +333,7 @@ class _ExerciseContent extends ConsumerWidget {
     required this.equipments,
     required this.selectedEquipment,
     required this.searchKeyword,
+    required this.searchScope,
     required this.searchController,
     required this.mode,
   });
@@ -318,6 +342,7 @@ class _ExerciseContent extends ConsumerWidget {
   final List<String> equipments;
   final String? selectedEquipment;
   final String searchKeyword;
+  final String searchScope;
   final TextEditingController searchController;
   final ExerciseLibraryMode mode;
 
@@ -325,7 +350,7 @@ class _ExerciseContent extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = AppColors.of(context);
     final isSearching = searchKeyword.trim().isNotEmpty;
-    final itemsAsync = ref.watch(exerciseCatalogItemsProvider);
+    final itemsAsync = ref.watch(exerciseCatalogItemsProvider(searchScope));
     final titleStyle = Theme.of(context).textTheme.titleLarge?.copyWith(
       fontWeight: FontWeight.w700,
       fontSize: 18,
@@ -354,7 +379,13 @@ class _ExerciseContent extends ConsumerWidget {
           child: TextField(
             controller: searchController,
             onChanged: (value) {
-              ref.read(selectedExerciseSearchKeywordProvider.notifier).state =
+              ref
+                      .read(
+                        selectedExerciseSearchKeywordProvider(
+                          searchScope,
+                        ).notifier,
+                      )
+                      .state =
                   value;
             },
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -395,8 +426,9 @@ class _ExerciseContent extends ConsumerWidget {
                         searchController.clear();
                         ref
                                 .read(
-                                  selectedExerciseSearchKeywordProvider
-                                      .notifier,
+                                  selectedExerciseSearchKeywordProvider(
+                                    searchScope,
+                                  ).notifier,
                                 )
                                 .state =
                             '';

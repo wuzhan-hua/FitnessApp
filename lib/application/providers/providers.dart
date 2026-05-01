@@ -111,9 +111,11 @@ final selectedExerciseEquipmentProvider = StateProvider.autoDispose<String?>(
   (ref) => null,
 );
 
-final selectedExerciseSearchKeywordProvider = StateProvider.autoDispose<String>(
-  (ref) => '',
-);
+const selectionExerciseLibrarySearchScope = 'selection';
+const browseExerciseLibrarySearchScope = 'browse';
+
+final selectedExerciseSearchKeywordProvider = StateProvider.autoDispose
+    .family<String, String>((ref, _) => '');
 
 final exerciseMuscleGroupsProvider = FutureProvider.autoDispose<List<String>>((
   ref,
@@ -133,10 +135,12 @@ final exerciseEquipmentsProvider = FutureProvider.autoDispose<List<String>>((
   return service.getEquipmentsByMuscleGroup(muscleGroup);
 });
 
-final exerciseCatalogItemsProvider =
-    FutureProvider.autoDispose<List<ExerciseCatalogItem>>((ref) async {
+final exerciseCatalogItemsProvider = FutureProvider.autoDispose
+    .family<List<ExerciseCatalogItem>, String>((ref, searchScope) async {
       final muscleGroup = ref.watch(selectedExerciseMuscleGroupProvider);
-      final searchKeyword = ref.watch(selectedExerciseSearchKeywordProvider);
+      final searchKeyword = ref.watch(
+        selectedExerciseSearchKeywordProvider(searchScope),
+      );
       final normalizedKeyword = searchKeyword.trim();
       final service = ref.watch(exerciseCatalogServiceProvider);
       if (normalizedKeyword.isNotEmpty) {
