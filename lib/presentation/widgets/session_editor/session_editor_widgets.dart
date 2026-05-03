@@ -7,7 +7,9 @@ class SetRow extends StatelessWidget {
     super.key,
     required this.setLabel,
     required this.weight,
+    required this.weightStep,
     required this.reps,
+    required this.weightLabel,
     required this.onWeightChanged,
     required this.onRepsChanged,
     required this.onWeightValueTap,
@@ -16,7 +18,9 @@ class SetRow extends StatelessWidget {
 
   final String setLabel;
   final double weight;
+  final double weightStep;
   final int reps;
+  final String weightLabel;
   final ValueChanged<double>? onWeightChanged;
   final ValueChanged<int>? onRepsChanged;
   final VoidCallback? onWeightValueTap;
@@ -43,9 +47,9 @@ class SetRow extends StatelessWidget {
         }
 
         final weightStepper = NumericStepper(
-          label: '重量',
+          label: weightLabel,
           value: weight,
-          step: 2.5,
+          step: weightStep,
           fractionDigits: 1,
           valueMinWidth: valueMinWidth,
           onValueTap: onWeightValueTap,

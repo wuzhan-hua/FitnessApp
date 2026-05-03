@@ -39,6 +39,9 @@ class _SessionEditorPageState extends ConsumerState<SessionEditorPage> {
   static const List<String> _trainingTypes =
       ExerciseCatalogConstants.sessionEditorGroups;
   static const String _defaultNewSessionTitle = '新训练日';
+  static const double _kgToLbsFactor = 2.20462;
+  static const double _kgWeightStep = 2.5;
+  static const double _lbsWeightStep = 5.0;
 
   Timer? _timer;
   int _restSeconds = 120;
@@ -55,14 +58,40 @@ class _SessionEditorPageState extends ConsumerState<SessionEditorPage> {
   bool get _isPastBackfill =>
       widget.args.mode == SessionMode.backfill &&
       _day(widget.args.date).isBefore(_day(DateTime.now()));
+  bool get _useKilogram => ref.read(settingsProvider).useKilogram;
+  String get _weightUnitLabel =>
+      _useKilogram ? 'kg' : 'lbs';
+  double get _weightStep => _useKilogram ? _kgWeightStep : _lbsWeightStep;
 
   DateTime _day(DateTime date) => DateTime(date.year, date.month, date.day);
+
+  @override
+  void initState() {
+    super.initState();
+    _restSeconds = ref.read(settingsProvider).defaultRestSeconds;
+  }
 
   @override
   void dispose() {
     _timer?.cancel();
     _restNoteController.dispose();
     super.dispose();
+  }
+
+  double _roundToSingleDecimal(double value) => (value * 10).round() / 10;
+
+  double _displayWeightFromKg(double weightKg) {
+    if (_useKilogram) {
+      return _roundToSingleDecimal(weightKg);
+    }
+    return _roundToSingleDecimal(weightKg * _kgToLbsFactor);
+  }
+
+  double _weightKgFromDisplay(double displayWeight) {
+    if (_useKilogram) {
+      return _roundToSingleDecimal(displayWeight);
+    }
+    return _roundToSingleDecimal(displayWeight / _kgToLbsFactor);
   }
 
   void _toggleTimer() {
@@ -118,8 +147,9 @@ class _SessionEditorPageState extends ConsumerState<SessionEditorPage> {
     required int setIndex,
     required double current,
   }) async {
+    final displayWeight = _displayWeightFromKg(current);
     final textController = TextEditingController(
-      text: current.toStringAsFixed(1),
+      text: displayWeight.toStringAsFixed(1),
     );
     final result = await showDialog<double>(
       context: context,
@@ -128,9 +158,9 @@ class _SessionEditorPageState extends ConsumerState<SessionEditorPage> {
         content: TextField(
           controller: textController,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          decoration: const InputDecoration(
+          decoration: InputDecoration(
             hintText: '例如 62.5',
-            suffixText: 'kg',
+            suffixText: _weightUnitLabel,
           ),
         ),
         actions: [
@@ -145,8 +175,7 @@ class _SessionEditorPageState extends ConsumerState<SessionEditorPage> {
                 showLatestSnackBar(context, '请输入有效重量（非负数字）');
                 return;
               }
-              final normalized = (value * 10).round() / 10;
-              Navigator.of(context).pop(normalized);
+              Navigator.of(context).pop(_weightKgFromDisplay(value));
             },
             child: const Text('确认'),
           ),
@@ -554,6 +583,7 @@ class _SessionEditorPageState extends ConsumerState<SessionEditorPage> {
   Widget build(BuildContext context) {
     final colors = AppColors.of(context);
     final state = ref.watch(sessionEditorProvider(widget.args));
+    final settings = ref.watch(settingsProvider);
     final controller = ref.read(sessionEditorProvider(widget.args).notifier);
     final dateText = DateFormat('yyyy/MM/dd').format(widget.args.date);
     _initTrainingTypeIfNeeded(state.session);
@@ -840,14 +870,18 @@ class _SessionEditorPageState extends ConsumerState<SessionEditorPage> {
                                 ...exercise.sets.map(
                                   (set) => SetRow(
                                     setLabel: '第${set.index}组',
-                                    weight: set.weight,
+                                    weight: _displayWeightFromKg(set.weight),
+                                    weightStep: _weightStep,
                                     reps: set.reps,
+                                    weightLabel: settings.useKilogram
+                                        ? '重量(kg)'
+                                        : '重量(lbs)',
                                     onWeightChanged: _isReadOnly
                                         ? null
                                         : (value) => controller.updateSet(
                                             exerciseId: exercise.id,
                                             setIndex: set.index,
-                                            weight: value,
+                                            weight: _weightKgFromDisplay(value),
                                           ),
                                     onWeightValueTap: _isReadOnly
                                         ? null
