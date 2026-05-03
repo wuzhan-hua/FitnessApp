@@ -119,30 +119,42 @@ class ProfilePage extends ConsumerWidget {
             ),
             SectionCard(
               title: '单位设置',
-              child: SegmentedButton<bool>(
-                showSelectedIcon: false,
-                style: ButtonStyle(
-                  textStyle: WidgetStatePropertyAll(
-                    Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '影响重量相关内容的展示与输入单位',
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: colors.textMuted),
                   ),
-                ),
-                segments: const [
-                  ButtonSegment<bool>(value: true, label: Text('kg')),
-                  ButtonSegment<bool>(value: false, label: Text('lbs')),
+                  const SizedBox(height: AppSpacing.sm),
+                  SegmentedButton<bool>(
+                    showSelectedIcon: false,
+                    style: ButtonStyle(
+                      textStyle: WidgetStatePropertyAll(
+                        Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                    segments: const [
+                      ButtonSegment<bool>(value: true, label: Text('kg')),
+                      ButtonSegment<bool>(value: false, label: Text('lbs')),
+                    ],
+                    selected: {settings.useKilogram},
+                    onSelectionChanged: (value) async {
+                      await ref
+                          .read(settingsProvider.notifier)
+                          .toggleUnit(value.first);
+                      if (!context.mounted) return;
+                      _showFeedback(
+                        context,
+                        value.first ? '单位已切换为 kg' : '单位已切换为 lbs',
+                      );
+                    },
+                  ),
                 ],
-                selected: {settings.useKilogram},
-                onSelectionChanged: (value) async {
-                  await ref
-                      .read(settingsProvider.notifier)
-                      .toggleUnit(value.first);
-                  if (!context.mounted) return;
-                  _showFeedback(
-                    context,
-                    value.first ? '单位已切换为 kg' : '单位已切换为 lbs',
-                  );
-                },
               ),
             ),
             SectionCard(
@@ -150,6 +162,13 @@ class ProfilePage extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  Text(
+                    '同步到训练编辑页，作为计时器重置时的默认休息时长',
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: colors.textMuted),
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
                   Text('${settings.defaultRestSeconds} 秒'),
                   Slider(
                     min: 45,
@@ -159,48 +178,6 @@ class ProfilePage extends ConsumerWidget {
                     onChanged: (value) => ref
                         .read(settingsProvider.notifier)
                         .updateRestSeconds(value.round()),
-                  ),
-                ],
-              ),
-            ),
-            SectionCard(
-              title: '常用肌群偏好',
-              child: Wrap(
-                spacing: AppSpacing.sm,
-                runSpacing: AppSpacing.sm,
-                children: ['胸', '背', '腿', '肩']
-                    .map(
-                      (item) => _MusclePreferenceChip(
-                        label: item,
-                        selected: settings.favoriteMuscleFocus == item,
-                        onTap: () async {
-                          await ref
-                              .read(settingsProvider.notifier)
-                              .updateFavoriteFocus(item);
-                          if (!context.mounted) return;
-                          _showFeedback(context, '已设置偏好肌群：$item');
-                        },
-                      ),
-                    )
-                    .toList(),
-              ),
-            ),
-            SectionCard(
-              title: '数据管理',
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  FilledButton.tonalIcon(
-                    onPressed: () {},
-                    icon: const Icon(Icons.upload_file),
-                    label: const Text('导出训练记录 (原型占位)'),
-                  ),
-                  const SizedBox(height: AppSpacing.sm),
-                  Text(
-                    '后续接入 Supabase 后，可在此处同步与导出训练数据。',
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodySmall?.copyWith(color: colors.textMuted),
                   ),
                 ],
               ),
@@ -300,18 +277,7 @@ class _ProfileHeaderCard extends StatelessWidget {
         padding: const EdgeInsets.all(AppSpacing.md),
         child: Row(
           children: [
-            CircleAvatar(
-              radius: 28,
-              backgroundColor: colors.accent.withValues(alpha: 0.2),
-              child: Text(
-                settings.profileName.trim().isEmpty
-                    ? '我'
-                    : settings.profileName.trim().substring(0, 1),
-                style: Theme.of(
-                  context,
-                ).textTheme.headlineSmall?.copyWith(color: colors.accent),
-              ),
-            ),
+            _ProfileAvatar(colors: colors, settings: settings),
             const SizedBox(width: AppSpacing.md),
             Expanded(
               child: Column(
@@ -410,6 +376,35 @@ class _ProfileHeaderCard extends StatelessWidget {
   }
 }
 
+class _ProfileAvatar extends StatelessWidget {
+  const _ProfileAvatar({required this.colors, required this.settings});
+
+  final AppPalette colors;
+  final AppSettings settings;
+
+  @override
+  Widget build(BuildContext context) {
+    final avatarUrl = settings.avatarUrl?.trim();
+    final hasAvatar = avatarUrl != null && avatarUrl.isNotEmpty;
+
+    return CircleAvatar(
+      radius: 28,
+      backgroundColor: colors.accent.withValues(alpha: 0.2),
+      backgroundImage: hasAvatar ? NetworkImage(avatarUrl) : null,
+      child: hasAvatar
+          ? null
+          : Text(
+              settings.profileName.trim().isEmpty
+                  ? '我'
+                  : settings.profileName.trim().substring(0, 1),
+              style: Theme.of(
+                context,
+              ).textTheme.headlineSmall?.copyWith(color: colors.accent),
+            ),
+    );
+  }
+}
+
 class _InfoBadge extends StatelessWidget {
   const _InfoBadge({required this.label, required this.value});
 
@@ -430,61 +425,6 @@ class _InfoBadge extends StatelessWidget {
         style: Theme.of(
           context,
         ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
-      ),
-    );
-  }
-}
-
-class _MusclePreferenceChip extends StatelessWidget {
-  const _MusclePreferenceChip({
-    required this.label,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = AppColors.of(context);
-    return InkWell(
-      borderRadius: AppRadius.chip,
-      onTap: onTap,
-      child: Container(
-        constraints: const BoxConstraints(minHeight: 42, minWidth: 90),
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-        decoration: BoxDecoration(
-          color: selected
-              ? colors.accent.withValues(alpha: 0.2)
-              : colors.panelAlt,
-          borderRadius: AppRadius.chip,
-          border: Border.all(
-            color: selected
-                ? colors.accent.withValues(alpha: 0.45)
-                : colors.textMuted.withValues(alpha: 0.35),
-          ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            if (selected) ...[
-              Icon(Icons.check, size: 16, color: colors.textPrimary),
-              const SizedBox(width: 8),
-            ],
-            Text(
-              label,
-              maxLines: 1,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                height: 1.2,
-                fontWeight: FontWeight.w700,
-                color: colors.textPrimary,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

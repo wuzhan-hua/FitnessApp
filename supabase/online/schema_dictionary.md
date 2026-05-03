@@ -82,6 +82,7 @@
 | --- | --- | --- |
 | `user_id` | `uuid` | 对应 `users.user_id`，表示这份资料属于哪个用户。也是主键。 |
 | `profile_name` | `text` | 个人资料中的姓名或展示名。 |
+| `avatar_url` | `text` | 个人资料头像地址。当前用于“个人信息”页上传头像后在“我的”页顶部卡片展示。 |
 | `gender` | `text` | 性别。当前未见枚举约束，业务上应自行控制可选值。 |
 | `birth_date` | `date` | 生日。只存日期，不存具体时分秒。 |
 | `height_cm` | `numeric` | 身高，单位厘米。 |
@@ -91,6 +92,12 @@
 | `activity_level` | `text` | 日常活动水平。 |
 | `created_at` | `timestamptz` | 个人资料创建时间。 |
 | `updated_at` | `timestamptz` | 个人资料最近更新时间。 |
+
+补充说明：
+
+- 头像文件当前约定存放在 Storage bucket `user-avatars`。
+- 对象路径约定为 `user_id/{timestamp}.{ext}`，用于保证用户数据隔离并减少文件名冲突。
+- bucket 当前开放公共读，用于 App 直接展示头像；写入和更新仅允许登录用户操作自己目录下的对象。
 
 ### `signup_verification_codes`
 

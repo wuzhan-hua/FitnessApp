@@ -93,11 +93,11 @@ class CalendarPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final month = ref.watch(calendarMonthProvider);
-    final sessionsAsync = ref.watch(sessionsByMonthProvider(month));
+    final sessionsAsync = ref.watch(sessionsByCalendarGridProvider(month));
     final monthNotifier = ref.read(calendarMonthProvider.notifier);
 
     void refreshMonthSessions() {
-      ref.invalidate(sessionsByMonthProvider(month));
+      ref.invalidate(sessionsByCalendarGridProvider(month));
     }
 
     Future<void> pickMonthYear() async {

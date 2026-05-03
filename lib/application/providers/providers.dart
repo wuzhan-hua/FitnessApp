@@ -68,6 +68,12 @@ final homeSnapshotProvider = FutureProvider<HomeSnapshot>((ref) async {
   return service.getHomeSnapshot(DateTime.now());
 });
 
+DateTime calendarGridStartDay(DateTime month) {
+  final firstDay = DateTime(month.year, month.month, 1);
+  final startOffset = firstDay.weekday - 1;
+  return firstDay.subtract(Duration(days: startOffset));
+}
+
 final workoutSessionByIdProvider =
     FutureProvider.family<WorkoutSession?, String>((ref, sessionId) async {
       final service = ref.watch(workoutServiceProvider);
@@ -75,6 +81,17 @@ final workoutSessionByIdProvider =
     });
 
 final calendarMonthProvider = StateProvider<DateTime>((ref) => DateTime.now());
+
+final sessionsByCalendarGridProvider =
+    FutureProvider.family<List<WorkoutSession>, DateTime>((ref, month) async {
+      final service = ref.watch(workoutServiceProvider);
+      final startDay = calendarGridStartDay(month);
+      final endExclusive = startDay.add(const Duration(days: 42));
+      return service.getSessionsInRange(
+        fromInclusive: startDay,
+        toExclusive: endExclusive,
+      );
+    });
 
 final sessionsByMonthProvider =
     FutureProvider.family<List<WorkoutSession>, DateTime>((ref, month) async {

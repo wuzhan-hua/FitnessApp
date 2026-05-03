@@ -26,6 +26,21 @@ class WorkoutService {
     }
   }
 
+  Future<List<WorkoutSession>> getSessionsInRange({
+    required DateTime fromInclusive,
+    required DateTime toExclusive,
+  }) async {
+    try {
+      return await _repository.getSessionsInRange(
+        fromInclusive: fromInclusive,
+        toExclusive: toExclusive,
+      );
+    } catch (error, stackTrace) {
+      AppLogger.error('加载日历范围数据失败', error: error, stackTrace: stackTrace);
+      throw AppError.from(error, fallbackMessage: '加载日历数据失败，请稍后重试。');
+    }
+  }
+
   Future<WorkoutSession?> getSessionById(String id) async {
     try {
       return await _repository.getSessionById(id);

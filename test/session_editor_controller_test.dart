@@ -124,6 +124,14 @@ class _CountingWorkoutRepository implements WorkoutRepository {
   }
 
   @override
+  Future<List<WorkoutSession>> getSessionsInRange({
+    required DateTime fromInclusive,
+    required DateTime toExclusive,
+  }) {
+    throw UnimplementedError();
+  }
+
+  @override
   Future<WorkoutSession> saveSession(WorkoutSession session) async {
     saveSessionCalls += 1;
     savedSession = session;

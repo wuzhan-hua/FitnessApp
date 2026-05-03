@@ -5,6 +5,11 @@ abstract class WorkoutRepository {
 
   Future<List<WorkoutSession>> getSessionsByMonth(DateTime month);
 
+  Future<List<WorkoutSession>> getSessionsInRange({
+    required DateTime fromInclusive,
+    required DateTime toExclusive,
+  });
+
   Future<List<WorkoutSession>> getRecentSessions({int limit = 10});
 
   Future<WorkoutSession?> getSessionById(String id);

@@ -97,6 +97,21 @@ class SupabaseWorkoutRepository implements WorkoutRepository {
   }
 
   @override
+  Future<List<WorkoutSession>> getSessionsInRange({
+    required DateTime fromInclusive,
+    required DateTime toExclusive,
+  }) async {
+    final userId = await _requireUserId();
+    await _ensureProfile(userId);
+    return _fetchSessionsDetailed(
+      userId: userId,
+      fromInclusive: fromInclusive,
+      toExclusive: toExclusive,
+      descendingByDate: false,
+    );
+  }
+
+  @override
   Future<List<WorkoutSession>> getRecentSessions({int limit = 10}) async {
     final userId = await _requireUserId();
     await _ensureProfile(userId);

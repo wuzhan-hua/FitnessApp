@@ -2,6 +2,7 @@ class UserProfile {
   const UserProfile({
     required this.userId,
     required this.profileName,
+    this.avatarUrl,
     this.gender,
     this.birthDate,
     this.heightCm,
@@ -13,6 +14,7 @@ class UserProfile {
 
   final String userId;
   final String profileName;
+  final String? avatarUrl;
   final String? gender;
   final DateTime? birthDate;
   final double? heightCm;
@@ -25,6 +27,7 @@ class UserProfile {
     return UserProfile(
       userId: json['user_id'] as String? ?? '',
       profileName: json['profile_name'] as String? ?? '',
+      avatarUrl: json['avatar_url'] as String?,
       gender: json['gender'] as String?,
       birthDate: _parseDate(json['birth_date'] as String?),
       heightCm: (json['height_cm'] as num?)?.toDouble(),
@@ -39,6 +42,7 @@ class UserProfile {
     return {
       'user_id': userId,
       'profile_name': profileName,
+      'avatar_url': avatarUrl,
       'gender': gender,
       'birth_date': birthDate == null
           ? null

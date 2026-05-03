@@ -298,11 +298,22 @@ class _SessionEditorPageState extends ConsumerState<SessionEditorPage> {
   }
 
   void _refreshSessionQueries() {
+    final currentMonth = DateTime(
+      widget.args.date.year,
+      widget.args.date.month,
+    );
     ref.invalidate(homeSnapshotProvider);
     ref.invalidate(analyticsSnapshotProvider);
+    ref.invalidate(sessionsByMonthProvider(currentMonth));
+    ref.invalidate(sessionsByCalendarGridProvider(currentMonth));
     ref.invalidate(
-      sessionsByMonthProvider(
-        DateTime(widget.args.date.year, widget.args.date.month),
+      sessionsByCalendarGridProvider(
+        DateTime(currentMonth.year, currentMonth.month - 1),
+      ),
+    );
+    ref.invalidate(
+      sessionsByCalendarGridProvider(
+        DateTime(currentMonth.year, currentMonth.month + 1),
       ),
     );
   }
@@ -514,14 +525,14 @@ class _SessionEditorPageState extends ConsumerState<SessionEditorPage> {
         : ExerciseSetType.strength;
     final result = await Navigator.of(context)
         .pushNamed<ExerciseSelectionResult>(
-      ExerciseLibraryPage.routeName,
-      arguments: ExerciseLibraryPageArgs(
-        initialMuscleGroup: ExerciseCatalogConstants.normalizeLibraryGroup(
-          _selectedTrainingType,
-        ),
-        mode: ExerciseLibraryMode.selection,
-      ),
-    );
+          ExerciseLibraryPage.routeName,
+          arguments: ExerciseLibraryPageArgs(
+            initialMuscleGroup: ExerciseCatalogConstants.normalizeLibraryGroup(
+              _selectedTrainingType,
+            ),
+            mode: ExerciseLibraryMode.selection,
+          ),
+        );
     if (!mounted || result == null) {
       return;
     }
@@ -663,7 +674,8 @@ class _SessionEditorPageState extends ConsumerState<SessionEditorPage> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   FilledButton.icon(
-                                    onPressed: _isReadOnly ||
+                                    onPressed:
+                                        _isReadOnly ||
                                             !_hasTrainingTypeSelected ||
                                             _isRestDay
                                         ? null

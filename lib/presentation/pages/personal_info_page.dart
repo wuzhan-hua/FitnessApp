@@ -1,8 +1,12 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
 import '../../application/providers/providers.dart';
+import '../../application/state/auth_status.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/app_error.dart';
 import '../../utils/snackbar_helper.dart';
@@ -23,7 +27,11 @@ class _PersonalInfoPageState extends ConsumerState<PersonalInfoPage> {
   final _heightController = TextEditingController();
   final _weightController = TextEditingController();
   final _birthDateController = TextEditingController();
+  final ImagePicker _imagePicker = ImagePicker();
 
+  String? _avatarUrl;
+  XFile? _selectedAvatarFile;
+  Uint8List? _selectedAvatarBytes;
   String? _gender;
   DateTime? _birthDate;
   String? _trainingGoal;
@@ -36,6 +44,8 @@ class _PersonalInfoPageState extends ConsumerState<PersonalInfoPage> {
   static const _goals = ['增肌', '减脂', '维持', '提升力量'];
   static const _years = ['<1年', '1-3年', '3-5年', '5年以上'];
   static const _activityLevels = ['久坐', '轻度活跃', '中度活跃', '高活跃'];
+  static const _supportedAvatarExtensions = {'jpg', 'jpeg', 'png', 'webp'};
+  static const _unsupportedAvatarExtensions = {'heic', 'heif'};
 
   @override
   void initState() {
@@ -55,6 +65,7 @@ class _PersonalInfoPageState extends ConsumerState<PersonalInfoPage> {
   void _applySettings() {
     final settings = ref.read(settingsProvider);
     _nameController.text = settings.profileName;
+    _avatarUrl = settings.avatarUrl;
     _heightController.text = settings.heightCm?.toStringAsFixed(1) ?? '';
     _weightController.text = settings.weightKg?.toStringAsFixed(1) ?? '';
     _gender = settings.gender;
@@ -112,6 +123,72 @@ class _PersonalInfoPageState extends ConsumerState<PersonalInfoPage> {
     });
   }
 
+  Future<void> _pickAvatar() async {
+    final authStatus =
+        ref.read(authStatusProvider).valueOrNull ?? AuthStatus.signedOut;
+    if (!authStatus.isSignedIn || authStatus.isGuest) {
+      showLatestSnackBar(context, '请先登录正式账号后再上传头像');
+      return;
+    }
+
+    try {
+      final file = await _imagePicker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 85,
+        maxWidth: 1080,
+      );
+      if (file == null || !mounted) {
+        return;
+      }
+      final validationError = _validateAvatarFile(file);
+      if (validationError != null) {
+        showLatestSnackBar(context, validationError);
+        return;
+      }
+      final bytes = await file.readAsBytes();
+      setState(() {
+        _selectedAvatarFile = file;
+        _selectedAvatarBytes = bytes;
+      });
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      showLatestSnackBar(
+        context,
+        AppError.from(error, fallbackMessage: '选择头像失败，请稍后重试。').message,
+      );
+    }
+  }
+
+  String? _validateAvatarFile(XFile file) {
+    final name = file.name.trim().toLowerCase();
+    final dotIndex = name.lastIndexOf('.');
+    if (dotIndex < 0 || dotIndex >= name.length - 1) {
+      return '当前仅支持 JPG、PNG、WebP，请先转换后再上传。';
+    }
+
+    final extension = name.substring(dotIndex + 1);
+    if (_supportedAvatarExtensions.contains(extension)) {
+      final mimeType = file.mimeType?.toLowerCase().trim();
+      if (mimeType == null || mimeType.isEmpty) {
+        return null;
+      }
+      if (mimeType == 'image/jpeg' ||
+          mimeType == 'image/png' ||
+          mimeType == 'image/webp') {
+        return null;
+      }
+      return '当前仅支持 JPG、PNG、WebP，请先转换后再上传。';
+    }
+
+    if (_unsupportedAvatarExtensions.contains(extension)) {
+      return '当前仅支持 JPG、PNG、WebP，请先转换后再上传。';
+    }
+
+    return '当前仅支持 JPG、PNG、WebP，请先转换后再上传。';
+  }
+
   Future<void> _save() async {
     if (_isSaving || !_formKey.currentState!.validate()) {
       return;
@@ -120,10 +197,29 @@ class _PersonalInfoPageState extends ConsumerState<PersonalInfoPage> {
     final weight = double.tryParse(_weightController.text.trim());
     setState(() => _isSaving = true);
     try {
+      var nextAvatarUrl = _avatarUrl;
+      if (_selectedAvatarFile != null) {
+        final validationError = _validateAvatarFile(_selectedAvatarFile!);
+        if (validationError != null) {
+          throw AppError(
+            message: validationError,
+            code: 'unsupported_avatar_format',
+          );
+        }
+        final bytes =
+            _selectedAvatarBytes ?? await _selectedAvatarFile!.readAsBytes();
+        nextAvatarUrl = await ref
+            .read(settingsProvider.notifier)
+            .uploadAvatar(
+              bytes: bytes,
+              fileName: _selectedAvatarFile!.name,
+            );
+      }
       await ref
           .read(settingsProvider.notifier)
           .updatePersonalInfo(
             profileName: _nameController.text.trim(),
+            avatarUrl: nextAvatarUrl,
             gender: _gender,
             birthDate: _birthDate,
             heightCm: height,
@@ -135,6 +231,11 @@ class _PersonalInfoPageState extends ConsumerState<PersonalInfoPage> {
       if (!mounted) {
         return;
       }
+      setState(() {
+        _avatarUrl = nextAvatarUrl;
+        _selectedAvatarFile = null;
+        _selectedAvatarBytes = null;
+      });
       showLatestSnackBar(context, '个人信息已保存');
       Navigator.of(context).pop();
     } catch (error) {
@@ -260,8 +361,17 @@ class _PersonalInfoPageState extends ConsumerState<PersonalInfoPage> {
                   ).textTheme.bodySmall?.copyWith(color: colors.textMuted),
                 ),
                 const SizedBox(height: AppSpacing.sm),
+                _AvatarEditor(
+                  imageFile: _selectedAvatarFile,
+                  imageBytes: _selectedAvatarBytes,
+                  avatarUrl: _avatarUrl,
+                  displayName: _nameController.text.trim(),
+                  onTap: _isSaving ? null : _pickAvatar,
+                ),
+                const SizedBox(height: AppSpacing.sm),
                 TextFormField(
                   controller: _nameController,
+                  onChanged: (_) => setState(() {}),
                   decoration: _inputDecoration('昵称*').copyWith(
                     hintText: '请输入昵称',
                   ),
@@ -391,6 +501,89 @@ class _PersonalInfoPageState extends ConsumerState<PersonalInfoPage> {
             ),
           ),
           const SizedBox(height: 80),
+        ],
+      ),
+    );
+  }
+}
+
+class _AvatarEditor extends StatelessWidget {
+  const _AvatarEditor({
+    required this.imageFile,
+    required this.imageBytes,
+    required this.avatarUrl,
+    required this.displayName,
+    required this.onTap,
+  });
+
+  final XFile? imageFile;
+  final Uint8List? imageBytes;
+  final String? avatarUrl;
+  final String displayName;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
+    final hasPreview =
+        imageFile != null || (avatarUrl != null && avatarUrl!.trim().isNotEmpty);
+
+    ImageProvider? preview;
+    if (imageBytes != null) {
+      preview = MemoryImage(imageBytes!);
+    } else if (avatarUrl != null && avatarUrl!.trim().isNotEmpty) {
+      preview = NetworkImage(avatarUrl!.trim());
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: colors.panelAlt,
+        borderRadius: AppRadius.card,
+        border: Border.all(color: colors.textMuted.withValues(alpha: 0.18)),
+      ),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 32,
+            backgroundColor: colors.accent.withValues(alpha: 0.16),
+            backgroundImage: preview,
+            child: hasPreview
+                ? null
+                : Text(
+                    displayName.isEmpty ? '我' : displayName.substring(0, 1),
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      color: colors.accent,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+          ),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '头像',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  hasPreview ? '保存后会同步到“我的”页顶部卡片' : '未设置头像，将使用昵称首字母',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: colors.textMuted),
+                ),
+              ],
+            ),
+          ),
+          FilledButton.tonalIcon(
+            onPressed: onTap,
+            icon: const Icon(Icons.photo_library_outlined),
+            label: Text(hasPreview ? '更换头像' : '选择头像'),
+          ),
         ],
       ),
     );

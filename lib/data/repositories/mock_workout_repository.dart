@@ -398,6 +398,19 @@ class MockWorkoutRepository implements WorkoutRepository {
   }
 
   @override
+  Future<List<WorkoutSession>> getSessionsInRange({
+    required DateTime fromInclusive,
+    required DateTime toExclusive,
+  }) async {
+    final start = _day(fromInclusive);
+    final end = _day(toExclusive);
+    return _sessions.where((session) {
+      final date = _day(session.date);
+      return !date.isBefore(start) && date.isBefore(end);
+    }).toList()..sort((a, b) => a.date.compareTo(b.date));
+  }
+
+  @override
   Future<List<WorkoutSession>> getRecentSessions({int limit = 10}) async {
     final copied = [..._sessions]..sort((a, b) => b.date.compareTo(a.date));
     return copied.take(limit).toList();

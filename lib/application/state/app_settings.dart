@@ -8,6 +8,7 @@ class AppSettings {
     required this.favoriteMuscleFocus,
     required this.isDarkMode,
     required this.profileName,
+    this.avatarUrl,
     this.gender,
     this.birthDate,
     this.heightCm,
@@ -22,6 +23,7 @@ class AppSettings {
   final String favoriteMuscleFocus;
   final bool isDarkMode;
   final String profileName;
+  final String? avatarUrl;
   final String? gender;
   final DateTime? birthDate;
   final double? heightCm;
@@ -36,6 +38,8 @@ class AppSettings {
     String? favoriteMuscleFocus,
     bool? isDarkMode,
     String? profileName,
+    String? avatarUrl,
+    bool clearAvatarUrl = false,
     String? gender,
     bool clearGender = false,
     DateTime? birthDate,
@@ -57,6 +61,7 @@ class AppSettings {
       favoriteMuscleFocus: favoriteMuscleFocus ?? this.favoriteMuscleFocus,
       isDarkMode: isDarkMode ?? this.isDarkMode,
       profileName: profileName ?? this.profileName,
+      avatarUrl: clearAvatarUrl ? null : (avatarUrl ?? this.avatarUrl),
       gender: clearGender ? null : (gender ?? this.gender),
       birthDate: clearBirthDate ? null : (birthDate ?? this.birthDate),
       heightCm: clearHeightCm ? null : (heightCm ?? this.heightCm),
