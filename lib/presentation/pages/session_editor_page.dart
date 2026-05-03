@@ -48,6 +48,7 @@ class _SessionEditorPageState extends ConsumerState<SessionEditorPage> {
   bool _timerRunning = false;
   final TextEditingController _restNoteController = TextEditingController();
   String? _selectedTrainingType;
+  String? _activeExerciseId;
   bool _trainingTypeInitialized = false;
   bool _isClosing = false;
 
@@ -537,6 +538,322 @@ class _SessionEditorPageState extends ConsumerState<SessionEditorPage> {
     return items.isEmpty ? null : items.first;
   }
 
+  SessionExercise? _findExerciseById(WorkoutSession? session, String? exerciseId) {
+    if (session == null || exerciseId == null) {
+      return null;
+    }
+    return session.exercises
+        .where((exercise) => exercise.id == exerciseId)
+        .firstOrNull;
+  }
+
+  String _formatSummaryWeight(double value) {
+    if (value <= 0) {
+      return '0';
+    }
+    final normalized = _displayWeightFromKg(value);
+    final text = normalized.toStringAsFixed(1);
+    return text.endsWith('.0') ? text.substring(0, text.length - 2) : text;
+  }
+
+  double _averageStrengthWeight(SessionExercise exercise) {
+    final strengthSets = exercise.sets
+        .where((set) => set.setType == ExerciseSetType.strength)
+        .toList();
+    if (strengthSets.isEmpty) {
+      return 0;
+    }
+    final total = strengthSets.fold<double>(0, (sum, set) => sum + set.weight);
+    return total / strengthSets.length;
+  }
+
+  String _cardioSummary(SessionExercise exercise) {
+    final cardioSets = exercise.sets
+        .where((set) => set.setType == ExerciseSetType.cardio)
+        .toList();
+    if (cardioSets.isEmpty) {
+      return '共 ${exercise.sets.length} 组';
+    }
+    final totalDuration = cardioSets.fold<int>(
+      0,
+      (sum, set) => sum + (set.durationMinutes ?? 0),
+    );
+    final totalDistance = cardioSets.fold<double>(
+      0,
+      (sum, set) => sum + (set.distanceKm ?? 0),
+    );
+    final details = <String>['共 ${cardioSets.length} 条'];
+    if (totalDuration > 0) {
+      details.add('$totalDuration 分钟');
+    }
+    if (totalDistance > 0) {
+      final distanceText = totalDistance.toStringAsFixed(1);
+      details.add(
+        '${distanceText.endsWith('.0') ? distanceText.substring(0, distanceText.length - 2) : distanceText} 公里',
+      );
+    }
+    return details.join(' · ');
+  }
+
+  Future<void> _openExerciseDetailSheet(
+    SessionEditorController controller,
+    SessionExercise exercise,
+  ) async {
+    if (_isClosing) {
+      return;
+    }
+    setState(() {
+      _activeExerciseId = exercise.id;
+    });
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) {
+        return Consumer(
+          builder: (context, ref, child) {
+            final state = ref.watch(sessionEditorProvider(widget.args));
+            final settings = ref.watch(settingsProvider);
+            final liveExercise = _findExerciseById(state.session, _activeExerciseId);
+            if (liveExercise == null) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (Navigator.of(sheetContext).canPop()) {
+                  Navigator.of(sheetContext).pop();
+                }
+              });
+              return const SizedBox.shrink();
+            }
+            final isCardioExercise = _isCardioExercise(liveExercise);
+            final cardioSet =
+                _firstOrNull(
+                  liveExercise.sets.where(
+                    (set) => set.setType == ExerciseSetType.cardio,
+                  ),
+                ) ??
+                _firstOrNull(liveExercise.sets);
+            final theme = Theme.of(context);
+            final colors = AppColors.of(context);
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.viewInsetsOf(context).bottom,
+              ),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: colors.panel,
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(24),
+                  ),
+                ),
+                child: SafeArea(
+                  top: false,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.md,
+                      AppSpacing.sm,
+                      AppSpacing.md,
+                      AppSpacing.md,
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 36,
+                          height: 4,
+                          decoration: BoxDecoration(
+                            color: colors.textMuted.withValues(alpha: 0.24),
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    liveExercise.exerciseName,
+                                    style: theme.textTheme.titleLarge?.copyWith(
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    isCardioExercise
+                                        ? _cardioSummary(liveExercise)
+                                        : '共 ${liveExercise.sets.length} 组 · 平均重量 ${_formatSummaryWeight(_averageStrengthWeight(liveExercise))} $_weightUnitLabel',
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color: colors.textMuted,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            IconButton(
+                              onPressed: () => Navigator.of(sheetContext).pop(),
+                              icon: const Icon(Icons.close),
+                              tooltip: '关闭',
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+                        Flexible(
+                          child: SingleChildScrollView(
+                            child: Column(
+                              children: [
+                                if (isCardioExercise) ...[
+                                  if (cardioSet != null)
+                                    CardioSetRow(
+                                      setLabel: '有氧记录',
+                                      durationMinutes:
+                                          cardioSet.durationMinutes ?? 20,
+                                      distanceKm: cardioSet.distanceKm,
+                                      onDurationChanged: _isReadOnly
+                                          ? null
+                                          : (value) => controller.updateSet(
+                                              exerciseId: liveExercise.id,
+                                              setIndex: cardioSet.index,
+                                              durationMinutes: value,
+                                            ),
+                                      onDurationValueTap: _isReadOnly
+                                          ? null
+                                          : () => _showDurationInputDialog(
+                                              controller: controller,
+                                              exerciseId: liveExercise.id,
+                                              setIndex: cardioSet.index,
+                                              current:
+                                                  cardioSet.durationMinutes ??
+                                                  20,
+                                            ),
+                                      onDistanceChanged: _isReadOnly
+                                          ? null
+                                          : (value) => controller.updateSet(
+                                              exerciseId: liveExercise.id,
+                                              setIndex: cardioSet.index,
+                                              distanceKm: value,
+                                              clearDistanceKm: value == null,
+                                            ),
+                                      onDistanceValueTap: _isReadOnly
+                                          ? null
+                                          : () => _showDistanceInputDialog(
+                                              controller: controller,
+                                              exerciseId: liveExercise.id,
+                                              setIndex: cardioSet.index,
+                                              current: cardioSet.distanceKm,
+                                            ),
+                                      onDelete: _isReadOnly
+                                          ? null
+                                          : () {
+                                              controller.removeExercise(
+                                                exerciseId: liveExercise.id,
+                                              );
+                                              Navigator.of(sheetContext).pop();
+                                              showLatestSnackBar(
+                                                context,
+                                                '已删除动作',
+                                              );
+                                            },
+                                    ),
+                                ] else ...[
+                                  ...liveExercise.sets.map(
+                                    (set) => SetRow(
+                                      setLabel: '第${set.index}组',
+                                      weight: _displayWeightFromKg(set.weight),
+                                      weightStep: _weightStep,
+                                      reps: set.reps,
+                                      weightLabel: settings.useKilogram
+                                          ? '重量(kg)'
+                                          : '重量(lbs)',
+                                      onWeightChanged: _isReadOnly
+                                          ? null
+                                          : (value) => controller.updateSet(
+                                              exerciseId: liveExercise.id,
+                                              setIndex: set.index,
+                                              weight:
+                                                  _weightKgFromDisplay(value),
+                                            ),
+                                      onWeightValueTap: _isReadOnly
+                                          ? null
+                                          : () => _showWeightInputDialog(
+                                              controller: controller,
+                                              exerciseId: liveExercise.id,
+                                              setIndex: set.index,
+                                              current: set.weight,
+                                            ),
+                                      onRepsChanged: _isReadOnly
+                                          ? null
+                                          : (value) => controller.updateSet(
+                                              exerciseId: liveExercise.id,
+                                              setIndex: set.index,
+                                              reps: value,
+                                            ),
+                                      onDelete: _isReadOnly
+                                          ? null
+                                          : () {
+                                              final removed = controller
+                                                  .removeSet(
+                                                    exerciseId: liveExercise.id,
+                                                    setIndex: set.index,
+                                                  );
+                                              showLatestSnackBar(
+                                                context,
+                                                removed
+                                                    ? '已删除本组'
+                                                    : '每个动作至少保留1组',
+                                              );
+                                            },
+                                    ),
+                                  ),
+                                  const SizedBox(height: AppSpacing.xs),
+                                  Align(
+                                    alignment: Alignment.center,
+                                    child: FilledButton.tonal(
+                                      onPressed: _isReadOnly
+                                          ? null
+                                          : () {
+                                              controller.addSet(
+                                                exerciseId: liveExercise.id,
+                                              );
+                                              showLatestSnackBar(
+                                                context,
+                                                '已新增1组',
+                                              );
+                                            },
+                                      style: FilledButton.styleFrom(
+                                        minimumSize: const Size(88, 36),
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 18,
+                                          vertical: 8,
+                                        ),
+                                        textStyle: theme.textTheme.bodyMedium,
+                                      ),
+                                      child: const Text('+组'),
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      _activeExerciseId = null;
+    });
+  }
+
   Future<void> _openExerciseLibrary(SessionEditorController controller) async {
     if (_isReadOnly) {
       return;
@@ -583,13 +900,14 @@ class _SessionEditorPageState extends ConsumerState<SessionEditorPage> {
   Widget build(BuildContext context) {
     final colors = AppColors.of(context);
     final state = ref.watch(sessionEditorProvider(widget.args));
-    final settings = ref.watch(settingsProvider);
     final controller = ref.read(sessionEditorProvider(widget.args).notifier);
     final dateText = DateFormat('yyyy/MM/dd').format(widget.args.date);
     _initTrainingTypeIfNeeded(state.session);
     _syncRestNoteIfNeeded(state.session);
 
     final savingAction = state.savingAction;
+    final canAddExercise =
+        !_isReadOnly && _hasTrainingTypeSelected && !_isRestDay;
 
     return PopScope(
       canPop: false,
@@ -629,8 +947,35 @@ class _SessionEditorPageState extends ConsumerState<SessionEditorPage> {
                     children: [
                       SectionCard(
                         title: '会话信息',
-                        trailing: ModePill(
-                          text: sessionModeText(widget.args.mode),
+                        trailing: Wrap(
+                          spacing: AppSpacing.xs,
+                          runSpacing: AppSpacing.xs,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            SizedBox(
+                              height: 34,
+                              child: FilledButton.icon(
+                                onPressed: canAddExercise
+                                    ? () => _openExerciseLibrary(controller)
+                                    : null,
+                                style: FilledButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 8,
+                                  ),
+                                  minimumSize: const Size(0, 0),
+                                  tapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
+                                  visualDensity: VisualDensity.compact,
+                                ),
+                                icon: const Icon(Icons.add, size: 16),
+                                label: const Text('新增动作'),
+                              ),
+                            ),
+                            ModePill(
+                              text: sessionModeText(widget.args.mode),
+                            ),
+                          ],
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -690,56 +1035,17 @@ class _SessionEditorPageState extends ConsumerState<SessionEditorPage> {
                                   ),
                                 ],
                               ),
-                          ],
-                        ),
-                      ),
-                      SectionCard(
-                        title: '新增动作',
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            SizedBox(
-                              width: double.infinity,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  FilledButton.icon(
-                                    onPressed:
-                                        _isReadOnly ||
-                                            !_hasTrainingTypeSelected ||
-                                            _isRestDay
-                                        ? null
-                                        : () =>
-                                              _openExerciseLibrary(controller),
-                                    icon: const Icon(Icons.add, size: 18),
-                                    style: FilledButton.styleFrom(
-                                      minimumSize: const Size(122, 42),
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 16,
-                                        vertical: 10,
-                                      ),
-                                    ),
-                                    label: Text(
-                                      !_hasTrainingTypeSelected
-                                          ? '请先选择训练肌群'
-                                          : _isRestDay
-                                          ? '休息日无需新增动作'
-                                          : '新增动作',
-                                    ),
-                                  ),
-                                  if (_isRestDay) ...[
-                                    const SizedBox(height: AppSpacing.sm),
-                                    Text(
-                                      '恢复建议：轻度拉伸、泡沫轴放松、轻松散步、呼吸训练。',
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodySmall
-                                          ?.copyWith(color: colors.textMuted),
-                                    ),
-                                  ],
-                                ],
+                            if (!_isReadOnly &&
+                                (!_hasTrainingTypeSelected || _isRestDay)) ...[
+                              const SizedBox(height: AppSpacing.sm),
+                              Text(
+                                !_hasTrainingTypeSelected
+                                    ? '请先选择训练肌群，再新增动作。'
+                                    : '休息日无需新增动作，可记录恢复备注。',
+                                style: Theme.of(context).textTheme.bodySmall
+                                    ?.copyWith(color: colors.textMuted),
                               ),
-                            ),
+                            ],
                           ],
                         ),
                       ),
@@ -766,95 +1072,60 @@ class _SessionEditorPageState extends ConsumerState<SessionEditorPage> {
                         ),
                       ...?state.session?.exercises.map((exercise) {
                         final isCardioExercise = _isCardioExercise(exercise);
-                        final cardioSet =
-                            _firstOrNull(
-                              exercise.sets.where(
-                                (set) => set.setType == ExerciseSetType.cardio,
-                              ),
-                            ) ??
-                            _firstOrNull(exercise.sets);
-                        return SectionCard(
-                          title: exercise.exerciseName,
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              if (isCardioExercise)
-                                Text(
-                                  '单条记录',
-                                  style: Theme.of(context).textTheme.bodySmall
-                                      ?.copyWith(color: colors.textMuted),
-                                ),
-                              IconButton(
-                                onPressed: _isReadOnly
-                                    ? null
-                                    : () {
-                                        controller.removeExercise(
-                                          exerciseId: exercise.id,
-                                        );
-                                        showLatestSnackBar(context, '已删除动作');
-                                      },
-                                icon: Icon(
-                                  Icons.delete_outline,
-                                  size: 18,
-                                  color: colors.textMuted,
-                                ),
-                                tooltip: '删除动作',
-                                visualDensity: VisualDensity.compact,
-                                constraints: const BoxConstraints.tightFor(
-                                  width: 32,
-                                  height: 32,
-                                ),
-                              ),
-                            ],
-                          ),
-                          child: Column(
-                            children: [
-                              if (isCardioExercise) ...[
-                                Text(
-                                  '本动作不分组',
-                                  style: Theme.of(context).textTheme.bodySmall
-                                      ?.copyWith(color: colors.textMuted),
-                                ),
-                                const SizedBox(height: AppSpacing.xs),
-                                if (cardioSet != null)
-                                  CardioSetRow(
-                                    setLabel: '有氧记录',
-                                    durationMinutes:
-                                        cardioSet.durationMinutes ?? 20,
-                                    distanceKm: cardioSet.distanceKm,
-                                    onDurationChanged: _isReadOnly
-                                        ? null
-                                        : (value) => controller.updateSet(
-                                            exerciseId: exercise.id,
-                                            setIndex: cardioSet.index,
-                                            durationMinutes: value,
-                                          ),
-                                    onDurationValueTap: _isReadOnly
-                                        ? null
-                                        : () => _showDurationInputDialog(
-                                            controller: controller,
-                                            exerciseId: exercise.id,
-                                            setIndex: cardioSet.index,
-                                            current:
-                                                cardioSet.durationMinutes ?? 20,
-                                          ),
-                                    onDistanceChanged: _isReadOnly
-                                        ? null
-                                        : (value) => controller.updateSet(
-                                            exerciseId: exercise.id,
-                                            setIndex: cardioSet.index,
-                                            distanceKm: value,
-                                            clearDistanceKm: value == null,
-                                          ),
-                                    onDistanceValueTap: _isReadOnly
-                                        ? null
-                                        : () => _showDistanceInputDialog(
-                                            controller: controller,
-                                            exerciseId: exercise.id,
-                                            setIndex: cardioSet.index,
-                                            current: cardioSet.distanceKm,
-                                          ),
-                                    onDelete: _isReadOnly
+                        final averageWeight = _averageStrengthWeight(exercise);
+                        final summaryText = isCardioExercise
+                            ? _cardioSummary(exercise)
+                            : '共 ${exercise.sets.length} 组 · 平均重量 ${_formatSummaryWeight(averageWeight)} $_weightUnitLabel';
+                        return Card(
+                          margin: const EdgeInsets.only(bottom: AppSpacing.md),
+                          child: InkWell(
+                            borderRadius: AppRadius.card,
+                            onTap: () =>
+                                _openExerciseDetailSheet(controller, exercise),
+                            child: Padding(
+                              padding: const EdgeInsets.all(AppSpacing.md),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          exercise.exerciseName,
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .titleMedium
+                                              ?.copyWith(
+                                                fontWeight: FontWeight.w700,
+                                              ),
+                                        ),
+                                        const SizedBox(height: AppSpacing.xs),
+                                        Text(
+                                          summaryText,
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodyMedium
+                                              ?.copyWith(
+                                                color: colors.textMuted,
+                                              ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(width: AppSpacing.sm),
+                                  IconButton(
+                                    onPressed: () =>
+                                        _openExerciseDetailSheet(
+                                          controller,
+                                          exercise,
+                                        ),
+                                    icon: const Icon(Icons.edit_outlined),
+                                    tooltip: '编辑动作',
+                                    visualDensity: VisualDensity.compact,
+                                  ),
+                                  IconButton(
+                                    onPressed: _isReadOnly
                                         ? null
                                         : () {
                                             controller.removeExercise(
@@ -865,84 +1136,16 @@ class _SessionEditorPageState extends ConsumerState<SessionEditorPage> {
                                               '已删除动作',
                                             );
                                           },
-                                  ),
-                              ] else ...[
-                                ...exercise.sets.map(
-                                  (set) => SetRow(
-                                    setLabel: '第${set.index}组',
-                                    weight: _displayWeightFromKg(set.weight),
-                                    weightStep: _weightStep,
-                                    reps: set.reps,
-                                    weightLabel: settings.useKilogram
-                                        ? '重量(kg)'
-                                        : '重量(lbs)',
-                                    onWeightChanged: _isReadOnly
-                                        ? null
-                                        : (value) => controller.updateSet(
-                                            exerciseId: exercise.id,
-                                            setIndex: set.index,
-                                            weight: _weightKgFromDisplay(value),
-                                          ),
-                                    onWeightValueTap: _isReadOnly
-                                        ? null
-                                        : () => _showWeightInputDialog(
-                                            controller: controller,
-                                            exerciseId: exercise.id,
-                                            setIndex: set.index,
-                                            current: set.weight,
-                                          ),
-                                    onRepsChanged: _isReadOnly
-                                        ? null
-                                        : (value) => controller.updateSet(
-                                            exerciseId: exercise.id,
-                                            setIndex: set.index,
-                                            reps: value,
-                                          ),
-                                    onDelete: _isReadOnly
-                                        ? null
-                                        : () {
-                                            final removed = controller
-                                                .removeSet(
-                                                  exerciseId: exercise.id,
-                                                  setIndex: set.index,
-                                                );
-                                            final text = removed
-                                                ? '已删除本组'
-                                                : '每个动作至少保留1组';
-                                            showLatestSnackBar(context, text);
-                                          },
-                                  ),
-                                ),
-                                const SizedBox(height: AppSpacing.xs),
-                                Align(
-                                  alignment: Alignment.center,
-                                  child: FilledButton.tonal(
-                                    onPressed: _isReadOnly
-                                        ? null
-                                        : () {
-                                            controller.addSet(
-                                              exerciseId: exercise.id,
-                                            );
-                                            showLatestSnackBar(
-                                              context,
-                                              '已新增1组',
-                                            );
-                                          },
-                                    style: FilledButton.styleFrom(
-                                      minimumSize: const Size(88, 36),
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 18,
-                                        vertical: 8,
-                                      ),
-                                      textStyle: Theme.of(
-                                        context,
-                                      ).textTheme.bodyMedium,
+                                    icon: Icon(
+                                      Icons.delete_outline,
+                                      color: colors.textMuted,
                                     ),
-                                    child: const Text('+组'),
+                                    tooltip: '删除动作',
+                                    visualDensity: VisualDensity.compact,
                                   ),
-                                ),
-                              ],
-                            ],
+                                ],
+                              ),
+                            ),
                           ),
                         );
                       }),

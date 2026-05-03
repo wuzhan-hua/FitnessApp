@@ -1,9 +1,13 @@
 import 'package:fitness_client/application/providers/providers.dart';
+import 'package:fitness_client/application/state/settings_controller.dart';
 import 'package:fitness_client/application/state/session_editor_controller.dart';
 import 'package:fitness_client/data/repositories/mock_workout_repository.dart';
 import 'package:fitness_client/data/repositories/workout_repository.dart';
+import 'package:fitness_client/data/services/auth_service.dart';
 import 'package:fitness_client/data/services/exercise_catalog_service.dart';
+import 'package:fitness_client/data/services/user_profile_service.dart';
 import 'package:fitness_client/domain/entities/workout_models.dart';
+import 'package:fitness_client/domain/entities/user_profile.dart';
 import 'package:fitness_client/presentation/pages/session_editor_page.dart';
 import 'package:fitness_client/theme/app_theme.dart';
 import 'package:flutter/material.dart';
@@ -18,28 +22,12 @@ void main() {
     final past = DateTime.now().subtract(const Duration(days: 1));
 
     await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          workoutRepositoryProvider.overrideWithValue(MockWorkoutRepository()),
-          exerciseCatalogServiceProvider.overrideWithValue(
-            ExerciseCatalogService(
-              SupabaseClient(
-                'http://localhost',
-                'test-key',
-                authOptions: const AuthClientOptions(autoRefreshToken: false),
-              ),
-            ),
-          ),
-        ],
-        child: MaterialApp(
-          theme: AppTheme.light,
-          home: SessionEditorPage(
-            args: SessionEditorArgs(
-              date: past,
-              mode: SessionMode.backfill,
-              createOnSaveOnly: true,
-            ),
-          ),
+      _buildSessionEditorApp(
+        repository: MockWorkoutRepository(),
+        args: SessionEditorArgs(
+          date: past,
+          mode: SessionMode.backfill,
+          createOnSaveOnly: true,
         ),
       ),
     );
@@ -56,28 +44,12 @@ void main() {
     final past = DateTime.now().subtract(const Duration(days: 2));
 
     await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          workoutRepositoryProvider.overrideWithValue(MockWorkoutRepository()),
-          exerciseCatalogServiceProvider.overrideWithValue(
-            ExerciseCatalogService(
-              SupabaseClient(
-                'http://localhost',
-                'test-key',
-                authOptions: const AuthClientOptions(autoRefreshToken: false),
-              ),
-            ),
-          ),
-        ],
-        child: MaterialApp(
-          theme: AppTheme.light,
-          home: SessionEditorPage(
-            args: SessionEditorArgs(
-              date: past,
-              mode: SessionMode.backfill,
-              createOnSaveOnly: true,
-            ),
-          ),
+      _buildSessionEditorApp(
+        repository: MockWorkoutRepository(),
+        args: SessionEditorArgs(
+          date: past,
+          mode: SessionMode.backfill,
+          createOnSaveOnly: true,
         ),
       ),
     );
@@ -85,7 +57,7 @@ void main() {
 
     expect(find.text('未选择'), findsOneWidget);
     expect(find.widgetWithText(ChoiceChip, '胸部'), findsNothing);
-    expect(find.text('请先选择训练肌群'), findsOneWidget);
+    expect(find.text('请先选择训练肌群，再新增动作。'), findsOneWidget);
   });
 
   testWidgets('training type dialog updates title on every selection', (
@@ -193,23 +165,94 @@ void main() {
     expect(repository.saveSessionCalls, 0);
     expect(result, SessionEditorExitResult.discarded);
   });
+
+  testWidgets('exercise list renders summary cards and no add-exercise card', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _buildSessionEditorApp(
+        repository: MockWorkoutRepository(),
+        args: SessionEditorArgs(
+          date: DateTime.now(),
+          mode: SessionMode.continueSession,
+          sessionId: 'session-ongoing',
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('新增动作'), findsOneWidget);
+    expect(find.text('请先选择训练肌群'), findsNothing);
+    expect(find.text('第1组'), findsNothing);
+    expect(find.text('共 3 组 · 平均重量 77.5 kg'), findsOneWidget);
+    expect(find.text('共 1 组 · 平均重量 25 kg'), findsOneWidget);
+  });
+
+  testWidgets('tap exercise summary opens bottom sheet detail editor', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _buildSessionEditorApp(
+        repository: MockWorkoutRepository(),
+        args: SessionEditorArgs(
+          date: DateTime.now(),
+          mode: SessionMode.continueSession,
+          sessionId: 'session-ongoing',
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('杠铃卧推'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('第1组'), findsOneWidget);
+    expect(find.text('+组'), findsOneWidget);
+    expect(find.text('共 3 组 · 平均重量 77.5 kg'), findsNWidgets(2));
+  });
+
+  testWidgets('editing sets in bottom sheet updates summary', (tester) async {
+    await tester.pumpWidget(
+      _buildSessionEditorApp(
+        repository: MockWorkoutRepository(),
+        args: SessionEditorArgs(
+          date: DateTime.now(),
+          mode: SessionMode.continueSession,
+          sessionId: 'session-ongoing',
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('杠铃卧推'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('+组'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('关闭'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('共 4 组 · 平均重量 78.1 kg'), findsOneWidget);
+  });
 }
 
 Widget _buildSessionEditorApp({
   required WorkoutRepository repository,
   required SessionEditorArgs args,
 }) {
+  final client = _buildTestSupabaseClient();
   return ProviderScope(
     overrides: [
       workoutRepositoryProvider.overrideWithValue(repository),
-      exerciseCatalogServiceProvider.overrideWithValue(
-        ExerciseCatalogService(
-          SupabaseClient(
-            'http://localhost',
-            'test-key',
-            authOptions: const AuthClientOptions(autoRefreshToken: false),
-          ),
+      authServiceProvider.overrideWithValue(_TestAuthService(client)),
+      userProfileServiceProvider.overrideWithValue(_TestUserProfileService(client)),
+      settingsProvider.overrideWith(
+        (ref) => SettingsController(
+          ref.watch(authServiceProvider),
+          ref.watch(userProfileServiceProvider),
         ),
+      ),
+      exerciseCatalogServiceProvider.overrideWithValue(
+        _TestExerciseCatalogService(client),
       ),
     ],
     child: MaterialApp(
@@ -224,17 +267,20 @@ Widget _buildPushedSessionEditorApp({
   required SessionEditorArgs args,
   required ValueChanged<SessionEditorExitResult?> onResult,
 }) {
+  final client = _buildTestSupabaseClient();
   return ProviderScope(
     overrides: [
       workoutRepositoryProvider.overrideWithValue(repository),
-      exerciseCatalogServiceProvider.overrideWithValue(
-        ExerciseCatalogService(
-          SupabaseClient(
-            'http://localhost',
-            'test-key',
-            authOptions: const AuthClientOptions(autoRefreshToken: false),
-          ),
+      authServiceProvider.overrideWithValue(_TestAuthService(client)),
+      userProfileServiceProvider.overrideWithValue(_TestUserProfileService(client)),
+      settingsProvider.overrideWith(
+        (ref) => SettingsController(
+          ref.watch(authServiceProvider),
+          ref.watch(userProfileServiceProvider),
         ),
+      ),
+      exerciseCatalogServiceProvider.overrideWithValue(
+        _TestExerciseCatalogService(client),
       ),
     ],
     child: MaterialApp(
@@ -268,5 +314,41 @@ class _CountingWorkoutRepository extends MockWorkoutRepository {
   Future<WorkoutSession> saveSession(WorkoutSession session) async {
     saveSessionCalls += 1;
     return super.saveSession(session);
+  }
+}
+
+SupabaseClient _buildTestSupabaseClient() {
+  return SupabaseClient(
+    'http://localhost',
+    'test-key',
+    authOptions: const AuthClientOptions(autoRefreshToken: false),
+  );
+}
+
+class _TestAuthService extends AuthService {
+  _TestAuthService(super.client);
+
+  @override
+  Session? get currentSession => null;
+
+  @override
+  Stream<AuthState> get onAuthStateChange => const Stream.empty();
+}
+
+class _TestUserProfileService extends UserProfileService {
+  _TestUserProfileService(super.client);
+
+  @override
+  Future<UserProfile?> fetchCurrentUserProfile() async => null;
+}
+
+class _TestExerciseCatalogService extends ExerciseCatalogService {
+  _TestExerciseCatalogService(super.client);
+
+  @override
+  Future<Set<String>> getDefaultZeroWeightExerciseIds(
+    Iterable<String> exerciseIds,
+  ) async {
+    return const <String>{};
   }
 }
