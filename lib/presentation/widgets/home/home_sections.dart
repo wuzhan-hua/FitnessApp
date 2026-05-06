@@ -552,24 +552,40 @@ class HomeRightColumn extends StatelessWidget {
     return Column(
       children: [
         SectionCard(
-          title: '近7天概览',
-          child: GridView.count(
-            crossAxisCount: 2,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            crossAxisSpacing: AppSpacing.sm,
-            mainAxisSpacing: AppSpacing.sm,
-            childAspectRatio: 1.9,
+          title: '本周概览',
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              StatTile(label: '训练天数', value: '${snapshot.weekTrainingDays}'),
-              StatTile(label: '总组数', value: '${snapshot.weekTotalSets}'),
-              StatTile(
-                label: '总训练量',
-                value: formatter.format(snapshot.weekTotalVolume),
+              Text(
+                '统计范围：本周一至今天，仅统计已完成训练',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: colors.textMuted,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
-              StatTile(
-                label: '平均时长',
-                value: '${snapshot.weekAverageDuration} 分钟',
+              const SizedBox(height: AppSpacing.sm),
+              GridView.count(
+                crossAxisCount: 2,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                crossAxisSpacing: AppSpacing.sm,
+                mainAxisSpacing: AppSpacing.sm,
+                childAspectRatio: 1.9,
+                children: [
+                  StatTile(
+                    label: '训练天数',
+                    value: '${snapshot.weekTrainingDays}',
+                  ),
+                  StatTile(label: '总组数', value: '${snapshot.weekTotalSets}'),
+                  StatTile(
+                    label: '总训练量',
+                    value: formatter.format(snapshot.weekTotalVolume),
+                  ),
+                  StatTile(
+                    label: '平均时长',
+                    value: '${snapshot.weekAverageDuration} 分钟',
+                  ),
+                ],
               ),
             ],
           ),
