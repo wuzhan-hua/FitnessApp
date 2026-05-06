@@ -15,11 +15,13 @@ class ExerciseSelectionResult {
     required this.exerciseName,
     this.exerciseId,
     this.defaultsToZeroWeight = false,
+    this.isCardio = false,
   });
 
   final String? exerciseId;
   final String exerciseName;
   final bool defaultsToZeroWeight;
+  final bool isCardio;
 }
 
 enum ExerciseLibraryMode { selection, browse }
@@ -612,6 +614,7 @@ class _ExerciseCard extends StatelessWidget {
                 exerciseId: item.id,
                 exerciseName: name,
                 defaultsToZeroWeight: item.defaultsToZeroWeight,
+                isCardio: item.isCardio,
               ),
             );
             return;

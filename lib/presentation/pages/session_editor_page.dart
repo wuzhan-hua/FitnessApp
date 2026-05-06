@@ -49,11 +49,11 @@ class _SessionEditorPageState extends ConsumerState<SessionEditorPage> {
   final TextEditingController _restNoteController = TextEditingController();
   String? _selectedTrainingType;
   String? _activeExerciseId;
+  String? _newlyAddedExerciseId;
   bool _trainingTypeInitialized = false;
   bool _isClosing = false;
 
   bool get _isRestDay => _selectedTrainingType == '休息日';
-  bool get _isCardio => _selectedTrainingType == '有氧';
   bool get _hasTrainingTypeSelected => _selectedTrainingType != null;
   bool get _isReadOnly => widget.args.readOnly;
   bool get _isPastBackfill =>
@@ -604,6 +604,9 @@ class _SessionEditorPageState extends ConsumerState<SessionEditorPage> {
     }
     setState(() {
       _activeExerciseId = exercise.id;
+      if (_newlyAddedExerciseId == exercise.id) {
+        _newlyAddedExerciseId = null;
+      }
     });
     await showModalBottomSheet<void>(
       context: context,
@@ -866,9 +869,6 @@ class _SessionEditorPageState extends ConsumerState<SessionEditorPage> {
       showLatestSnackBar(context, '休息日不支持新增训练动作，请记录恢复备注');
       return;
     }
-    final setType = _isCardio
-        ? ExerciseSetType.cardio
-        : ExerciseSetType.strength;
     final result = await Navigator.of(context)
         .pushNamed<ExerciseSelectionResult>(
           ExerciseLibraryPage.routeName,
@@ -882,14 +882,19 @@ class _SessionEditorPageState extends ConsumerState<SessionEditorPage> {
     if (!mounted || result == null) {
       return;
     }
-    final added = controller.addExercise(
+    final addedExercise = controller.addExercise(
       name: result.exerciseName,
       exerciseId: result.exerciseId,
-      setType: setType,
+      setType: result.isCardio
+          ? ExerciseSetType.cardio
+          : ExerciseSetType.strength,
       canAdd: !_isRestDay,
       defaultsToZeroWeight: result.defaultsToZeroWeight,
     );
-    if (added) {
+    if (addedExercise != null) {
+      setState(() {
+        _newlyAddedExerciseId = addedExercise.id;
+      });
       showLatestSnackBar(context, '已新增动作：${result.exerciseName}');
     } else {
       showLatestSnackBar(context, '休息日不支持新增训练动作');
@@ -906,8 +911,6 @@ class _SessionEditorPageState extends ConsumerState<SessionEditorPage> {
     _syncRestNoteIfNeeded(state.session);
 
     final savingAction = state.savingAction;
-    final canAddExercise =
-        !_isReadOnly && _hasTrainingTypeSelected && !_isRestDay;
 
     return PopScope(
       canPop: false,
@@ -947,108 +950,78 @@ class _SessionEditorPageState extends ConsumerState<SessionEditorPage> {
                     children: [
                       SectionCard(
                         title: '会话信息',
-                        trailing: Wrap(
-                          spacing: AppSpacing.xs,
-                          runSpacing: AppSpacing.xs,
-                          crossAxisAlignment: WrapCrossAlignment.center,
-                          children: [
-                            SizedBox(
-                              height: 34,
-                              child: FilledButton.icon(
-                                onPressed: canAddExercise
-                                    ? () => _openExerciseLibrary(controller)
-                                    : null,
-                                style: FilledButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 8,
-                                  ),
-                                  minimumSize: const Size(0, 0),
-                                  tapTargetSize:
-                                      MaterialTapTargetSize.shrinkWrap,
-                                  visualDensity: VisualDensity.compact,
-                                ),
-                                icon: const Icon(Icons.add, size: 16),
-                                label: const Text('新增动作'),
-                              ),
-                            ),
-                            ModePill(
-                              text: sessionModeText(widget.args.mode),
-                            ),
-                          ],
+                        trailing: ModePill(
+                          text: sessionModeText(widget.args.mode),
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
                               state.session?.title ?? '未命名训练',
-                              style: Theme.of(context).textTheme.headlineSmall,
+                              style: Theme.of(context).textTheme.titleLarge
+                                  ?.copyWith(fontWeight: FontWeight.w700),
                             ),
-                            const SizedBox(height: AppSpacing.sm),
-                            if (!_isReadOnly)
-                              Wrap(
-                                spacing: AppSpacing.sm,
-                                runSpacing: AppSpacing.xs,
-                                crossAxisAlignment: WrapCrossAlignment.center,
-                                children: [
-                                  OutlinedButton.icon(
-                                    onPressed: state.session == null
-                                        ? null
-                                        : () => _showTrainingTypeDialog(
-                                            controller,
-                                            state.session,
-                                          ),
-                                    icon: const Icon(
-                                      Icons.tune_rounded,
-                                      size: 18,
-                                    ),
-                                    label: Text(
-                                      _hasTrainingTypeSelected
-                                          ? '更换训练肌群'
-                                          : '选择训练肌群',
-                                    ),
+                            const SizedBox(height: AppSpacing.xs),
+                            Text(
+                              '训练肌群：${_selectedTrainingType ?? '未选择'}',
+                              style: Theme.of(context).textTheme.bodyMedium
+                                  ?.copyWith(
+                                    color: colors.textMuted,
+                                    fontWeight: FontWeight.w600,
                                   ),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 12,
-                                      vertical: 8,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: colors.panelAlt,
-                                      borderRadius: AppRadius.chip,
-                                      border: Border.all(
-                                        color: colors.textMuted.withValues(
-                                          alpha: 0.2,
-                                        ),
-                                      ),
-                                    ),
-                                    child: Text(
-                                      _selectedTrainingType ?? '未选择',
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodyMedium
-                                          ?.copyWith(
-                                            color: colors.textMuted,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            if (!_isReadOnly &&
-                                (!_hasTrainingTypeSelected || _isRestDay)) ...[
+                            ),
+                            if (!_isReadOnly) ...[
                               const SizedBox(height: AppSpacing.sm),
-                              Text(
-                                !_hasTrainingTypeSelected
-                                    ? '请先选择训练肌群，再新增动作。'
-                                    : '休息日无需新增动作，可记录恢复备注。',
-                                style: Theme.of(context).textTheme.bodySmall
-                                    ?.copyWith(color: colors.textMuted),
+                              OutlinedButton.icon(
+                                onPressed: state.session == null
+                                    ? null
+                                    : () => _showTrainingTypeDialog(
+                                        controller,
+                                        state.session,
+                                      ),
+                                icon: const Icon(
+                                  Icons.tune_rounded,
+                                  size: 18,
+                                ),
+                                label: Text(
+                                  _hasTrainingTypeSelected
+                                      ? '更换训练肌群'
+                                      : '选择训练肌群',
+                                ),
                               ),
                             ],
                           ],
                         ),
                       ),
+                      if (!_isReadOnly)
+                        SectionCard(
+                          title: '新增动作',
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              SizedBox(
+                                width: double.infinity,
+                                child: FilledButton.icon(
+                                  onPressed: () => _openExerciseLibrary(
+                                    controller,
+                                  ),
+                                  icon: const Icon(Icons.add),
+                                  label: const Text('新增动作'),
+                                ),
+                              ),
+                              const SizedBox(height: AppSpacing.xs),
+                              Text(
+                                _isRestDay
+                                    ? '休息日不支持新增训练动作'
+                                    : (_hasTrainingTypeSelected
+                                          ? '可切换肌群后添加力量或有氧动作'
+                                          : '请先选择训练肌群后再新增动作'),
+                                style: Theme.of(context).textTheme.bodySmall
+                                    ?.copyWith(color: colors.textMuted),
+                              ),
+                            ],
+                          ),
+                        ),
                       if (_isRestDay)
                         SectionCard(
                           title: '恢复备注',
@@ -1073,10 +1046,24 @@ class _SessionEditorPageState extends ConsumerState<SessionEditorPage> {
                       ...?state.session?.exercises.map((exercise) {
                         final isCardioExercise = _isCardioExercise(exercise);
                         final averageWeight = _averageStrengthWeight(exercise);
+                        final isNewlyAdded =
+                            exercise.id == _newlyAddedExerciseId;
                         final summaryText = isCardioExercise
                             ? _cardioSummary(exercise)
                             : '共 ${exercise.sets.length} 组 · 平均重量 ${_formatSummaryWeight(averageWeight)} $_weightUnitLabel';
                         return Card(
+                          color: isNewlyAdded
+                              ? colors.panelAlt.withValues(alpha: 0.72)
+                              : null,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: AppRadius.card,
+                            side: BorderSide(
+                              color: isNewlyAdded
+                                  ? colors.accent
+                                  : Colors.transparent,
+                              width: isNewlyAdded ? 1.2 : 0,
+                            ),
+                          ),
                           margin: const EdgeInsets.only(bottom: AppSpacing.md),
                           child: InkWell(
                             borderRadius: AppRadius.card,

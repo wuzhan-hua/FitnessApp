@@ -254,7 +254,7 @@ class SessionEditorController extends StateNotifier<SessionEditorState> {
     );
   }
 
-  bool addExercise({
+  SessionExercise? addExercise({
     required String name,
     String? exerciseId,
     ExerciseSetType setType = ExerciseSetType.strength,
@@ -262,19 +262,19 @@ class SessionEditorController extends StateNotifier<SessionEditorState> {
     bool defaultsToZeroWeight = false,
   }) {
     if (_isReadOnly) {
-      return false;
+      return null;
     }
     if (!canAdd) {
-      return false;
+      return null;
     }
     final session = state.session;
     if (session == null) {
-      return false;
+      return null;
     }
 
     final normalized = name.trim();
     if (normalized.isEmpty) {
-      return false;
+      return null;
     }
 
     final newExercise = SessionExercise(
@@ -308,7 +308,7 @@ class SessionEditorController extends StateNotifier<SessionEditorState> {
     _updateSession(
       _promoteDraftIfNeeded(session.copyWith(exercises: reorderedExercises)),
     );
-    return true;
+    return newExercise;
   }
 
   Future<WorkoutSession> _normalizeZeroWeightExercises(

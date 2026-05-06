@@ -178,6 +178,14 @@ class ExerciseCatalogItem {
         normalizedCategoryZh == '拉伸';
   }
 
+  /// 是否属于有氧动作。
+  bool get isCardio {
+    final normalizedCategoryEn = categoryEn?.trim().toLowerCase();
+    final normalizedCategoryZh = categoryZh?.trim();
+    return normalizedCategoryEn == 'cardio' ||
+        normalizedCategoryZh == '有氧';
+  }
+
   static List<String> _readStringList(dynamic raw) {
     if (raw is List) {
       return raw

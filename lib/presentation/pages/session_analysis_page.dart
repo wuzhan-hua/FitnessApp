@@ -234,6 +234,9 @@ class _ExerciseSummaryTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = AppColors.of(context);
+    final isCardio = exercise.sets.any(
+      (set) => set.setType == ExerciseSetType.cardio,
+    );
     return Container(
       margin: const EdgeInsets.only(bottom: AppSpacing.sm),
       padding: const EdgeInsets.all(AppSpacing.md),
@@ -255,7 +258,9 @@ class _ExerciseSummaryTile extends StatelessWidget {
                 ),
                 const SizedBox(height: AppSpacing.xs),
                 Text(
-                  '${exercise.sets.length} 组 · 训练量 ${formatter.format(exercise.totalVolume)}',
+                  isCardio
+                      ? _buildCardioSummary()
+                      : '${exercise.sets.length} 组 · 训练量 ${formatter.format(exercise.totalVolume)}',
                   style: Theme.of(
                     context,
                   ).textTheme.bodyMedium?.copyWith(color: colors.textMuted),
@@ -264,7 +269,7 @@ class _ExerciseSummaryTile extends StatelessWidget {
             ),
           ),
           Text(
-            '${exercise.targetSets} 目标组',
+            isCardio ? '有氧' : '${exercise.targetSets} 目标组',
             style: Theme.of(
               context,
             ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
@@ -272,5 +277,37 @@ class _ExerciseSummaryTile extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String _buildCardioSummary() {
+    final cardioSets = exercise.sets
+        .where((set) => set.setType == ExerciseSetType.cardio)
+        .toList();
+    final totalDuration = cardioSets.fold<int>(
+      0,
+      (sum, set) => sum + (set.durationMinutes ?? 0),
+    );
+    final totalDistance = cardioSets.fold<double>(
+      0,
+      (sum, set) => sum + (set.distanceKm ?? 0),
+    );
+
+    final details = <String>[];
+    if (totalDuration > 0) {
+      details.add('$totalDuration 分钟');
+    }
+    if (totalDistance > 0) {
+      details.add('${_formatDistance(totalDistance)} 公里');
+    }
+
+    if (details.isEmpty) {
+      return '${cardioSets.length} 条有氧记录';
+    }
+    return details.join(' · ');
+  }
+
+  String _formatDistance(double distance) {
+    final text = distance.toStringAsFixed(1);
+    return text.endsWith('.0') ? text.substring(0, text.length - 2) : text;
   }
 }
