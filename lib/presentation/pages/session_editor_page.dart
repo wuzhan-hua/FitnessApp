@@ -60,8 +60,7 @@ class _SessionEditorPageState extends ConsumerState<SessionEditorPage> {
       widget.args.mode == SessionMode.backfill &&
       _day(widget.args.date).isBefore(_day(DateTime.now()));
   bool get _useKilogram => ref.read(settingsProvider).useKilogram;
-  String get _weightUnitLabel =>
-      _useKilogram ? 'kg' : 'lbs';
+  String get _weightUnitLabel => _useKilogram ? 'kg' : 'lbs';
   double get _weightStep => _useKilogram ? _kgWeightStep : _lbsWeightStep;
 
   DateTime _day(DateTime date) => DateTime(date.year, date.month, date.day);
@@ -538,7 +537,10 @@ class _SessionEditorPageState extends ConsumerState<SessionEditorPage> {
     return items.isEmpty ? null : items.first;
   }
 
-  SessionExercise? _findExerciseById(WorkoutSession? session, String? exerciseId) {
+  SessionExercise? _findExerciseById(
+    WorkoutSession? session,
+    String? exerciseId,
+  ) {
     if (session == null || exerciseId == null) {
       return null;
     }
@@ -618,7 +620,10 @@ class _SessionEditorPageState extends ConsumerState<SessionEditorPage> {
           builder: (context, ref, child) {
             final state = ref.watch(sessionEditorProvider(widget.args));
             final settings = ref.watch(settingsProvider);
-            final liveExercise = _findExerciseById(state.session, _activeExerciseId);
+            final liveExercise = _findExerciseById(
+              state.session,
+              _activeExerciseId,
+            );
             if (liveExercise == null) {
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 if (Navigator.of(sheetContext).canPop()) {
@@ -773,8 +778,9 @@ class _SessionEditorPageState extends ConsumerState<SessionEditorPage> {
                                           : (value) => controller.updateSet(
                                               exerciseId: liveExercise.id,
                                               setIndex: set.index,
-                                              weight:
-                                                  _weightKgFromDisplay(value),
+                                              weight: _weightKgFromDisplay(
+                                                value,
+                                              ),
                                             ),
                                       onWeightValueTap: _isReadOnly
                                           ? null
@@ -979,10 +985,7 @@ class _SessionEditorPageState extends ConsumerState<SessionEditorPage> {
                                         controller,
                                         state.session,
                                       ),
-                                icon: const Icon(
-                                  Icons.tune_rounded,
-                                  size: 18,
-                                ),
+                                icon: const Icon(Icons.tune_rounded, size: 18),
                                 label: Text(
                                   _hasTrainingTypeSelected
                                       ? '更换训练肌群'
@@ -1002,9 +1005,8 @@ class _SessionEditorPageState extends ConsumerState<SessionEditorPage> {
                               SizedBox(
                                 width: double.infinity,
                                 child: FilledButton.icon(
-                                  onPressed: () => _openExerciseLibrary(
-                                    controller,
-                                  ),
+                                  onPressed: () =>
+                                      _openExerciseLibrary(controller),
                                   icon: const Icon(Icons.add),
                                   label: const Text('新增动作'),
                                 ),
@@ -1102,11 +1104,10 @@ class _SessionEditorPageState extends ConsumerState<SessionEditorPage> {
                                   ),
                                   const SizedBox(width: AppSpacing.sm),
                                   IconButton(
-                                    onPressed: () =>
-                                        _openExerciseDetailSheet(
-                                          controller,
-                                          exercise,
-                                        ),
+                                    onPressed: () => _openExerciseDetailSheet(
+                                      controller,
+                                      exercise,
+                                    ),
                                     icon: const Icon(Icons.edit_outlined),
                                     tooltip: '编辑动作',
                                     visualDensity: VisualDensity.compact,

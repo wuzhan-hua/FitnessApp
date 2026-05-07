@@ -72,7 +72,9 @@ class SettingsController extends StateNotifier<AppSettings> {
       remoteProfileName: remoteProfileName,
     );
     await _applyPersonalInfo(
-      profileName: shouldUseRemoteProfileName ? remoteProfileName : savedProfileName,
+      profileName: shouldUseRemoteProfileName
+          ? remoteProfileName
+          : savedProfileName,
       avatarUrl: _preferNonEmptyString(state.avatarUrl, profile.avatarUrl),
       gender: profile.gender,
       birthDate: profile.birthDate,
@@ -115,7 +117,8 @@ class SettingsController extends StateNotifier<AppSettings> {
 
     final user = _authService.currentSession?.user;
     if (user == null || user.isAnonymous) {
-      if (!prefs.containsKey(_profileNameKey) && state.profileName.trim().isEmpty) {
+      if (!prefs.containsKey(_profileNameKey) &&
+          state.profileName.trim().isEmpty) {
         state = state.copyWith(profileName: AppSettings.defaults.profileName);
       }
       return;
@@ -137,8 +140,7 @@ class SettingsController extends StateNotifier<AppSettings> {
         savedProfileName: savedProfileName?.trim() ?? '',
         remoteProfileName: remoteProfileName,
       );
-      final resolvedProfileName =
-          shouldUseRemoteProfileName
+      final resolvedProfileName = shouldUseRemoteProfileName
           ? remoteProfileName
           : savedProfileName!.trim();
       await _applyPersonalInfo(
@@ -160,7 +162,8 @@ class SettingsController extends StateNotifier<AppSettings> {
     } catch (error, stackTrace) {
       AppLogger.warn('初始化个人资料同步失败，保留本地设置继续运行');
       AppLogger.error('初始化个人资料同步失败', error: error, stackTrace: stackTrace);
-      if (!prefs.containsKey(_profileNameKey) && state.profileName.trim().isEmpty) {
+      if (!prefs.containsKey(_profileNameKey) &&
+          state.profileName.trim().isEmpty) {
         state = state.copyWith(profileName: AppSettings.defaults.profileName);
       }
     }

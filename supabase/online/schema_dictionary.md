@@ -4,7 +4,7 @@
 
 当前数据库默认展示时区约定为 `Asia/Shanghai`。在 Supabase 后台查看 `timestamptz` 字段时，应直接按北京时间理解，无需再手动加 8 小时。
 
-当前线上导出里共有 9 张业务表：
+当前线上导出里共有 10 张业务表：
 
 1. `users`
 2. `user_profiles`
@@ -15,6 +15,7 @@
 7. `records`
 8. `exercise_catalog_items`
 9. `exercise_catalog_item_orders`
+10. `diet_records`
 
 ## 总览
 
@@ -29,6 +30,7 @@
 | `records` | 训练归档快照表 | 存已归档的历史训练快照，设计上用于追溯，不用于持续编辑。 |
 | `exercise_catalog_items` | 动作目录表 | 存全局共享的动作基础信息、肌群分类和参考图片路径，用于动作库选择。 |
 | `exercise_catalog_item_orders` | 动作目录排序表 | 存管理员为各肌群配置的动作展示顺序，用于动作库排序。 |
+| `diet_records` | 饮食记录表 | 存用户每一次实际摄入的食物快照与营养值，用于饮食汇总和历史追溯。 |
 
 ## 表级说明
 
@@ -310,6 +312,39 @@
 | `created_at` | `timestamptz` | 排序配置创建时间。 |
 | `updated_at` | `timestamptz` | 排序配置最近更新时间。 |
 
+### `diet_records`
+
+- 表名中文含义：饮食记录表
+- 一句话用途：存用户每一次实际摄入的食物快照与营养值，用于饮食首页汇总、按餐次回看和历史追溯。
+- 主键：`id`
+- 外键：
+  - `user_id -> auth.users.id`
+- 备注：
+  - 这张表只存用户自己的摄入行为，不存全量食物库。
+  - 食物基础数据当前来自 App 本地 `assets/datasets/china-food-composition`，写入时会把关键营养值做快照保存，避免未来食物库变化影响历史追溯。
+  - 当前只允许登录用户读取和写入自己的记录。
+  - 业务上只允许新增，不设计覆盖式修改历史记录。
+  - `meal_type` 当前约束为 `breakfast / lunch / dinner / snack`。
+
+| 字段 | 类型 | 含义 |
+| --- | --- | --- |
+| `id` | `uuid` | 饮食记录主键。 |
+| `user_id` | `uuid` | 这条饮食记录属于哪个认证用户。 |
+| `created_at` | `timestamptz` | 这条记录写入数据库的创建时间。 |
+| `consumed_at` | `timestamptz` | 这次摄入实际归属的时间点，用于按天统计和历史回看。 |
+| `meal_type` | `text` | 餐次类型。当前值为 `breakfast`、`lunch`、`dinner`、`snack`。 |
+| `food_code` | `text` | 食物库中的食物编码快照。 |
+| `food_name` | `text` | 食物名称快照。 |
+| `food_category` | `text` | 食物分类快照，如“谷物及制品”“畜肉及制品”。 |
+| `grams` | `numeric(10,2)` | 本次实际摄入克数，必须大于 0。 |
+| `energy_kcal` | `numeric(10,2)` | 本次实际摄入热量快照，单位千卡。 |
+| `protein` | `numeric(10,2)` | 本次实际摄入蛋白质快照，单位克。 |
+| `fat` | `numeric(10,2)` | 本次实际摄入脂肪快照，单位克。 |
+| `carb` | `numeric(10,2)` | 本次实际摄入碳水快照，单位克。 |
+| `dietary_fiber` | `numeric(10,2)` | 本次实际摄入膳食纤维快照，单位克，可为空。 |
+| `cholesterol` | `numeric(10,2)` | 本次实际摄入胆固醇快照，可为空。 |
+| `sodium` | `numeric(10,2)` | 本次实际摄入钠快照，可为空。 |
+
 ## 关系与易混点
 
 ### `users` vs `user_profiles`
@@ -369,6 +404,19 @@
 - 当前线上约束只有两种：
   - `signup`
   - `guest_upgrade`
+
+### `diet_records.created_at` vs `diet_records.consumed_at`
+
+- `created_at`：这条饮食记录是什么时候被写入数据库的。
+- `consumed_at`：这次饮食实际归属的摄入时间。
+- 两者语义不同：
+  - `created_at` 看“什么时候记下来的”
+  - `consumed_at` 看“这顿吃在什么时候”
+
+### `diet_records.food_code / food_name / food_category`
+
+- 这三个字段都是食物库快照字段，不依赖后续食物库实时查询。
+- 这样即使本地 JSON 后续更新或分类调整，历史饮食记录仍能保留当时的展示信息。
 
 ## 维护建议
 

@@ -4,6 +4,8 @@ import '../application/state/session_editor_controller.dart';
 import '../domain/entities/workout_models.dart';
 import '../presentation/pages/auth_page.dart';
 import '../presentation/pages/admin_exercise_catalog_page.dart';
+import '../presentation/pages/food_entry_page.dart';
+import '../presentation/pages/food_library_page.dart';
 import '../presentation/pages/exercise_detail_page.dart';
 import '../presentation/pages/exercise_library_page.dart';
 import '../presentation/pages/personal_info_page.dart';
@@ -50,6 +52,24 @@ class AppRouter {
       if (args is ExerciseDetailPageArgs) {
         return MaterialPageRoute<void>(
           builder: (_) => ExerciseDetailPage(args: args),
+          settings: settings,
+        );
+      }
+    }
+    if (settings.name == FoodLibraryPage.routeName) {
+      final args = settings.arguments;
+      if (args is FoodLibraryPageArgs) {
+        return MaterialPageRoute<void>(
+          builder: (_) => FoodLibraryPage(args: args),
+          settings: settings,
+        );
+      }
+    }
+    if (settings.name == FoodEntryPage.routeName) {
+      final args = settings.arguments;
+      if (args is FoodEntryPageArgs) {
+        return MaterialPageRoute<bool>(
+          builder: (_) => FoodEntryPage(args: args),
           settings: settings,
         );
       }

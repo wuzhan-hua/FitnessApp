@@ -18,8 +18,5 @@ Future<void> _initSupabase() async {
     throw StateError('缺少 SUPABASE_URL 或 SUPABASE_ANON_KEY');
   }
 
-  await Supabase.initialize(
-    url: supabaseUrl,
-    anonKey: supabaseAnonKey,
-  );
+  await Supabase.initialize(url: supabaseUrl, anonKey: supabaseAnonKey);
 }

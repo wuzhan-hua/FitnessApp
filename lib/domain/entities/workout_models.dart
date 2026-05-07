@@ -182,8 +182,7 @@ class ExerciseCatalogItem {
   bool get isCardio {
     final normalizedCategoryEn = categoryEn?.trim().toLowerCase();
     final normalizedCategoryZh = categoryZh?.trim();
-    return normalizedCategoryEn == 'cardio' ||
-        normalizedCategoryZh == '有氧';
+    return normalizedCategoryEn == 'cardio' || normalizedCategoryZh == '有氧';
   }
 
   static List<String> _readStringList(dynamic raw) {

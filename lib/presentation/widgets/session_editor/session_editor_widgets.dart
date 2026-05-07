@@ -250,9 +250,8 @@ class NumericStepper extends StatelessWidget {
                 ),
                 onPressed: onChanged == null
                     ? null
-                    : () => onChanged!(
-                          (value - step).clamp(0, 9999).toDouble(),
-                        ),
+                    : () =>
+                          onChanged!((value - step).clamp(0, 9999).toDouble()),
                 icon: const Icon(Icons.remove_circle_outline, size: 20),
                 padding: EdgeInsets.zero,
                 visualDensity: VisualDensity.compact,
@@ -288,9 +287,8 @@ class NumericStepper extends StatelessWidget {
                 ),
                 onPressed: onChanged == null
                     ? null
-                    : () => onChanged!(
-                          (value + step).clamp(0, 9999).toDouble(),
-                        ),
+                    : () =>
+                          onChanged!((value + step).clamp(0, 9999).toDouble()),
                 icon: const Icon(Icons.add_circle_outline, size: 20),
                 padding: EdgeInsets.zero,
                 visualDensity: VisualDensity.compact,

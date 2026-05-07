@@ -1,15 +1,20 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../data/services/diet_record_service.dart';
+import '../../data/services/food_library_service.dart';
 import '../../data/services/workout_service.dart';
 import '../../data/services/exercise_catalog_service.dart';
 import '../../data/services/auth_service.dart';
 import '../../data/services/user_profile_service.dart';
 import '../../data/repositories/supabase_workout_repository.dart';
 import '../../data/repositories/workout_repository.dart';
+import '../../domain/entities/diet_models.dart';
 import '../../domain/entities/workout_models.dart';
 import '../state/auth_status.dart';
 import '../state/app_settings.dart';
+import '../state/food_entry_controller.dart';
+import '../state/food_entry_state.dart';
 import '../state/session_editor_controller.dart';
 import '../state/session_editor_state.dart';
 import '../state/settings_controller.dart';
@@ -35,6 +40,14 @@ final userProfileServiceProvider = Provider<UserProfileService>((ref) {
 
 final exerciseCatalogServiceProvider = Provider<ExerciseCatalogService>((ref) {
   return ExerciseCatalogService(Supabase.instance.client);
+});
+
+final foodLibraryServiceProvider = Provider<FoodLibraryService>((ref) {
+  return FoodLibraryService();
+});
+
+final dietRecordServiceProvider = Provider<DietRecordService>((ref) {
+  return DietRecordService(Supabase.instance.client);
 });
 
 final currentUserIsAdminProvider = FutureProvider<bool>((ref) async {
@@ -109,6 +122,53 @@ final analyticsSnapshotProvider = FutureProvider<AnalyticsSnapshot>((
     to: now,
   );
 });
+
+final selectedDietDateProvider = StateProvider<DateTime>((ref) {
+  final now = DateTime.now();
+  return DateTime(now.year, now.month, now.day);
+});
+
+final foodSearchKeywordProvider = StateProvider.autoDispose<String>(
+  (ref) => '',
+);
+
+final selectedFoodCategoryProvider = StateProvider.autoDispose<String?>(
+  (ref) => null,
+);
+
+final foodLibraryProvider = FutureProvider.autoDispose<List<FoodItem>>((
+  ref,
+) async {
+  final service = ref.watch(foodLibraryServiceProvider);
+  final keyword = ref.watch(foodSearchKeywordProvider);
+  final category = ref.watch(selectedFoodCategoryProvider);
+  return service.searchFoods(keyword: keyword, category: category);
+});
+
+final foodCategoriesProvider = FutureProvider.autoDispose<List<String>>((
+  ref,
+) async {
+  final service = ref.watch(foodLibraryServiceProvider);
+  return service.getCategories();
+});
+
+final dietRecordsByDateProvider =
+    FutureProvider.family<List<DietRecord>, DateTime>((ref, date) async {
+      final service = ref.watch(dietRecordServiceProvider);
+      return service.getDietRecordsByDate(date);
+    });
+
+final dailyDietSummaryProvider =
+    FutureProvider.family<DailyDietSummary, DateTime>((ref, date) async {
+      final service = ref.watch(dietRecordServiceProvider);
+      return service.getDailyDietSummary(date);
+    });
+
+final foodEntryControllerProvider = StateNotifierProvider.autoDispose
+    .family<FoodEntryController, FoodEntryState, FoodItem>((ref, food) {
+      final service = ref.watch(dietRecordServiceProvider);
+      return FoodEntryController(service, food);
+    });
 
 final sessionEditorProvider = StateNotifierProvider.autoDispose
     .family<SessionEditorController, SessionEditorState, SessionEditorArgs>((

@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../application/providers/providers.dart';
-import '../pages/analytics_page.dart';
 import '../pages/calendar_page.dart';
+import '../pages/diet_page.dart';
 import '../pages/exercise_library_page.dart';
 import '../pages/home_page.dart';
 import '../pages/profile_page.dart';
@@ -20,11 +20,11 @@ class _MainShellState extends ConsumerState<MainShell> {
 
   final _pages = const [
     HomePage(),
+    DietPage(),
     CalendarPage(),
     ExerciseLibraryPage(
       args: ExerciseLibraryPageArgs(mode: ExerciseLibraryMode.browse),
     ),
-    AnalyticsPage(),
     ProfilePage(),
   ];
 
@@ -33,7 +33,8 @@ class _MainShellState extends ConsumerState<MainShell> {
     super.initState();
     Future<void>(() {
       ref.read(homeSnapshotProvider);
-      ref.read(analyticsSnapshotProvider);
+      ref.read(foodLibraryProvider);
+      ref.read(dailyDietSummaryProvider(DateTime.now()));
       final month = ref.read(calendarMonthProvider);
       ref.read(sessionsByMonthProvider(month));
     });
@@ -53,6 +54,11 @@ class _MainShellState extends ConsumerState<MainShell> {
             label: '首页',
           ),
           NavigationDestination(
+            icon: Icon(Icons.restaurant_menu_outlined),
+            selectedIcon: Icon(Icons.restaurant_menu),
+            label: '饮食',
+          ),
+          NavigationDestination(
             icon: Icon(Icons.calendar_month_outlined),
             selectedIcon: Icon(Icons.calendar_month),
             label: '日历',
@@ -61,11 +67,6 @@ class _MainShellState extends ConsumerState<MainShell> {
             icon: Icon(Icons.fitness_center_outlined),
             selectedIcon: Icon(Icons.fitness_center),
             label: '动作库',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.insights_outlined),
-            selectedIcon: Icon(Icons.insights),
-            label: '统计',
           ),
           NavigationDestination(
             icon: Icon(Icons.person_outline),

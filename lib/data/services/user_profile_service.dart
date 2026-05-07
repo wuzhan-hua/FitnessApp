@@ -84,15 +84,17 @@ class UserProfileService {
       final extension = _resolveExtension(fileName);
       final objectPath =
           '$userId/${DateTime.now().millisecondsSinceEpoch}.$extension';
-      await _client.storage.from(_avatarBucketName).uploadBinary(
-        objectPath,
-        Uint8List.fromList(bytes),
-        fileOptions: FileOptions(
-          cacheControl: '3600',
-          upsert: true,
-          contentType: _resolveContentType(extension),
-        ),
-      );
+      await _client.storage
+          .from(_avatarBucketName)
+          .uploadBinary(
+            objectPath,
+            Uint8List.fromList(bytes),
+            fileOptions: FileOptions(
+              cacheControl: '3600',
+              upsert: true,
+              contentType: _resolveContentType(extension),
+            ),
+          );
       return _client.storage.from(_avatarBucketName).getPublicUrl(objectPath);
     } catch (error, stackTrace) {
       AppLogger.error('上传头像失败', error: error, stackTrace: stackTrace);

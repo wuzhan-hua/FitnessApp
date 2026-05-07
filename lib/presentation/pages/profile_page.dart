@@ -8,6 +8,7 @@ import '../../theme/app_theme.dart';
 import '../../utils/app_error.dart';
 import '../../utils/snackbar_helper.dart';
 import 'admin_exercise_catalog_page.dart';
+import 'analytics_page.dart';
 import 'auth_page.dart';
 import 'personal_info_page.dart';
 import '../widgets/section_card.dart';
@@ -101,6 +102,23 @@ class ProfilePage extends ConsumerWidget {
               },
             ),
             const SizedBox(height: AppSpacing.md),
+            SectionCard(
+              title: '数据与回顾',
+              child: ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.insights_outlined),
+                title: const Text('训练统计'),
+                subtitle: const Text('查看近 30 天训练频率、训练量与 PR 趋势'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => const AnalyticsPage(),
+                    ),
+                  );
+                },
+              ),
+            ),
             SectionCard(
               title: '主题设置',
               child: SwitchListTile(

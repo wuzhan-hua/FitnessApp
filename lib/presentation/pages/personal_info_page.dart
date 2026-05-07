@@ -210,10 +210,7 @@ class _PersonalInfoPageState extends ConsumerState<PersonalInfoPage> {
             _selectedAvatarBytes ?? await _selectedAvatarFile!.readAsBytes();
         nextAvatarUrl = await ref
             .read(settingsProvider.notifier)
-            .uploadAvatar(
-              bytes: bytes,
-              fileName: _selectedAvatarFile!.name,
-            );
+            .uploadAvatar(bytes: bytes, fileName: _selectedAvatarFile!.name);
       }
       await ref
           .read(settingsProvider.notifier)
@@ -372,9 +369,9 @@ class _PersonalInfoPageState extends ConsumerState<PersonalInfoPage> {
                 TextFormField(
                   controller: _nameController,
                   onChanged: (_) => setState(() {}),
-                  decoration: _inputDecoration('昵称*').copyWith(
-                    hintText: '请输入昵称',
-                  ),
+                  decoration: _inputDecoration(
+                    '昵称*',
+                  ).copyWith(hintText: '请输入昵称'),
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
                       return '请输入昵称';
@@ -526,7 +523,8 @@ class _AvatarEditor extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = AppColors.of(context);
     final hasPreview =
-        imageFile != null || (avatarUrl != null && avatarUrl!.trim().isNotEmpty);
+        imageFile != null ||
+        (avatarUrl != null && avatarUrl!.trim().isNotEmpty);
 
     ImageProvider? preview;
     if (imageBytes != null) {
