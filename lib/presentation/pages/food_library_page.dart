@@ -83,7 +83,7 @@ class _FoodLibraryPageState extends ConsumerState<FoodLibraryPage> {
               backgroundColor: colors.panel,
               builder: (sheetContext) {
                 return _SelectedFoodsSheet(
-                  items: selectionState.items,
+                  mealType: widget.args.mealType,
                   onRemove: selectionController.removeFood,
                   onEdit: (entry) async {
                     Navigator.of(sheetContext).pop();
@@ -609,20 +609,22 @@ class _SelectionBar extends StatelessWidget {
   }
 }
 
-class _SelectedFoodsSheet extends StatelessWidget {
+class _SelectedFoodsSheet extends ConsumerWidget {
   const _SelectedFoodsSheet({
-    required this.items,
+    required this.mealType,
     required this.onRemove,
     required this.onEdit,
   });
 
-  final List<SelectedFoodEntry> items;
+  final MealType mealType;
   final ValueChanged<String> onRemove;
   final ValueChanged<SelectedFoodEntry> onEdit;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colors = AppColors.of(context);
+    final selectionState = ref.watch(foodSelectionControllerProvider(mealType));
+    final items = selectionState.items;
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(
@@ -706,6 +708,11 @@ class _SelectedFoodsSheet extends StatelessWidget {
                                     ),
                                   ],
                                 ),
+                              ),
+                              const SizedBox(width: AppSpacing.sm),
+                              IconButton(
+                                onPressed: () => onEdit(item),
+                                icon: const Icon(Icons.edit_outlined),
                               ),
                               IconButton(
                                 onPressed: () => onRemove(item.foodCode),
