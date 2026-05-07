@@ -9,6 +9,8 @@ import '../../utils/app_error.dart';
 import '../../utils/snackbar_helper.dart';
 import '../widgets/async_tab_content.dart';
 
+const _allFoodCategory = '';
+
 class FoodLibraryPageArgs {
   const FoodLibraryPageArgs({required this.date, required this.mealType});
 
@@ -34,6 +36,13 @@ class _FoodLibraryPageState extends ConsumerState<FoodLibraryPage> {
   void initState() {
     super.initState();
     _searchController = TextEditingController();
+    Future<void>(() {
+      if (!mounted) {
+        return;
+      }
+      ref.read(selectedFoodCategoryProvider.notifier).state = _allFoodCategory;
+      ref.read(foodSearchKeywordProvider.notifier).state = '';
+    });
   }
 
   @override
@@ -76,7 +85,19 @@ class _FoodLibraryPageState extends ConsumerState<FoodLibraryPage> {
                 return _SelectedFoodsSheet(
                   items: selectionState.items,
                   onRemove: selectionController.removeFood,
-                  onUpdateGrams: selectionController.updateGrams,
+                  onEdit: (entry) async {
+                    Navigator.of(sheetContext).pop();
+                    await _showFoodEntryDialog(
+                      context: context,
+                      food: entry.food,
+                      initialGrams: entry.grams,
+                      confirmLabel: '更新',
+                      onConfirm: (grams) {
+                        selectionController.addOrUpdateFood(entry.food, grams);
+                        showLatestSnackBar(context, '已更新食物克数');
+                      },
+                    );
+                  },
                 );
               },
             );
@@ -129,9 +150,8 @@ class _FoodLibraryPageState extends ConsumerState<FoodLibraryPage> {
                       : IconButton(
                           onPressed: () {
                             _searchController.clear();
-                            ref
-                                .read(foodSearchKeywordProvider.notifier)
-                                .state = '';
+                            ref.read(foodSearchKeywordProvider.notifier).state =
+                                '';
                             setState(() {});
                           },
                           icon: const Icon(Icons.close_rounded),
@@ -173,28 +193,30 @@ class _FoodLibraryPageState extends ConsumerState<FoodLibraryPage> {
                   ),
                 ),
                 data: (categories) {
-                  final activeCategory =
-                      selectedCategory ??
-                      (categories.isNotEmpty ? categories.first : null);
-                  if (selectedCategory == null && activeCategory != null) {
+                  final categoryOptions = <String>[
+                    _allFoodCategory,
+                    ...categories,
+                  ];
+                  final activeCategory = selectedCategory ?? _allFoodCategory;
+                  if (selectedCategory == null) {
                     WidgetsBinding.instance.addPostFrameCallback((_) {
                       if (!mounted) {
                         return;
                       }
-                      ref
-                          .read(selectedFoodCategoryProvider.notifier)
-                          .state = activeCategory;
+                      ref.read(selectedFoodCategoryProvider.notifier).state =
+                          _allFoodCategory;
                     });
                   }
                   return Row(
                     children: [
                       _FoodCategorySidebar(
-                        categories: categories,
+                        categories: categoryOptions,
                         selectedCategory: activeCategory,
                         onSelect: (category) {
                           ref
-                              .read(selectedFoodCategoryProvider.notifier)
-                              .state = category;
+                                  .read(selectedFoodCategoryProvider.notifier)
+                                  .state =
+                              category;
                         },
                       ),
                       Expanded(
@@ -223,6 +245,7 @@ class _FoodLibraryPageState extends ConsumerState<FoodLibraryPage> {
                                     await _showFoodEntryDialog(
                                       context: context,
                                       food: food,
+                                      confirmLabel: '加入',
                                       onConfirm: (grams) {
                                         selectionController.addOrUpdateFood(
                                           food,
@@ -255,14 +278,26 @@ class _FoodLibraryPageState extends ConsumerState<FoodLibraryPage> {
   Future<void> _showFoodEntryDialog({
     required BuildContext context,
     required FoodItem food,
+    required String confirmLabel,
+    double initialGrams = 100,
     required ValueChanged<double> onConfirm,
   }) async {
     final colors = AppColors.of(context);
-    final gramsController = TextEditingController(text: '100');
-    double grams = 100;
+    final gramsController = TextEditingController(
+      text: initialGrams == initialGrams.roundToDouble()
+          ? initialGrams.toStringAsFixed(0)
+          : initialGrams.toString(),
+    );
+    final focusNode = FocusNode();
+    double grams = initialGrams;
     await showDialog<void>(
       context: context,
       builder: (dialogContext) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (focusNode.canRequestFocus) {
+            focusNode.requestFocus();
+          }
+        });
         return StatefulBuilder(
           builder: (context, setDialogState) {
             final calculation = DietEntryCalculation.fromFood(food, grams);
@@ -276,13 +311,15 @@ class _FoodLibraryPageState extends ConsumerState<FoodLibraryPage> {
                   children: [
                     Text(
                       food.category,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: colors.textMuted,
-                      ),
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodySmall?.copyWith(color: colors.textMuted),
                     ),
                     const SizedBox(height: AppSpacing.md),
                     TextField(
                       controller: gramsController,
+                      focusNode: focusNode,
+                      autofocus: true,
                       keyboardType: const TextInputType.numberWithOptions(
                         decimal: true,
                       ),
@@ -305,14 +342,17 @@ class _FoodLibraryPageState extends ConsumerState<FoodLibraryPage> {
                     _NutrientPreviewRow(
                       label: '碳水',
                       value: '${calculation.carb.toStringAsFixed(1)} g',
+                      dotColor: colors.success,
                     ),
                     _NutrientPreviewRow(
                       label: '蛋白质',
                       value: '${calculation.protein.toStringAsFixed(1)} g',
+                      dotColor: const Color(0xFFEF4444),
                     ),
                     _NutrientPreviewRow(
                       label: '脂肪',
                       value: '${calculation.fat.toStringAsFixed(1)} g',
+                      dotColor: colors.warning,
                     ),
                   ],
                 ),
@@ -329,7 +369,7 @@ class _FoodLibraryPageState extends ConsumerState<FoodLibraryPage> {
                           onConfirm(grams);
                           Navigator.of(dialogContext).pop();
                         },
-                  child: const Text('加入'),
+                  child: Text(confirmLabel),
                 ),
               ],
             );
@@ -337,6 +377,8 @@ class _FoodLibraryPageState extends ConsumerState<FoodLibraryPage> {
         );
       },
     );
+    gramsController.dispose();
+    focusNode.dispose();
   }
 }
 
@@ -364,6 +406,7 @@ class _FoodCategorySidebar extends StatelessWidget {
         itemBuilder: (context, index) {
           final category = categories[index];
           final selected = selectedCategory == category;
+          final categoryLabel = category.isEmpty ? '全部' : category;
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
             child: InkWell(
@@ -379,7 +422,7 @@ class _FoodCategorySidebar extends StatelessWidget {
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: Text(
-                  category,
+                  categoryLabel,
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     fontWeight: FontWeight.w700,
@@ -430,16 +473,16 @@ class _FoodListTile extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       food.category,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: colors.textMuted,
-                      ),
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodySmall?.copyWith(color: colors.textMuted),
                     ),
                     const SizedBox(height: AppSpacing.xs),
                     Text(
                       '${food.energyKCal.toStringAsFixed(0)} kcal/100g  ·  碳水 ${food.carb.toStringAsFixed(1)}g  ·  蛋白质 ${food.protein.toStringAsFixed(1)}g  ·  脂肪 ${food.fat.toStringAsFixed(1)}g',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: colors.textMuted,
-                      ),
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodySmall?.copyWith(color: colors.textMuted),
                     ),
                   ],
                 ),
@@ -570,12 +613,12 @@ class _SelectedFoodsSheet extends StatelessWidget {
   const _SelectedFoodsSheet({
     required this.items,
     required this.onRemove,
-    required this.onUpdateGrams,
+    required this.onEdit,
   });
 
   final List<SelectedFoodEntry> items;
   final ValueChanged<String> onRemove;
-  final void Function(String foodCode, String gramsInput) onUpdateGrams;
+  final ValueChanged<SelectedFoodEntry> onEdit;
 
   @override
   Widget build(BuildContext context) {
@@ -615,26 +658,53 @@ class _SelectedFoodsSheet extends StatelessWidget {
                       const SizedBox(height: AppSpacing.sm),
                   itemBuilder: (context, index) {
                     final item = items[index];
-                    final gramsController = TextEditingController(
-                      text: item.grams.toStringAsFixed(0),
-                    );
                     final calculation = item.calculation;
-                    return Container(
-                      padding: const EdgeInsets.all(AppSpacing.md),
-                      decoration: BoxDecoration(
-                        color: colors.panelAlt,
+                    return Material(
+                      color: Colors.transparent,
+                      child: InkWell(
                         borderRadius: AppRadius.card,
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
+                        onTap: () => onEdit(item),
+                        child: Ink(
+                          padding: const EdgeInsets.all(AppSpacing.md),
+                          decoration: BoxDecoration(
+                            color: colors.panelAlt,
+                            borderRadius: AppRadius.card,
+                          ),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Expanded(
-                                child: Text(
-                                  item.food.foodName,
-                                  style: Theme.of(context).textTheme.titleSmall
-                                      ?.copyWith(fontWeight: FontWeight.w700),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      item.food.foodName,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleSmall
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      '${item.grams.toStringAsFixed(0)}g',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodyMedium
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                    ),
+                                    const SizedBox(height: AppSpacing.xs),
+                                    Text(
+                                      '${calculation.energyKCal.toStringAsFixed(0)} kcal · 碳水 ${calculation.carb.toStringAsFixed(1)}g · 蛋白质 ${calculation.protein.toStringAsFixed(1)}g · 脂肪 ${calculation.fat.toStringAsFixed(1)}g',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodySmall
+                                          ?.copyWith(color: colors.textMuted),
+                                    ),
+                                  ],
                                 ),
                               ),
                               IconButton(
@@ -643,26 +713,7 @@ class _SelectedFoodsSheet extends StatelessWidget {
                               ),
                             ],
                           ),
-                          TextField(
-                            controller: gramsController,
-                            keyboardType:
-                                const TextInputType.numberWithOptions(
-                                  decimal: true,
-                                ),
-                            decoration: const InputDecoration(
-                              labelText: '克数',
-                              suffixText: 'g',
-                            ),
-                            onChanged: (value) =>
-                                onUpdateGrams(item.foodCode, value),
-                          ),
-                          const SizedBox(height: AppSpacing.sm),
-                          Text(
-                            '${calculation.energyKCal.toStringAsFixed(0)} kcal · 碳水 ${calculation.carb.toStringAsFixed(1)}g · 蛋白质 ${calculation.protein.toStringAsFixed(1)}g · 脂肪 ${calculation.fat.toStringAsFixed(1)}g',
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(color: colors.textMuted),
-                          ),
-                        ],
+                        ),
                       ),
                     );
                   },
@@ -676,10 +727,15 @@ class _SelectedFoodsSheet extends StatelessWidget {
 }
 
 class _NutrientPreviewRow extends StatelessWidget {
-  const _NutrientPreviewRow({required this.label, required this.value});
+  const _NutrientPreviewRow({
+    required this.label,
+    required this.value,
+    this.dotColor,
+  });
 
   final String label;
   final String value;
+  final Color? dotColor;
 
   @override
   Widget build(BuildContext context) {
@@ -689,11 +745,26 @@ class _NutrientPreviewRow extends StatelessWidget {
       child: Row(
         children: [
           Expanded(
-            child: Text(
-              label,
-              style: Theme.of(
-                context,
-              ).textTheme.bodyMedium?.copyWith(color: colors.textMuted),
+            child: Row(
+              children: [
+                if (dotColor != null) ...[
+                  Container(
+                    width: 8,
+                    height: 8,
+                    decoration: BoxDecoration(
+                      color: dotColor,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                ],
+                Text(
+                  label,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(color: colors.textMuted),
+                ),
+              ],
             ),
           ),
           Text(

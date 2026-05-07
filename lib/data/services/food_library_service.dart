@@ -88,10 +88,14 @@ class FoodLibraryService {
     final foods = await loadFoods();
     final normalizedKeyword = keyword.trim().toLowerCase();
     return foods.where((food) {
+      final hasKeyword = normalizedKeyword.isNotEmpty;
       final matchCategory =
-          category == null || category.isEmpty || food.category == category;
+          hasKeyword ||
+          category == null ||
+          category.isEmpty ||
+          food.category == category;
       final matchKeyword =
-          normalizedKeyword.isEmpty ||
+          !hasKeyword ||
           food.foodName.toLowerCase().contains(normalizedKeyword);
       return matchCategory && matchKeyword;
     }).toList();

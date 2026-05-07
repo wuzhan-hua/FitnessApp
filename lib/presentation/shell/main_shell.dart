@@ -49,8 +49,8 @@ class _MainShellState extends ConsumerState<MainShell> {
         onDestinationSelected: (value) => setState(() => _currentIndex = value),
         destinations: const [
           NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home),
+            icon: Icon(Icons.fitness_center_outlined),
+            selectedIcon: Icon(Icons.fitness_center),
             label: '运动',
           ),
           NavigationDestination(

@@ -48,7 +48,6 @@ class DietPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedDate = ref.watch(selectedDietDateProvider);
     final summaryAsync = ref.watch(dailyDietSummaryProvider(selectedDate));
-    final colors = AppColors.of(context);
     final weekDays = _weekDays(selectedDate);
 
     return Scaffold(
@@ -77,7 +76,21 @@ class DietPage extends ConsumerWidget {
                         ),
                       );
                     },
-                    child: Text('+${mealType.label}'),
+                    style: FilledButton.styleFrom(
+                      minimumSize: const Size(0, 40),
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      visualDensity: const VisualDensity(
+                        horizontal: -1,
+                        vertical: -1,
+                      ),
+                      textStyle: Theme.of(context).textTheme.bodySmall
+                          ?.copyWith(fontWeight: FontWeight.w700),
+                    ),
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text('+${mealType.label}', maxLines: 1),
+                    ),
                   ),
                 ),
               ),
@@ -99,20 +112,18 @@ class DietPage extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: AppSpacing.sm),
-              Container(
-                padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-                decoration: BoxDecoration(
-                  color: colors.panel,
-                  borderRadius: AppRadius.card,
-                ),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
                 child: Row(
                   children: [
                     for (var index = 0; index < weekDays.length; index++)
                       Expanded(
                         child: _WeekDayChip(
                           date: weekDays[index],
-                          isSelected:
-                              DateUtils.isSameDay(weekDays[index], selectedDate),
+                          isSelected: DateUtils.isSameDay(
+                            weekDays[index],
+                            selectedDate,
+                          ),
                           weekLabel: const ['日', '一', '二', '三', '四', '五', '六'],
                           onTap: () {
                             ref.read(selectedDietDateProvider.notifier).state =
@@ -145,7 +156,8 @@ class DietPage extends ConsumerWidget {
                             SectionCard(
                               title: mealType.label,
                               child: _MealRecordList(
-                                records: summary.mealGroups[mealType] ?? const [],
+                                records:
+                                    summary.mealGroups[mealType] ?? const [],
                               ),
                             ),
                       ],
@@ -193,7 +205,9 @@ class _WeekDayChip extends StatelessWidget {
             Text(
               weekLabel[weekdayIndex],
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: isSelected ? Colors.white : AppColors.of(context).textMuted,
+                color: isSelected
+                    ? Colors.white
+                    : AppColors.of(context).textMuted,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -201,7 +215,9 @@ class _WeekDayChip extends StatelessWidget {
             Text(
               '${date.day}',
               style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                color: isSelected ? Colors.white : AppColors.of(context).textPrimary,
+                color: isSelected
+                    ? Colors.white
+                    : AppColors.of(context).textPrimary,
                 fontWeight: FontWeight.w700,
               ),
             ),
@@ -226,7 +242,7 @@ class _DietSummaryRing extends StatelessWidget {
     return Column(
       children: [
         SizedBox(
-          height: 220,
+          height: 184,
           child: Stack(
             alignment: Alignment.center,
             children: [
@@ -234,18 +250,18 @@ class _DietSummaryRing extends StatelessWidget {
                 PieChartData(
                   startDegreeOffset: -90,
                   sectionsSpace: 0,
-                  centerSpaceRadius: 68,
+                  centerSpaceRadius: 56,
                   sections: [
                     PieChartSectionData(
                       value: progress,
                       color: colors.accent,
-                      radius: 22,
+                      radius: 16,
                       showTitle: false,
                     ),
                     PieChartSectionData(
                       value: 1 - progress,
                       color: colors.panelAlt,
-                      radius: 22,
+                      radius: 16,
                       showTitle: false,
                     ),
                   ],
@@ -262,9 +278,9 @@ class _DietSummaryRing extends StatelessWidget {
                   ),
                   Text(
                     'kcal',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: colors.textMuted,
-                    ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodyMedium?.copyWith(color: colors.textMuted),
                   ),
                 ],
               ),
