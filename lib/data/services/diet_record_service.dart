@@ -44,6 +44,45 @@ class DietRecordService {
     }
   }
 
+  Future<void> addDietRecords({
+    required List<SelectedFoodEntry> entries,
+    required MealType mealType,
+    required DateTime consumedAt,
+  }) async {
+    final userId = _client.auth.currentUser?.id;
+    if (userId == null || userId.isEmpty) {
+      throw const AppError(message: '请先登录后再记录饮食。', code: 'auth_required');
+    }
+    if (entries.isEmpty) {
+      throw const AppError(message: '请先选择食物。');
+    }
+    try {
+      final payload = entries.map((entry) {
+        final calculation = entry.calculation;
+        return {
+          'user_id': userId,
+          'consumed_at': AppTime.toUtcIsoString(consumedAt),
+          'meal_type': mealType.value,
+          'food_code': entry.food.foodCode,
+          'food_name': entry.food.foodName,
+          'food_category': entry.food.category,
+          'grams': entry.grams,
+          'energy_kcal': calculation.energyKCal,
+          'protein': calculation.protein,
+          'fat': calculation.fat,
+          'carb': calculation.carb,
+          'dietary_fiber': calculation.dietaryFiber,
+          'cholesterol': calculation.cholesterol,
+          'sodium': calculation.sodium,
+        };
+      }).toList();
+      await _client.from('diet_records').insert(payload);
+    } catch (error, stackTrace) {
+      AppLogger.error('批量保存饮食记录失败', error: error, stackTrace: stackTrace);
+      throw AppError.from(error, fallbackMessage: '保存饮食记录失败，请稍后重试。');
+    }
+  }
+
   Future<List<DietRecord>> getDietRecordsByDate(DateTime date) async {
     final userId = _client.auth.currentUser?.id;
     if (userId == null || userId.isEmpty) {

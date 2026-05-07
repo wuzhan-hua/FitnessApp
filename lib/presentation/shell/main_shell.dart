@@ -51,7 +51,7 @@ class _MainShellState extends ConsumerState<MainShell> {
           NavigationDestination(
             icon: Icon(Icons.home_outlined),
             selectedIcon: Icon(Icons.home),
-            label: '首页',
+            label: '运动',
           ),
           NavigationDestination(
             icon: Icon(Icons.restaurant_menu_outlined),

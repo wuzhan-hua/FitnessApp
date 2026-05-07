@@ -15,6 +15,8 @@ import '../state/auth_status.dart';
 import '../state/app_settings.dart';
 import '../state/food_entry_controller.dart';
 import '../state/food_entry_state.dart';
+import '../state/food_selection_controller.dart';
+import '../state/food_selection_state.dart';
 import '../state/session_editor_controller.dart';
 import '../state/session_editor_state.dart';
 import '../state/settings_controller.dart';
@@ -168,6 +170,15 @@ final foodEntryControllerProvider = StateNotifierProvider.autoDispose
     .family<FoodEntryController, FoodEntryState, FoodItem>((ref, food) {
       final service = ref.watch(dietRecordServiceProvider);
       return FoodEntryController(service, food);
+    });
+
+final foodSelectionControllerProvider = StateNotifierProvider.autoDispose
+    .family<FoodSelectionController, FoodSelectionState, MealType>((
+      ref,
+      mealType,
+    ) {
+      final service = ref.watch(dietRecordServiceProvider);
+      return FoodSelectionController(service, mealType);
     });
 
 final sessionEditorProvider = StateNotifierProvider.autoDispose

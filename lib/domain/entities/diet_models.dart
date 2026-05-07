@@ -303,3 +303,27 @@ class DietEntryCalculation {
     );
   }
 }
+
+@immutable
+class SelectedFoodEntry {
+  const SelectedFoodEntry({
+    required this.foodCode,
+    required this.food,
+    required this.grams,
+  });
+
+  final String foodCode;
+  final FoodItem food;
+  final double grams;
+
+  DietEntryCalculation get calculation =>
+      DietEntryCalculation.fromFood(food, grams);
+
+  SelectedFoodEntry copyWith({double? grams}) {
+    return SelectedFoodEntry(
+      foodCode: foodCode,
+      food: food,
+      grams: grams ?? this.grams,
+    );
+  }
+}
