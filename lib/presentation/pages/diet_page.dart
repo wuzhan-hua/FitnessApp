@@ -83,13 +83,29 @@ class DietPage extends ConsumerWidget {
     required DateTime selectedDate,
     required _DietTargets targets,
   }) async {
-    final picked = await showModalBottomSheet<DateTime>(
+    final picked = await showGeneralDialog<DateTime>(
       context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      backgroundColor: Colors.transparent,
-      builder: (sheetContext) =>
-          _DietCalendarSheet(initialDate: selectedDate, targets: targets),
+      barrierDismissible: true,
+      barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
+      barrierColor: Colors.black.withValues(alpha: 0.34),
+      transitionDuration: const Duration(milliseconds: 240),
+      pageBuilder: (dialogContext, animation, secondaryAnimation) {
+        return _DietCalendarSheet(initialDate: selectedDate, targets: targets);
+      },
+      transitionBuilder: (context, animation, secondaryAnimation, child) {
+        final curved = CurvedAnimation(
+          parent: animation,
+          curve: Curves.easeOutCubic,
+          reverseCurve: Curves.easeInCubic,
+        );
+        return SlideTransition(
+          position: Tween<Offset>(
+            begin: const Offset(0, -0.08),
+            end: Offset.zero,
+          ).animate(curved),
+          child: FadeTransition(opacity: curved, child: child),
+        );
+      },
     );
     if (picked == null || !context.mounted) {
       return;
@@ -897,94 +913,103 @@ class _DietCalendarSheetState extends ConsumerState<_DietCalendarSheet> {
     final summariesAsync = ref.watch(
       monthlyDietSummariesProvider(_visibleMonth),
     );
-    return DraggableScrollableSheet(
-      initialChildSize: 0.78,
-      minChildSize: 0.58,
-      maxChildSize: 0.92,
-      builder: (context, scrollController) {
-        return Container(
-          decoration: BoxDecoration(
-            color: colors.panel,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-          ),
-          child: SingleChildScrollView(
-            controller: scrollController,
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.md,
-              AppSpacing.md,
-              AppSpacing.md,
-              AppSpacing.lg,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _DietCalendarSheetHeader(
-                  selectedDate: selectedDate,
-                  onPreviousMonth: () {
-                    setState(() {
-                      _visibleMonth = DateTime(
-                        _visibleMonth.year,
-                        _visibleMonth.month - 1,
-                        1,
-                      );
-                    });
-                  },
-                  onNextMonth: () {
-                    setState(() {
-                      _visibleMonth = DateTime(
-                        _visibleMonth.year,
-                        _visibleMonth.month + 1,
-                        1,
-                      );
-                    });
-                  },
+    final mediaQuery = MediaQuery.of(context);
+    final maxPanelHeight = mediaQuery.size.height * 0.72;
+    return SafeArea(
+      bottom: false,
+      child: Align(
+        alignment: Alignment.topCenter,
+        child: Material(
+          color: Colors.transparent,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxHeight: maxPanelHeight),
+            child: Container(
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: colors.panel,
+                borderRadius: const BorderRadius.vertical(
+                  bottom: Radius.circular(24),
                 ),
-                const SizedBox(height: AppSpacing.md),
-                Text(
-                  DateFormat('yyyy 年 MM 月').format(_visibleMonth),
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: colors.textPrimary,
-                    fontWeight: FontWeight.w700,
-                  ),
+              ),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.md,
+                  AppSpacing.md,
+                  AppSpacing.md,
+                  AppSpacing.lg,
                 ),
-                const SizedBox(height: AppSpacing.md),
-                const _DietCalendarWeekHeader(),
-                const SizedBox(height: AppSpacing.sm),
-                summariesAsync.when(
-                  loading: () => const SizedBox(
-                    height: 310,
-                    child: Center(child: CircularProgressIndicator()),
-                  ),
-                  error: (error, stackTrace) => SizedBox(
-                    height: 310,
-                    child: Center(
-                      child: Text(
-                        AppError.from(
-                          error,
-                          fallbackMessage: '月历加载失败，请稍后重试。',
-                        ).message,
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: colors.textMuted,
-                        ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _DietCalendarSheetHeader(
+                      selectedDate: selectedDate,
+                      onClose: () => Navigator.of(context).pop(),
+                      onPreviousMonth: () {
+                        setState(() {
+                          _visibleMonth = DateTime(
+                            _visibleMonth.year,
+                            _visibleMonth.month - 1,
+                            1,
+                          );
+                        });
+                      },
+                      onNextMonth: () {
+                        setState(() {
+                          _visibleMonth = DateTime(
+                            _visibleMonth.year,
+                            _visibleMonth.month + 1,
+                            1,
+                          );
+                        });
+                      },
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    Text(
+                      DateFormat('yyyy 年 MM 月').format(_visibleMonth),
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: colors.textPrimary,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
-                  ),
-                  data: (summaries) => _DietCalendarGrid(
-                    visibleMonth: _visibleMonth,
-                    selectedDate: selectedDate,
-                    summaries: summaries,
-                    targets: widget.targets,
-                    onSelectDate: (date) => Navigator.of(context).pop(date),
-                  ),
+                    const SizedBox(height: AppSpacing.md),
+                    const _DietCalendarWeekHeader(),
+                    const SizedBox(height: AppSpacing.sm),
+                    summariesAsync.when(
+                      loading: () => const SizedBox(
+                        height: 310,
+                        child: Center(child: CircularProgressIndicator()),
+                      ),
+                      error: (error, stackTrace) => SizedBox(
+                        height: 310,
+                        child: Center(
+                          child: Text(
+                            AppError.from(
+                              error,
+                              fallbackMessage: '月历加载失败，请稍后重试。',
+                            ).message,
+                            textAlign: TextAlign.center,
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(color: colors.textMuted),
+                          ),
+                        ),
+                      ),
+                      data: (summaries) => _DietCalendarGrid(
+                        visibleMonth: _visibleMonth,
+                        selectedDate: selectedDate,
+                        summaries: summaries,
+                        targets: widget.targets,
+                        onSelectDate: (date) => Navigator.of(context).pop(date),
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    const _DietCalendarLegend(),
+                  ],
                 ),
-                const SizedBox(height: AppSpacing.md),
-                const _DietCalendarLegend(),
-              ],
+              ),
             ),
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 }
@@ -992,11 +1017,13 @@ class _DietCalendarSheetState extends ConsumerState<_DietCalendarSheet> {
 class _DietCalendarSheetHeader extends StatelessWidget {
   const _DietCalendarSheetHeader({
     required this.selectedDate,
+    required this.onClose,
     required this.onPreviousMonth,
     required this.onNextMonth,
   });
 
   final DateTime selectedDate;
+  final VoidCallback onClose;
   final VoidCallback onPreviousMonth;
   final VoidCallback onNextMonth;
 
@@ -1017,29 +1044,39 @@ class _DietCalendarSheetHeader extends StatelessWidget {
               color: colors.textPrimary,
             ),
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-            decoration: BoxDecoration(
-              color: colors.panelAlt.withValues(alpha: 0.62),
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: onClose,
               borderRadius: AppRadius.chip,
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  DateFormat('MM月dd日').format(selectedDate),
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    color: colors.textPrimary,
-                    fontWeight: FontWeight.w700,
-                  ),
+              child: Ink(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 8,
                 ),
-                const SizedBox(width: 8),
-                Icon(
-                  Icons.arrow_drop_up_rounded,
-                  color: colors.textMuted,
-                  size: 20,
+                decoration: BoxDecoration(
+                  color: colors.panelAlt.withValues(alpha: 0.62),
+                  borderRadius: AppRadius.chip,
                 ),
-              ],
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      DateFormat('MM月dd日').format(selectedDate),
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        color: colors.textPrimary,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Icon(
+                      Icons.arrow_drop_up_rounded,
+                      color: colors.textMuted,
+                      size: 20,
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
           Align(
