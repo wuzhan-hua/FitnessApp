@@ -60,7 +60,7 @@ class AppRouter {
     if (settings.name == FoodLibraryPage.routeName) {
       final args = settings.arguments;
       if (args is FoodLibraryPageArgs) {
-        return MaterialPageRoute<void>(
+        return MaterialPageRoute<bool>(
           builder: (_) => FoodLibraryPage(args: args),
           settings: settings,
         );

@@ -11,6 +11,7 @@ class FitnessApp extends ConsumerWidget {
   const FitnessApp({super.key});
 
   List<Route<dynamic>> _handleInitialRoutes(String initialRoute) {
+    debugPrint('[INFO] App initialRoute=$initialRoute');
     final defaultRoute = MaterialPageRoute<void>(
       builder: (_) => const AuthGate(),
       settings: const RouteSettings(name: Navigator.defaultRouteName),
@@ -19,11 +20,16 @@ class FitnessApp extends ConsumerWidget {
       return [defaultRoute];
     }
 
+    if (initialRoute == '/meal-analysis') {
+      debugPrint('[INFO] meal-analysis 初始直达已回退到根页');
+      return [defaultRoute];
+    }
+
     final generatedRoute = AppRouter.onGenerateRoute(
       RouteSettings(name: initialRoute),
     );
     if (generatedRoute != null) {
-      return [defaultRoute, generatedRoute];
+      return [defaultRoute];
     }
 
     return [defaultRoute];

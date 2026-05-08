@@ -81,74 +81,77 @@ class _FoodLibraryPageState extends ConsumerState<FoodLibraryPage> {
     return Scaffold(
       appBar: AppBar(title: Text(widget.args.mealType.label)),
       bottomNavigationBar: SafeArea(
-        minimum: const EdgeInsets.fromLTRB(
-          AppSpacing.md,
-          0,
-          AppSpacing.md,
-          AppSpacing.md,
-        ),
-        child: _SelectionBar(
-          state: selectionState,
-          mealType: widget.args.mealType,
-          onPreview: () async {
-            await showModalBottomSheet<void>(
-              context: context,
-              isScrollControlled: true,
-              backgroundColor: colors.panel,
-              builder: (sheetContext) {
-                return _SelectedFoodsSheet(
-                  mealType: widget.args.mealType,
-                  onRemove: selectionController.removeFood,
-                  onEdit: (entry) async {
-                    Navigator.of(sheetContext).pop();
-                    await _openFoodEntryDialog(
-                      context: context,
-                      food: entry.food,
-                      initialGrams: entry.grams,
-                      confirmLabel: '更新',
-                      onConfirm: (grams) {
-                        selectionController.addOrUpdateFood(entry.food, grams);
-                        showLatestSnackBar(context, '已更新食物克数');
+        minimum: EdgeInsets.zero,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.md,
+            0,
+            AppSpacing.md,
+            AppSpacing.md,
+          ),
+          child: Align(
+            heightFactor: 1,
+            alignment: Alignment.center,
+            child: _SelectionBar(
+              state: selectionState,
+              mealType: widget.args.mealType,
+              onPreview: () async {
+                await showModalBottomSheet<void>(
+                  context: context,
+                  isScrollControlled: true,
+                  backgroundColor: colors.panel,
+                  builder: (sheetContext) {
+                    return _SelectedFoodsSheet(
+                      mealType: widget.args.mealType,
+                      onRemove: selectionController.removeFood,
+                      onEdit: (entry) async {
+                        Navigator.of(sheetContext).pop();
+                        await _openFoodEntryDialog(
+                          context: context,
+                          food: entry.food,
+                          initialGrams: entry.grams,
+                          confirmLabel: '更新',
+                          onConfirm: (grams) {
+                            selectionController.addOrUpdateFood(
+                              entry.food,
+                              grams,
+                            );
+                            showLatestSnackBar(context, '已更新食物克数');
+                          },
+                        );
                       },
                     );
                   },
                 );
               },
-            );
-          },
-          onSave: selectionState.isSubmitting
-              ? null
-              : () async {
-                  try {
-                    await selectionController.saveAll(widget.args.date);
-                    if (!context.mounted) {
-                      return;
-                    }
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      ref.invalidate(
-                        dietRecordsByDateProvider(widget.args.date),
-                      );
-                      ref.invalidate(
-                        dailyDietSummaryProvider(widget.args.date),
-                      );
-                    });
-                    showLatestSnackBar(
-                      context,
-                      '${widget.args.mealType.label}已保存 ${selectionState.itemCount} 项',
-                    );
-                    selectionController.resetSelection();
-                    Navigator.of(context).pop();
-                  } catch (error) {
-                    if (!context.mounted) {
-                      return;
-                    }
-                    final appError = AppError.from(
-                      error,
-                      fallbackMessage: '保存饮食记录失败，请稍后重试。',
-                    );
-                    showLatestSnackBar(context, appError.message);
-                  }
-                },
+              onSave: selectionState.isSubmitting
+                  ? null
+                  : () async {
+                      try {
+                        await selectionController.saveAll(widget.args.date);
+                        if (!context.mounted) {
+                          return;
+                        }
+                        ref.invalidate(
+                          dietRecordsByDateProvider(widget.args.date),
+                        );
+                        ref.invalidate(
+                          dailyDietSummaryProvider(widget.args.date),
+                        );
+                        Navigator.of(context).pop(true);
+                      } catch (error) {
+                        if (!context.mounted) {
+                          return;
+                        }
+                        final appError = AppError.from(
+                          error,
+                          fallbackMessage: '保存饮食记录失败，请稍后重试。',
+                        );
+                        showLatestSnackBar(context, appError.message);
+                      }
+                    },
+            ),
+          ),
         ),
       ),
       body: SafeArea(
@@ -314,7 +317,12 @@ class _FoodLibraryPageState extends ConsumerState<FoodLibraryPage> {
     if (grams == null) {
       return;
     }
-    onConfirm(grams);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+      onConfirm(grams);
+    });
   }
 }
 
@@ -449,97 +457,94 @@ class _SelectionBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = AppColors.of(context);
-    return Material(
-      color: Colors.transparent,
-      child: Ink(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md,
-          vertical: AppSpacing.sm,
-        ),
-        decoration: BoxDecoration(
-          color: colors.panel,
-          borderRadius: BorderRadius.circular(18),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.08),
-              blurRadius: 18,
-              offset: const Offset(0, 8),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: InkWell(
-                borderRadius: BorderRadius.circular(14),
-                onTap: onPreview,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4),
-                  child: Row(
-                    children: [
-                      Stack(
-                        clipBehavior: Clip.none,
-                        children: [
-                          Icon(
-                            Icons.breakfast_dining_outlined,
-                            color: colors.textPrimary,
-                          ),
-                          if (state.itemCount > 0)
-                            Positioned(
-                              right: -6,
-                              top: -6,
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 6,
-                                  vertical: 2,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.red,
-                                  borderRadius: BorderRadius.circular(999),
-                                ),
-                                child: Text(
-                                  '${state.itemCount}',
-                                  style: Theme.of(context).textTheme.labelSmall
-                                      ?.copyWith(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.w700,
-                                      ),
-                                ),
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.sm,
+      ),
+      decoration: BoxDecoration(
+        color: colors.panel,
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 18,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: onPreview,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Row(
+                  children: [
+                    Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        Icon(
+                          Icons.breakfast_dining_outlined,
+                          color: colors.textPrimary,
+                        ),
+                        if (state.itemCount > 0)
+                          Positioned(
+                            right: -6,
+                            top: -6,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.red,
+                                borderRadius: BorderRadius.circular(999),
+                              ),
+                              child: Text(
+                                '${state.itemCount}',
+                                style: Theme.of(context).textTheme.labelSmall
+                                    ?.copyWith(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w700,
+                                    ),
                               ),
                             ),
-                        ],
-                      ),
-                      const SizedBox(width: AppSpacing.sm),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            mealType.label,
-                            style: Theme.of(context).textTheme.titleSmall
-                                ?.copyWith(fontWeight: FontWeight.w700),
                           ),
-                          Text(
-                            state.itemCount == 0
-                                ? '还没有已选食物'
-                                : '已选择 ${state.itemCount} 个食物',
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(color: colors.textMuted),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
+                      ],
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          mealType.label,
+                          style: Theme.of(context).textTheme.titleSmall
+                              ?.copyWith(fontWeight: FontWeight.w700),
+                        ),
+                        Text(
+                          state.itemCount == 0
+                              ? '还没有已选食物'
+                              : '已选择 ${state.itemCount} 个食物',
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(color: colors.textMuted),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
             ),
-            const SizedBox(width: AppSpacing.sm),
-            FilledButton(
-              onPressed: onSave,
-              child: Text(state.isSubmitting ? '保存中...' : '保存'),
-            ),
-          ],
-        ),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          FilledButton(
+            onPressed: onSave,
+            child: Text(state.isSubmitting ? '保存中...' : '保存'),
+          ),
+        ],
       ),
     );
   }

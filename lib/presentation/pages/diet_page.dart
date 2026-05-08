@@ -79,13 +79,21 @@ class DietPage extends ConsumerWidget {
                   ),
                   child: FilledButton.tonal(
                     onPressed: () async {
-                      await Navigator.of(context).pushNamed<void>(
+                      final saved = await Navigator.of(context).pushNamed<bool>(
                         FoodLibraryPage.routeName,
                         arguments: FoodLibraryPageArgs(
                           date: selectedDate,
                           mealType: mealType,
                         ),
                       );
+                      if (!context.mounted) {
+                        return;
+                      }
+                      if (saved == true) {
+                        ref.invalidate(dietRecordsByDateProvider(selectedDate));
+                        ref.invalidate(dailyDietSummaryProvider(selectedDate));
+                        showLatestSnackBar(context, '${mealType.label}已保存');
+                      }
                     },
                     style: FilledButton.styleFrom(
                       minimumSize: const Size(0, 40),
