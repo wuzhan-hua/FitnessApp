@@ -108,6 +108,32 @@ class DietRecordService {
     }
   }
 
+  Future<List<DietRecord>> getDietRecordsInRange({
+    required DateTime fromInclusive,
+    required DateTime toExclusive,
+  }) async {
+    final userId = _client.auth.currentUser?.id;
+    if (userId == null || userId.isEmpty) {
+      return const [];
+    }
+    try {
+      final rows = await _client
+          .from('diet_records')
+          .select()
+          .eq('user_id', userId)
+          .gte('consumed_at', AppTime.toUtcIsoString(fromInclusive))
+          .lt('consumed_at', AppTime.toUtcIsoString(toExclusive))
+          .order('consumed_at');
+      return (rows as List<dynamic>)
+          .whereType<Map<String, dynamic>>()
+          .map(DietRecord.fromJson)
+          .toList();
+    } catch (error, stackTrace) {
+      AppLogger.error('加载月度饮食记录失败', error: error, stackTrace: stackTrace);
+      throw AppError.from(error, fallbackMessage: '加载饮食记录失败，请稍后重试。');
+    }
+  }
+
   Future<DailyDietSummary> getDailyDietSummary(DateTime date) async {
     final records = await getDietRecordsByDate(date);
     return DailyDietSummary.fromRecords(date, records);

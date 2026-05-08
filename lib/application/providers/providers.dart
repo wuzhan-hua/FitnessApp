@@ -89,6 +89,11 @@ DateTime calendarGridStartDay(DateTime month) {
   return firstDay.subtract(Duration(days: startOffset));
 }
 
+DateTime dietCalendarGridStartDay(DateTime month) {
+  final firstDay = DateTime(month.year, month.month, 1);
+  return firstDay.subtract(Duration(days: firstDay.weekday % 7));
+}
+
 final workoutSessionByIdProvider =
     FutureProvider.family<WorkoutSession?, String>((ref, sessionId) async {
       final service = ref.watch(workoutServiceProvider);
@@ -164,6 +169,33 @@ final dailyDietSummaryProvider =
     FutureProvider.family<DailyDietSummary, DateTime>((ref, date) async {
       final service = ref.watch(dietRecordServiceProvider);
       return service.getDailyDietSummary(date);
+    });
+
+final monthlyDietSummariesProvider =
+    FutureProvider.family<Map<DateTime, DailyDietSummary>, DateTime>((
+      ref,
+      month,
+    ) async {
+      final service = ref.watch(dietRecordServiceProvider);
+      final gridStart = dietCalendarGridStartDay(month);
+      final gridEnd = gridStart.add(const Duration(days: 42));
+      final records = await service.getDietRecordsInRange(
+        fromInclusive: gridStart,
+        toExclusive: gridEnd,
+      );
+      final recordsByDay = <DateTime, List<DietRecord>>{};
+      for (final record in records) {
+        final day = DateTime(
+          record.consumedAt.year,
+          record.consumedAt.month,
+          record.consumedAt.day,
+        );
+        recordsByDay.putIfAbsent(day, () => <DietRecord>[]).add(record);
+      }
+      return {
+        for (final entry in recordsByDay.entries)
+          entry.key: DailyDietSummary.fromRecords(entry.key, entry.value),
+      };
     });
 
 final foodEntryControllerProvider = StateNotifierProvider.autoDispose

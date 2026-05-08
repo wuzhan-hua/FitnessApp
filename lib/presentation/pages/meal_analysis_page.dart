@@ -1,3 +1,4 @@
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -50,6 +51,13 @@ class MealAnalysisPage extends ConsumerWidget {
             context,
           ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
         ),
+        actions: [
+          IconButton(
+            tooltip: '分享',
+            onPressed: () => showLatestSnackBar(context, '分享功能开发中'),
+            icon: const Icon(Icons.ios_share_rounded),
+          ),
+        ],
       ),
       backgroundColor: colors.background,
       body: SafeArea(
@@ -76,6 +84,11 @@ class MealAnalysisPage extends ConsumerWidget {
             final mealEnergy = _mealEnergy(resolvedRecords);
             final totalGrams = _mealTotalGrams(resolvedRecords);
             final nutrientStats = _buildMacroStats(resolvedRecords);
+            final recommendation = _mealRecommendationFor(args.mealType);
+            final mealStatus = _resolveMealStatus(
+              mealEnergy: mealEnergy,
+              recommendation: recommendation,
+            );
 
             AppLogger.info(
               '餐次分析页加载: date=${args.date.toIso8601String()}, '
@@ -86,97 +99,45 @@ class MealAnalysisPage extends ConsumerWidget {
             AppLogger.info('餐次分析页开始构建最小安全内容');
 
             return SingleChildScrollView(
-              padding: const EdgeInsets.all(AppSpacing.md),
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.md,
+                AppSpacing.md,
+                AppSpacing.md,
+                AppSpacing.xl,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Container(
-                    margin: const EdgeInsets.only(bottom: AppSpacing.md),
-                    padding: const EdgeInsets.all(AppSpacing.md),
-                    decoration: BoxDecoration(
-                      color: colors.panel,
-                      borderRadius: AppRadius.card,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '共 ${mealEnergy.toStringAsFixed(0)} kcal',
-                          style: Theme.of(context).textTheme.headlineSmall
-                              ?.copyWith(fontWeight: FontWeight.w700),
-                        ),
-                        const SizedBox(height: AppSpacing.md),
-                        for (
-                          var index = 0;
-                          index < nutrientStats.length;
-                          index++
-                        )
-                          Padding(
-                            padding: EdgeInsets.only(
-                              bottom: index == nutrientStats.length - 1
-                                  ? 0
-                                  : AppSpacing.sm,
-                            ),
-                            child: _MacroStatRow(item: nutrientStats[index]),
-                          ),
-                        if (mealEnergy <= 0) ...[
-                          const SizedBox(height: AppSpacing.md),
-                          Text(
-                            '当前餐次还没有热量数据，先添加食物后会自动生成分析。',
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(color: colors.textMuted),
-                          ),
-                        ],
-                      ],
-                    ),
+                  _MealNutritionCard(
+                    mealType: args.mealType,
+                    mealEnergy: mealEnergy,
+                    nutrientStats: nutrientStats,
+                    recommendation: recommendation,
+                    status: mealStatus,
                   ),
-                  Container(
-                    padding: const EdgeInsets.all(AppSpacing.md),
-                    decoration: BoxDecoration(
-                      color: colors.panel,
-                      borderRadius: AppRadius.card,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '食物共 ${resolvedRecords.length} 个（${totalGrams.toStringAsFixed(1)}克）',
-                          style: Theme.of(context).textTheme.titleMedium
-                              ?.copyWith(fontWeight: FontWeight.w700),
-                        ),
-                        const SizedBox(height: AppSpacing.md),
-                        if (resolvedRecords.isEmpty)
-                          Text(
-                            '当前餐次还没有食物，点击底部按钮继续添加。',
-                            style: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(color: colors.textMuted),
-                          )
-                        else
-                          Column(
-                            children: [
-                              for (
-                                var index = 0;
-                                index < resolvedRecords.length;
-                                index++
-                              ) ...[
-                                _MealFoodRow(
-                                  record: resolvedRecords[index],
-                                  onTap: () async {
-                                    await _editRecord(
-                                      context: context,
-                                      ref: ref,
-                                      service: service,
-                                      record: resolvedRecords[index],
-                                    );
-                                  },
-                                ),
-                                if (index != resolvedRecords.length - 1)
-                                  const SizedBox(height: AppSpacing.md),
-                              ],
-                            ],
-                          ),
-                      ],
-                    ),
+                  const SizedBox(height: AppSpacing.md),
+                  _MealFoodsCard(
+                    records: resolvedRecords,
+                    totalGrams: totalGrams,
+                    onSaveAsSet: () => showLatestSnackBar(context, '存为套餐功能开发中'),
+                    onEditRecord: (record) async {
+                      await _editRecord(
+                        context: context,
+                        ref: ref,
+                        service: service,
+                        record: record,
+                      );
+                    },
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  _AddDiaryCard(
+                    onTap: () async {
+                      await _openFoodLibrary(
+                        context: context,
+                        ref: ref,
+                        resolvedRecords: resolvedRecords,
+                      );
+                    },
                   ),
                 ],
               ),
@@ -334,6 +295,278 @@ class _MacroStatRow extends StatelessWidget {
   }
 }
 
+class _MealNutritionCard extends StatelessWidget {
+  const _MealNutritionCard({
+    required this.mealType,
+    required this.mealEnergy,
+    required this.nutrientStats,
+    required this.recommendation,
+    required this.status,
+  });
+
+  final MealType mealType;
+  final double mealEnergy;
+  final List<_MacroStatItem> nutrientStats;
+  final _MealRecommendation recommendation;
+  final _MealStatus status;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
+    final textTheme = Theme.of(context).textTheme;
+
+    return _MealCard(
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text.rich(
+                  TextSpan(
+                    text: '${mealType.label}建议 ',
+                    children: [
+                      TextSpan(
+                        text:
+                            '${recommendation.minKcal.toStringAsFixed(0)}~${recommendation.maxKcal.toStringAsFixed(0)}',
+                        style: TextStyle(color: colors.success),
+                      ),
+                      const TextSpan(text: ' 千卡'),
+                    ],
+                  ),
+                  style: textTheme.titleMedium?.copyWith(
+                    color: colors.textPrimary,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              Text(
+                status.label,
+                style: textTheme.titleMedium?.copyWith(
+                  color: status.color,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Divider(height: 1, color: colors.panelAlt),
+          const SizedBox(height: AppSpacing.lg),
+          Row(
+            children: [
+              _MealMacroRing(
+                mealEnergy: mealEnergy,
+                nutrientStats: nutrientStats,
+              ),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: Column(
+                  children: [
+                    for (var index = 0; index < nutrientStats.length; index++)
+                      Padding(
+                        padding: EdgeInsets.only(
+                          bottom: index == nutrientStats.length - 1
+                              ? 0
+                              : AppSpacing.sm,
+                        ),
+                        child: _MacroStatRow(item: nutrientStats[index]),
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          if (mealEnergy <= 0) ...[
+            const SizedBox(height: AppSpacing.md),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                '当前餐次还没有热量数据，先添加食物后会自动生成分析。',
+                style: textTheme.bodySmall?.copyWith(color: colors.textMuted),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _MealMacroRing extends StatelessWidget {
+  const _MealMacroRing({required this.mealEnergy, required this.nutrientStats});
+
+  final double mealEnergy;
+  final List<_MacroStatItem> nutrientStats;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
+
+    return SizedBox(
+      width: 106,
+      height: 106,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          PieChart(
+            PieChartData(
+              startDegreeOffset: -90,
+              sectionsSpace: 0,
+              centerSpaceRadius: 32,
+              sections: _macroSections(nutrientStats, colors),
+            ),
+          ),
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                mealEnergy.toStringAsFixed(0),
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              Text(
+                '千卡',
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(color: colors.textMuted),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MealFoodsCard extends StatelessWidget {
+  const _MealFoodsCard({
+    required this.records,
+    required this.totalGrams,
+    required this.onSaveAsSet,
+    required this.onEditRecord,
+  });
+
+  final List<DietRecord> records;
+  final double totalGrams;
+  final VoidCallback onSaveAsSet;
+  final ValueChanged<DietRecord> onEditRecord;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
+    final textTheme = Theme.of(context).textTheme;
+
+    return _MealCard(
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  '食物 ${records.length}个（${totalGrams.toStringAsFixed(1)}克）',
+                  style: textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: onSaveAsSet,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 2),
+                  child: Text(
+                    '存为套餐',
+                    style: textTheme.titleMedium?.copyWith(
+                      color: colors.success,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.md),
+          if (records.isEmpty)
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                '当前餐次还没有食物，点击底部按钮继续添加。',
+                style: textTheme.bodyMedium?.copyWith(color: colors.textMuted),
+              ),
+            )
+          else
+            Column(
+              children: [
+                for (var index = 0; index < records.length; index++) ...[
+                  _MealFoodRow(
+                    record: records[index],
+                    onTap: () => onEditRecord(records[index]),
+                  ),
+                  if (index != records.length - 1)
+                    const SizedBox(height: AppSpacing.md),
+                ],
+              ],
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AddDiaryCard extends StatelessWidget {
+  const _AddDiaryCard({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
+
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: _MealCard(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.md,
+        ),
+        child: Text(
+          '+ 添加日记',
+          textAlign: TextAlign.center,
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+            color: colors.success,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _MealCard extends StatelessWidget {
+  const _MealCard({
+    required this.child,
+    this.padding = const EdgeInsets.all(AppSpacing.lg),
+  });
+
+  final Widget child;
+  final EdgeInsetsGeometry padding;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
+
+    return Container(
+      padding: padding,
+      decoration: BoxDecoration(
+        color: colors.panel,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: child,
+    );
+  }
+}
+
 class _MealFoodRow extends StatelessWidget {
   const _MealFoodRow({required this.record, required this.onTap});
 
@@ -345,39 +578,73 @@ class _MealFoodRow extends StatelessWidget {
     final colors = AppColors.of(context);
     return GestureDetector(
       onTap: onTap,
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  record.foodName,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '${record.grams.toStringAsFixed(0)}克${record.foodCategory.isEmpty ? '' : ' · ${record.foodCategory}'}',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodySmall?.copyWith(color: colors.textMuted),
-                ),
-              ],
+      behavior: HitTestBehavior.opaque,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 2),
+        child: Row(
+          children: [
+            Container(
+              width: 50,
+              height: 50,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: colors.panelAlt.withValues(alpha: 0.7),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                Icons.restaurant_rounded,
+                color: colors.textMuted,
+                size: 24,
+              ),
             ),
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          Text(
-            '${record.energyKCal.toStringAsFixed(0)}千卡 >',
-            style: Theme.of(
-              context,
-            ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
-          ),
-        ],
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    record.foodName,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    '${record.grams.toStringAsFixed(0)}克${record.foodCategory.isEmpty ? '' : ' · ${record.foodCategory}'}',
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: colors.textMuted),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            Text(
+              '${record.energyKCal.toStringAsFixed(0)} 千卡 ›',
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                color: colors.textMuted,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
+}
+
+class _MealRecommendation {
+  const _MealRecommendation({required this.minKcal, required this.maxKcal});
+
+  final double minKcal;
+  final double maxKcal;
+}
+
+class _MealStatus {
+  const _MealStatus({required this.label, required this.color});
+
+  final String label;
+  final Color color;
 }
 
 class _MacroStatItem {
@@ -445,4 +712,56 @@ List<_MacroStatItem> _buildMacroStats(List<DietRecord> records) {
       color: const Color(0xFF93E5C2),
     ),
   ];
+}
+
+List<PieChartSectionData> _macroSections(
+  List<_MacroStatItem> items,
+  AppPalette colors,
+) {
+  final totalCalories = items.fold(0.0, (sum, item) => sum + item.calories);
+  if (totalCalories <= 0) {
+    return [
+      PieChartSectionData(
+        value: 1,
+        color: colors.panelAlt,
+        radius: 13,
+        showTitle: false,
+      ),
+    ];
+  }
+  return [
+    for (final item in items)
+      PieChartSectionData(
+        value: item.calories,
+        color: item.color,
+        radius: 13,
+        showTitle: false,
+      ),
+  ];
+}
+
+_MealRecommendation _mealRecommendationFor(MealType mealType) {
+  switch (mealType) {
+    case MealType.breakfast:
+      return const _MealRecommendation(minKcal: 420, maxKcal: 650);
+    case MealType.lunch:
+      return const _MealRecommendation(minKcal: 520, maxKcal: 820);
+    case MealType.dinner:
+      return const _MealRecommendation(minKcal: 480, maxKcal: 760);
+    case MealType.snack:
+      return const _MealRecommendation(minKcal: 120, maxKcal: 280);
+  }
+}
+
+_MealStatus _resolveMealStatus({
+  required double mealEnergy,
+  required _MealRecommendation recommendation,
+}) {
+  if (mealEnergy <= 0 || mealEnergy < recommendation.minKcal) {
+    return const _MealStatus(label: '吃少了', color: Color(0xFF5B6B86));
+  }
+  if (mealEnergy > recommendation.maxKcal) {
+    return const _MealStatus(label: '吃多了', color: Color(0xFFF59E0B));
+  }
+  return const _MealStatus(label: '刚刚好', color: Color(0xFF16A34A));
 }
