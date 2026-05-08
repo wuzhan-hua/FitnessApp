@@ -1153,15 +1153,15 @@ class _DietCalendarGrid extends StatelessWidget {
       ),
       itemBuilder: (context, index) {
         final date = _day(startDay.add(Duration(days: index)));
+        final summary = summaries[date];
         return _DietCalendarDayCell(
           date: date,
           inVisibleMonth: date.month == visibleMonth.month,
           isSelected: DateUtils.isSameDay(date, selectedDate),
           isToday: DateUtils.isSameDay(date, today),
-          status: _dietCalendarStatusFromSummary(
-            summaries[date],
-            targets: targets,
-          ),
+          summary: summary,
+          targets: targets,
+          status: _dietCalendarStatusFromSummary(summary, targets: targets),
           onTap: () => onSelectDate(date),
         );
       },
@@ -1175,6 +1175,8 @@ class _DietCalendarDayCell extends StatelessWidget {
     required this.inVisibleMonth,
     required this.isSelected,
     required this.isToday,
+    required this.summary,
+    required this.targets,
     required this.status,
     required this.onTap,
   });
@@ -1183,6 +1185,8 @@ class _DietCalendarDayCell extends StatelessWidget {
   final bool inVisibleMonth;
   final bool isSelected;
   final bool isToday;
+  final DailyDietSummary? summary;
+  final _DietTargets targets;
   final _DietCalendarStatus status;
   final VoidCallback onTap;
 
@@ -1193,6 +1197,11 @@ class _DietCalendarDayCell extends StatelessWidget {
         ? colors.textPrimary
         : colors.textMuted.withValues(alpha: 0.36);
     final highlightColor = colors.accent.withValues(alpha: 0.18);
+    final intakeRatio = targets.calories <= 0 || summary == null
+        ? 0.0
+        : (summary!.totalEnergyKCal / targets.calories).clamp(0.0, 1.0);
+    final showProgressRing =
+        summary != null && summary!.recordCount > 0 && intakeRatio > 0;
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -1221,7 +1230,7 @@ class _DietCalendarDayCell extends StatelessWidget {
                   shape: BoxShape.circle,
                 ),
               ),
-            if (status == _DietCalendarStatus.good)
+            if (showProgressRing)
               SizedBox(
                 width: 42,
                 height: 42,
@@ -1232,13 +1241,13 @@ class _DietCalendarDayCell extends StatelessWidget {
                     centerSpaceRadius: 17,
                     sections: [
                       PieChartSectionData(
-                        value: 0.28,
+                        value: intakeRatio,
                         color: const Color(0xFF35D88A),
                         radius: 3,
                         showTitle: false,
                       ),
                       PieChartSectionData(
-                        value: 0.72,
+                        value: math.max(0.0001, 1 - intakeRatio),
                         color: colors.panelAlt.withValues(alpha: 0.48),
                         radius: 3,
                         showTitle: false,
