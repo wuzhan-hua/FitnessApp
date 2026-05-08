@@ -10,6 +10,25 @@ import 'app_router.dart';
 class FitnessApp extends ConsumerWidget {
   const FitnessApp({super.key});
 
+  List<Route<dynamic>> _handleInitialRoutes(String initialRoute) {
+    final defaultRoute = MaterialPageRoute<void>(
+      builder: (_) => const AuthGate(),
+      settings: const RouteSettings(name: Navigator.defaultRouteName),
+    );
+    if (initialRoute == Navigator.defaultRouteName) {
+      return [defaultRoute];
+    }
+
+    final generatedRoute = AppRouter.onGenerateRoute(
+      RouteSettings(name: initialRoute),
+    );
+    if (generatedRoute != null) {
+      return [defaultRoute, generatedRoute];
+    }
+
+    return [defaultRoute];
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(settingsProvider);
@@ -26,8 +45,11 @@ class FitnessApp extends ConsumerWidget {
         GlobalCupertinoLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
       ],
-      home: const AuthGate(),
+      routes: {
+        Navigator.defaultRouteName: (_) => const AuthGate(),
+      },
       onGenerateRoute: AppRouter.onGenerateRoute,
+      onGenerateInitialRoutes: _handleInitialRoutes,
     );
   }
 }

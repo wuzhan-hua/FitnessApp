@@ -6,10 +6,13 @@ import 'package:intl/intl.dart';
 import '../../application/providers/providers.dart';
 import '../../domain/entities/diet_models.dart';
 import '../../theme/app_theme.dart';
-import '../../utils/app_time.dart';
+import '../../utils/app_error.dart';
+import '../../utils/snackbar_helper.dart';
 import '../widgets/async_tab_content.dart';
+import '../widgets/diet_food_entry_dialog.dart';
 import '../widgets/section_card.dart';
 import 'food_library_page.dart';
+import 'meal_analysis_page.dart';
 
 class DietPage extends ConsumerWidget {
   const DietPage({super.key});
@@ -41,6 +44,14 @@ class DietPage extends ConsumerWidget {
     return List<DateTime>.generate(
       7,
       (index) => sunday.add(Duration(days: index)),
+    );
+  }
+
+  bool _isToday(DateTime date) {
+    final now = DateTime.now();
+    return DateUtils.isSameDay(
+      DateTime(now.year, now.month, now.day),
+      DateTime(date.year, date.month, date.day),
     );
   }
 
@@ -124,6 +135,7 @@ class DietPage extends ConsumerWidget {
                             weekDays[index],
                             selectedDate,
                           ),
+                          isToday: _isToday(weekDays[index]),
                           weekLabel: const ['日', '一', '二', '三', '四', '五', '六'],
                           onTap: () {
                             ref.read(selectedDietDateProvider.notifier).state =
@@ -155,7 +167,14 @@ class DietPage extends ConsumerWidget {
                           for (final mealType in MealType.values)
                             SectionCard(
                               title: mealType.label,
+                              trailing: _MealCardTrailing(
+                                totalEnergyKCal: _mealEnergy(
+                                  summary.mealGroups[mealType] ?? const [],
+                                ),
+                              ),
                               child: _MealRecordList(
+                                date: selectedDate,
+                                mealType: mealType,
                                 records:
                                     summary.mealGroups[mealType] ?? const [],
                               ),
@@ -177,12 +196,14 @@ class _WeekDayChip extends StatelessWidget {
   const _WeekDayChip({
     required this.date,
     required this.isSelected,
+    required this.isToday,
     required this.weekLabel,
     required this.onTap,
   });
 
   final DateTime date;
   final bool isSelected;
+  final bool isToday;
   final List<String> weekLabel;
   final VoidCallback onTap;
 
@@ -199,6 +220,9 @@ class _WeekDayChip extends StatelessWidget {
         decoration: BoxDecoration(
           color: isSelected ? colors.accent : Colors.transparent,
           borderRadius: BorderRadius.circular(14),
+          border: !isSelected && isToday
+              ? Border.all(color: colors.accent.withValues(alpha: 0.55))
+              : null,
         ),
         child: Column(
           children: [
@@ -236,9 +260,7 @@ class _DietSummaryRing extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = AppColors.of(context);
-    final progress = summary.totalEnergyKCal <= 0
-        ? 0.08
-        : (summary.totalEnergyKCal / 2400).clamp(0.08, 1.0);
+    final macroSections = _dietMacroSections(summary);
     return Column(
       children: [
         SizedBox(
@@ -249,22 +271,9 @@ class _DietSummaryRing extends StatelessWidget {
               PieChart(
                 PieChartData(
                   startDegreeOffset: -90,
-                  sectionsSpace: 0,
+                  sectionsSpace: 2,
                   centerSpaceRadius: 56,
-                  sections: [
-                    PieChartSectionData(
-                      value: progress,
-                      color: colors.accent,
-                      radius: 16,
-                      showTitle: false,
-                    ),
-                    PieChartSectionData(
-                      value: 1 - progress,
-                      color: colors.panelAlt,
-                      radius: 16,
-                      showTitle: false,
-                    ),
-                  ],
+                  sections: macroSections,
                 ),
               ),
               Column(
@@ -293,18 +302,21 @@ class _DietSummaryRing extends StatelessWidget {
               child: _MacroStat(
                 label: '碳水',
                 value: '${summary.totalCarb.toStringAsFixed(1)} g',
+                dotColor: const Color(0xFF86EFAC),
               ),
             ),
             Expanded(
               child: _MacroStat(
                 label: '蛋白质',
                 value: '${summary.totalProtein.toStringAsFixed(1)} g',
+                dotColor: const Color(0xFFFCA5A5),
               ),
             ),
             Expanded(
               child: _MacroStat(
                 label: '脂肪',
                 value: '${summary.totalFat.toStringAsFixed(1)} g',
+                dotColor: const Color(0xFFFCD34D),
               ),
             ),
           ],
@@ -315,21 +327,40 @@ class _DietSummaryRing extends StatelessWidget {
 }
 
 class _MacroStat extends StatelessWidget {
-  const _MacroStat({required this.label, required this.value});
+  const _MacroStat({
+    required this.label,
+    required this.value,
+    required this.dotColor,
+  });
 
   final String label;
   final String value;
+  final Color dotColor;
 
   @override
   Widget build(BuildContext context) {
     final colors = AppColors.of(context);
     return Column(
       children: [
-        Text(
-          label,
-          style: Theme.of(
-            context,
-          ).textTheme.bodySmall?.copyWith(color: colors.textMuted),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 8,
+              height: 8,
+              decoration: BoxDecoration(
+                color: dotColor,
+                shape: BoxShape.circle,
+              ),
+            ),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: colors.textMuted),
+            ),
+          ],
         ),
         const SizedBox(height: 4),
         Text(
@@ -344,8 +375,14 @@ class _MacroStat extends StatelessWidget {
 }
 
 class _MealRecordList extends StatelessWidget {
-  const _MealRecordList({required this.records});
+  const _MealRecordList({
+    required this.date,
+    required this.mealType,
+    required this.records,
+  });
 
+  final DateTime date;
+  final MealType mealType;
   final List<DietRecord> records;
 
   @override
@@ -363,57 +400,206 @@ class _MealRecordList extends StatelessWidget {
         for (final record in records)
           Padding(
             padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-            child: Container(
-              padding: const EdgeInsets.all(AppSpacing.sm),
-              decoration: BoxDecoration(
-                color: AppColors.of(context).panelAlt,
-                borderRadius: AppRadius.card,
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          record.foodName,
-                          style: Theme.of(context).textTheme.titleSmall
-                              ?.copyWith(fontWeight: FontWeight.w700),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          '${record.grams.toStringAsFixed(0)}g · ${record.foodCategory}',
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(
-                                color: AppColors.of(context).textMuted,
-                              ),
-                        ),
-                      ],
-                    ),
+            child: _DietMealRecordTile(
+              record: record,
+              onTap: () async {
+                await _editDietRecord(
+                  context: context,
+                  record: record,
+                  date: date,
+                );
+              },
+            ),
+          ),
+        if (records.isNotEmpty)
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton(
+              onPressed: () async {
+                final mealRecords = records;
+                await Navigator.of(context).pushNamed<void>(
+                  MealAnalysisPage.routeName,
+                  arguments: MealAnalysisPageArgs(
+                    date: date,
+                    mealType: mealType,
+                    initialRecords: mealRecords,
                   ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        '${record.energyKCal.toStringAsFixed(0)} kcal',
-                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        AppTime.formatUtcDateTimeToBeijing(record.consumedAt),
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppColors.of(context).textMuted,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+                );
+              },
+              child: Text('查看${mealType.label}分析'),
             ),
           ),
       ],
     );
   }
+}
+
+class _MealCardTrailing extends StatelessWidget {
+  const _MealCardTrailing({required this.totalEnergyKCal});
+
+  final double totalEnergyKCal;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          '${totalEnergyKCal.toStringAsFixed(0)} kcal',
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            fontWeight: FontWeight.w700,
+            color: colors.textPrimary,
+          ),
+        ),
+        Icon(Icons.chevron_right_rounded, size: 18, color: colors.textMuted),
+      ],
+    );
+  }
+}
+
+class _DietMealRecordTile extends StatelessWidget {
+  const _DietMealRecordTile({required this.record, required this.onTap});
+
+  final DietRecord record;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: AppRadius.card,
+        onTap: onTap,
+        child: Ink(
+          padding: const EdgeInsets.all(AppSpacing.sm),
+          decoration: BoxDecoration(
+            color: colors.panelAlt,
+            borderRadius: AppRadius.card,
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      record.foodName,
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '${record.grams.toStringAsFixed(0)}g · ${record.foodCategory}',
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodySmall?.copyWith(color: colors.textMuted),
+                    ),
+                  ],
+                ),
+              ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    '${record.energyKCal.toStringAsFixed(0)} kcal',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(width: 2),
+                  Icon(
+                    Icons.chevron_right_rounded,
+                    color: colors.textMuted,
+                    size: 18,
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+Future<void> _editDietRecord({
+  required BuildContext context,
+  required DietRecord record,
+  required DateTime date,
+}) async {
+  final grams = await showDietFoodEntryDialog(
+    context: context,
+    title: record.foodName,
+    subtitle: record.foodCategory,
+    confirmLabel: '更新',
+    initialGrams: record.grams,
+    calculationBuilder: (value) =>
+        DietEntryCalculation.fromRecord(record, value),
+  );
+  if (grams == null || !context.mounted) {
+    return;
+  }
+  final container = ProviderScope.containerOf(context, listen: false);
+  final service = container.read(dietRecordServiceProvider);
+  try {
+    await service.updateDietRecordGrams(record: record, grams: grams);
+    if (!context.mounted) {
+      return;
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      container.invalidate(dietRecordsByDateProvider(date));
+      container.invalidate(dailyDietSummaryProvider(date));
+    });
+    showLatestSnackBar(context, '已更新食物克数');
+  } catch (error) {
+    if (!context.mounted) {
+      return;
+    }
+    final appError = AppError.from(error, fallbackMessage: '更新食物失败，请稍后重试。');
+    showLatestSnackBar(context, appError.message);
+  }
+}
+
+double _mealEnergy(List<DietRecord> records) {
+  return records.fold(0, (sum, item) => sum + item.energyKCal);
+}
+
+List<PieChartSectionData> _dietMacroSections(DailyDietSummary summary) {
+  final proteinCalories = summary.totalProtein * 4;
+  final fatCalories = summary.totalFat * 9;
+  final carbCalories = summary.totalCarb * 4;
+  final total = proteinCalories + fatCalories + carbCalories;
+  if (total <= 0) {
+    return [
+      PieChartSectionData(
+        value: 1,
+        color: const Color(0xFFE5E7EB),
+        radius: 16,
+        showTitle: false,
+      ),
+    ];
+  }
+  return [
+    PieChartSectionData(
+      value: carbCalories / total,
+      color: const Color(0xFF22C55E),
+      radius: 16,
+      showTitle: false,
+    ),
+    PieChartSectionData(
+      value: fatCalories / total,
+      color: const Color(0xFFF59E0B),
+      radius: 16,
+      showTitle: false,
+    ),
+    PieChartSectionData(
+      value: proteinCalories / total,
+      color: const Color(0xFFEF4444),
+      radius: 16,
+      showTitle: false,
+    ),
+  ];
 }

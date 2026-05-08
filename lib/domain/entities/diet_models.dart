@@ -302,6 +302,19 @@ class DietEntryCalculation {
       sodium: food.sodium * factor,
     );
   }
+
+  factory DietEntryCalculation.fromRecord(DietRecord record, double grams) {
+    final factor = record.grams <= 0 ? 0 : grams / record.grams;
+    return DietEntryCalculation(
+      energyKCal: record.energyKCal * factor,
+      protein: record.protein * factor,
+      fat: record.fat * factor,
+      carb: record.carb * factor,
+      dietaryFiber: record.dietaryFiber * factor,
+      cholesterol: record.cholesterol * factor,
+      sodium: record.sodium * factor,
+    );
+  }
 }
 
 @immutable
@@ -310,20 +323,23 @@ class SelectedFoodEntry {
     required this.foodCode,
     required this.food,
     required this.grams,
+    this.recordId,
   });
 
   final String foodCode;
   final FoodItem food;
   final double grams;
+  final String? recordId;
 
   DietEntryCalculation get calculation =>
       DietEntryCalculation.fromFood(food, grams);
 
-  SelectedFoodEntry copyWith({double? grams}) {
+  SelectedFoodEntry copyWith({double? grams, String? recordId}) {
     return SelectedFoodEntry(
       foodCode: foodCode,
       food: food,
       grams: grams ?? this.grams,
+      recordId: recordId ?? this.recordId,
     );
   }
 }

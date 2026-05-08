@@ -112,4 +112,94 @@ class DietRecordService {
     final records = await getDietRecordsByDate(date);
     return DailyDietSummary.fromRecords(date, records);
   }
+
+  Future<void> updateDietRecordGrams({
+    required DietRecord record,
+    required double grams,
+  }) async {
+    final userId = _client.auth.currentUser?.id;
+    if (userId == null || userId.isEmpty) {
+      throw const AppError(message: '请先登录后再操作饮食记录。', code: 'auth_required');
+    }
+    if (grams <= 0) {
+      throw const AppError(message: '请输入大于 0 的克数。');
+    }
+    final calculation = DietEntryCalculation.fromRecord(record, grams);
+    try {
+      await _client
+          .from('diet_records')
+          .update({
+            'grams': grams,
+            'energy_kcal': calculation.energyKCal,
+            'protein': calculation.protein,
+            'fat': calculation.fat,
+            'carb': calculation.carb,
+            'dietary_fiber': calculation.dietaryFiber,
+            'cholesterol': calculation.cholesterol,
+            'sodium': calculation.sodium,
+          })
+          .eq('id', record.id)
+          .eq('user_id', userId);
+    } catch (error, stackTrace) {
+      AppLogger.error('更新饮食记录失败', error: error, stackTrace: stackTrace);
+      throw AppError.from(error, fallbackMessage: '更新饮食记录失败，请稍后重试。');
+    }
+  }
+
+  Future<void> updateDietRecordByEntry({
+    required String recordId,
+    required SelectedFoodEntry entry,
+  }) async {
+    final userId = _client.auth.currentUser?.id;
+    if (userId == null || userId.isEmpty) {
+      throw const AppError(message: '请先登录后再操作饮食记录。', code: 'auth_required');
+    }
+    if (entry.grams <= 0) {
+      throw const AppError(message: '请输入大于 0 的克数。');
+    }
+    final calculation = entry.calculation;
+    try {
+      await _client
+          .from('diet_records')
+          .update({
+            'food_code': entry.food.foodCode,
+            'food_name': entry.food.foodName,
+            'food_category': entry.food.category,
+            'grams': entry.grams,
+            'energy_kcal': calculation.energyKCal,
+            'protein': calculation.protein,
+            'fat': calculation.fat,
+            'carb': calculation.carb,
+            'dietary_fiber': calculation.dietaryFiber,
+            'cholesterol': calculation.cholesterol,
+            'sodium': calculation.sodium,
+          })
+          .eq('id', recordId)
+          .eq('user_id', userId)
+          .select('id')
+          .single();
+    } catch (error, stackTrace) {
+      AppLogger.error('更新饮食记录失败', error: error, stackTrace: stackTrace);
+      throw AppError.from(error, fallbackMessage: '更新饮食记录失败，请稍后重试。');
+    }
+  }
+
+  Future<void> deleteDietRecord(String recordId) async {
+    final userId = _client.auth.currentUser?.id;
+    if (userId == null || userId.isEmpty) {
+      throw const AppError(message: '请先登录后再操作饮食记录。', code: 'auth_required');
+    }
+    try {
+      await _client
+          .from('diet_records')
+          .delete()
+          .eq('id', recordId)
+          .eq('user_id', userId)
+          .select('id')
+          .single();
+    } catch (error, stackTrace) {
+      AppLogger.error('删除饮食记录失败', error: error, stackTrace: stackTrace);
+      throw AppError.from(error, fallbackMessage: '删除饮食记录失败，请稍后重试。');
+    }
+  }
 }

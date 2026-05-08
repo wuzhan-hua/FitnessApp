@@ -6,6 +6,7 @@ import '../presentation/pages/auth_page.dart';
 import '../presentation/pages/admin_exercise_catalog_page.dart';
 import '../presentation/pages/food_entry_page.dart';
 import '../presentation/pages/food_library_page.dart';
+import '../presentation/pages/meal_analysis_page.dart';
 import '../presentation/pages/exercise_detail_page.dart';
 import '../presentation/pages/exercise_library_page.dart';
 import '../presentation/pages/personal_info_page.dart';
@@ -70,6 +71,15 @@ class AppRouter {
       if (args is FoodEntryPageArgs) {
         return MaterialPageRoute<bool>(
           builder: (_) => FoodEntryPage(args: args),
+          settings: settings,
+        );
+      }
+    }
+    if (settings.name == MealAnalysisPage.routeName) {
+      final args = settings.arguments;
+      if (args is MealAnalysisPageArgs) {
+        return MaterialPageRoute<void>(
+          builder: (_) => MealAnalysisPage(args: args),
           settings: settings,
         );
       }

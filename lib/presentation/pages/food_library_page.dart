@@ -8,14 +8,20 @@ import '../../theme/app_theme.dart';
 import '../../utils/app_error.dart';
 import '../../utils/snackbar_helper.dart';
 import '../widgets/async_tab_content.dart';
+import '../widgets/diet_food_entry_dialog.dart';
 
 const _allFoodCategory = '';
 
 class FoodLibraryPageArgs {
-  const FoodLibraryPageArgs({required this.date, required this.mealType});
+  const FoodLibraryPageArgs({
+    required this.date,
+    required this.mealType,
+    this.initialSelectedRecords = const [],
+  });
 
   final DateTime date;
   final MealType mealType;
+  final List<DietRecord> initialSelectedRecords;
 }
 
 class FoodLibraryPage extends ConsumerStatefulWidget {
@@ -42,6 +48,14 @@ class _FoodLibraryPageState extends ConsumerState<FoodLibraryPage> {
       }
       ref.read(selectedFoodCategoryProvider.notifier).state = _allFoodCategory;
       ref.read(foodSearchKeywordProvider.notifier).state = '';
+      final controller = ref.read(
+        foodSelectionControllerProvider(widget.args.mealType).notifier,
+      );
+      if (widget.args.initialSelectedRecords.isNotEmpty) {
+        controller.initializeWithRecords(widget.args.initialSelectedRecords);
+      } else {
+        controller.resetSelection();
+      }
     });
   }
 
@@ -87,7 +101,7 @@ class _FoodLibraryPageState extends ConsumerState<FoodLibraryPage> {
                   onRemove: selectionController.removeFood,
                   onEdit: (entry) async {
                     Navigator.of(sheetContext).pop();
-                    await _showFoodEntryDialog(
+                    await _openFoodEntryDialog(
                       context: context,
                       food: entry.food,
                       initialGrams: entry.grams,
@@ -110,12 +124,19 @@ class _FoodLibraryPageState extends ConsumerState<FoodLibraryPage> {
                     if (!context.mounted) {
                       return;
                     }
-                    ref.invalidate(dietRecordsByDateProvider(widget.args.date));
-                    ref.invalidate(dailyDietSummaryProvider(widget.args.date));
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      ref.invalidate(
+                        dietRecordsByDateProvider(widget.args.date),
+                      );
+                      ref.invalidate(
+                        dailyDietSummaryProvider(widget.args.date),
+                      );
+                    });
                     showLatestSnackBar(
                       context,
                       '${widget.args.mealType.label}已保存 ${selectionState.itemCount} 项',
                     );
+                    selectionController.resetSelection();
                     Navigator.of(context).pop();
                   } catch (error) {
                     if (!context.mounted) {
@@ -242,7 +263,7 @@ class _FoodLibraryPageState extends ConsumerState<FoodLibraryPage> {
                                 return _FoodListTile(
                                   food: food,
                                   onTap: () async {
-                                    await _showFoodEntryDialog(
+                                    await _openFoodEntryDialog(
                                       context: context,
                                       food: food,
                                       confirmLabel: '加入',
@@ -275,110 +296,25 @@ class _FoodLibraryPageState extends ConsumerState<FoodLibraryPage> {
     );
   }
 
-  Future<void> _showFoodEntryDialog({
+  Future<void> _openFoodEntryDialog({
     required BuildContext context,
     required FoodItem food,
     required String confirmLabel,
     double initialGrams = 100,
     required ValueChanged<double> onConfirm,
   }) async {
-    final colors = AppColors.of(context);
-    final gramsController = TextEditingController(
-      text: initialGrams == initialGrams.roundToDouble()
-          ? initialGrams.toStringAsFixed(0)
-          : initialGrams.toString(),
-    );
-    final focusNode = FocusNode();
-    double grams = initialGrams;
-    await showDialog<void>(
+    final grams = await showDietFoodEntryDialog(
       context: context,
-      builder: (dialogContext) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (focusNode.canRequestFocus) {
-            focusNode.requestFocus();
-          }
-        });
-        return StatefulBuilder(
-          builder: (context, setDialogState) {
-            final calculation = DietEntryCalculation.fromFood(food, grams);
-            return AlertDialog(
-              backgroundColor: colors.panel,
-              title: Text(food.foodName),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      food.category,
-                      style: Theme.of(
-                        context,
-                      ).textTheme.bodySmall?.copyWith(color: colors.textMuted),
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                    TextField(
-                      controller: gramsController,
-                      focusNode: focusNode,
-                      autofocus: true,
-                      keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true,
-                      ),
-                      decoration: const InputDecoration(
-                        labelText: '克数',
-                        suffixText: 'g',
-                      ),
-                      onChanged: (value) {
-                        setDialogState(() {
-                          grams = double.tryParse(value.trim()) ?? 0;
-                        });
-                      },
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                    _NutrientPreviewRow(
-                      label: '热量',
-                      value:
-                          '${calculation.energyKCal.toStringAsFixed(0)} kcal',
-                    ),
-                    _NutrientPreviewRow(
-                      label: '碳水',
-                      value: '${calculation.carb.toStringAsFixed(1)} g',
-                      dotColor: colors.success,
-                    ),
-                    _NutrientPreviewRow(
-                      label: '蛋白质',
-                      value: '${calculation.protein.toStringAsFixed(1)} g',
-                      dotColor: const Color(0xFFEF4444),
-                    ),
-                    _NutrientPreviewRow(
-                      label: '脂肪',
-                      value: '${calculation.fat.toStringAsFixed(1)} g',
-                      dotColor: colors.warning,
-                    ),
-                  ],
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(dialogContext).pop(),
-                  child: const Text('取消'),
-                ),
-                FilledButton(
-                  onPressed: grams <= 0
-                      ? null
-                      : () {
-                          onConfirm(grams);
-                          Navigator.of(dialogContext).pop();
-                        },
-                  child: Text(confirmLabel),
-                ),
-              ],
-            );
-          },
-        );
-      },
+      title: food.foodName,
+      subtitle: food.category,
+      confirmLabel: confirmLabel,
+      initialGrams: initialGrams,
+      calculationBuilder: (value) => DietEntryCalculation.fromFood(food, value),
     );
-    gramsController.dispose();
-    focusNode.dispose();
+    if (grams == null) {
+      return;
+    }
+    onConfirm(grams);
   }
 }
 
@@ -728,59 +664,6 @@ class _SelectedFoodsSheet extends ConsumerWidget {
               ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _NutrientPreviewRow extends StatelessWidget {
-  const _NutrientPreviewRow({
-    required this.label,
-    required this.value,
-    this.dotColor,
-  });
-
-  final String label;
-  final String value;
-  final Color? dotColor;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = AppColors.of(context);
-    return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.xs),
-      child: Row(
-        children: [
-          Expanded(
-            child: Row(
-              children: [
-                if (dotColor != null) ...[
-                  Container(
-                    width: 8,
-                    height: 8,
-                    decoration: BoxDecoration(
-                      color: dotColor,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                ],
-                Text(
-                  label,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodyMedium?.copyWith(color: colors.textMuted),
-                ),
-              ],
-            ),
-          ),
-          Text(
-            value,
-            style: Theme.of(
-              context,
-            ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
-          ),
-        ],
       ),
     );
   }
