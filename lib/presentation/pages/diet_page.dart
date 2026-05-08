@@ -260,7 +260,7 @@ class _DietSummaryRing extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = AppColors.of(context);
-    final macroSections = _dietMacroSections(summary);
+    final macroSections = _dietMacroSections(summary, colors);
     return Column(
       children: [
         SizedBox(
@@ -300,23 +300,23 @@ class _DietSummaryRing extends StatelessWidget {
           children: [
             Expanded(
               child: _MacroStat(
-                label: '碳水',
+                label: _MacroNutrient.carb.label,
                 value: '${summary.totalCarb.toStringAsFixed(1)} g',
-                dotColor: const Color(0xFF86EFAC),
+                dotColor: _MacroNutrient.carb.color(colors),
               ),
             ),
             Expanded(
               child: _MacroStat(
-                label: '蛋白质',
+                label: _MacroNutrient.protein.label,
                 value: '${summary.totalProtein.toStringAsFixed(1)} g',
-                dotColor: const Color(0xFFFCA5A5),
+                dotColor: _MacroNutrient.protein.color(colors),
               ),
             ),
             Expanded(
               child: _MacroStat(
-                label: '脂肪',
+                label: _MacroNutrient.fat.label,
                 value: '${summary.totalFat.toStringAsFixed(1)} g',
-                dotColor: const Color(0xFFFCD34D),
+                dotColor: _MacroNutrient.fat.color(colors),
               ),
             ),
           ],
@@ -567,7 +567,10 @@ double _mealEnergy(List<DietRecord> records) {
   return records.fold(0, (sum, item) => sum + item.energyKCal);
 }
 
-List<PieChartSectionData> _dietMacroSections(DailyDietSummary summary) {
+List<PieChartSectionData> _dietMacroSections(
+  DailyDietSummary summary,
+  AppPalette colors,
+) {
   final proteinCalories = summary.totalProtein * 4;
   final fatCalories = summary.totalFat * 9;
   final carbCalories = summary.totalCarb * 4;
@@ -584,22 +587,48 @@ List<PieChartSectionData> _dietMacroSections(DailyDietSummary summary) {
   }
   return [
     PieChartSectionData(
-      value: carbCalories / total,
-      color: const Color(0xFF22C55E),
+      value: proteinCalories / total,
+      color: _MacroNutrient.protein.color(colors),
       radius: 16,
       showTitle: false,
     ),
     PieChartSectionData(
       value: fatCalories / total,
-      color: const Color(0xFFF59E0B),
+      color: _MacroNutrient.fat.color(colors),
       radius: 16,
       showTitle: false,
     ),
     PieChartSectionData(
-      value: proteinCalories / total,
-      color: const Color(0xFFEF4444),
+      value: carbCalories / total,
+      color: _MacroNutrient.carb.color(colors),
       radius: 16,
       showTitle: false,
     ),
   ];
+}
+
+enum _MacroNutrient { protein, fat, carb }
+
+extension _MacroNutrientX on _MacroNutrient {
+  String get label {
+    switch (this) {
+      case _MacroNutrient.protein:
+        return '蛋白质';
+      case _MacroNutrient.fat:
+        return '脂肪';
+      case _MacroNutrient.carb:
+        return '碳水';
+    }
+  }
+
+  Color color(AppPalette palette) {
+    switch (this) {
+      case _MacroNutrient.protein:
+        return const Color(0xFFFCA5A5);
+      case _MacroNutrient.fat:
+        return const Color(0xFFFCD34D);
+      case _MacroNutrient.carb:
+        return const Color(0xFF86EFAC);
+    }
+  }
 }
