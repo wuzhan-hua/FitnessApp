@@ -8,6 +8,7 @@ import '../../theme/app_theme.dart';
 import '../../utils/app_error.dart';
 import '../../utils/snackbar_helper.dart';
 import 'admin_exercise_catalog_page.dart';
+import 'admin_food_catalog_page.dart';
 import 'analytics_page.dart';
 import 'auth_page.dart';
 import 'personal_info_page.dart';
@@ -224,8 +225,18 @@ class ProfilePage extends ConsumerWidget {
                             label: const Text('动作库管理'),
                           ),
                           const SizedBox(height: AppSpacing.sm),
+                          FilledButton.tonalIcon(
+                            onPressed: () {
+                              Navigator.of(
+                                context,
+                              ).pushNamed(AdminFoodCatalogPage.routeName);
+                            },
+                            icon: const Icon(Icons.restaurant_menu_outlined),
+                            label: const Text('食物库管理'),
+                          ),
+                          const SizedBox(height: AppSpacing.sm),
                           Text(
-                            '可修改动作展示名并维护各肌群下的动作排序。',
+                            '可维护动作库、食物库展示内容与排序。',
                             style: Theme.of(context).textTheme.bodySmall
                                 ?.copyWith(color: colors.textMuted),
                           ),

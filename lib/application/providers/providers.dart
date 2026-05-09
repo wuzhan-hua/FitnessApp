@@ -41,16 +41,36 @@ final userProfileServiceProvider = Provider<UserProfileService>((ref) {
 });
 
 final exerciseCatalogServiceProvider = Provider<ExerciseCatalogService>((ref) {
-  return ExerciseCatalogService(Supabase.instance.client);
+  final resolved = _supabaseClientOrFallback();
+  return ExerciseCatalogService(
+    resolved.client,
+    useRemote: resolved.isInitialized,
+  );
 });
 
 final foodLibraryServiceProvider = Provider<FoodLibraryService>((ref) {
-  return FoodLibraryService();
+  final resolved = _supabaseClientOrFallback();
+  return FoodLibraryService(resolved.client, useRemote: resolved.isInitialized);
 });
 
 final dietRecordServiceProvider = Provider<DietRecordService>((ref) {
-  return DietRecordService(Supabase.instance.client);
+  return DietRecordService(_supabaseClientOrFallback().client);
 });
+
+({SupabaseClient client, bool isInitialized}) _supabaseClientOrFallback() {
+  try {
+    return (client: Supabase.instance.client, isInitialized: true);
+  } catch (_) {
+    return (
+      client: SupabaseClient(
+        'http://localhost',
+        'test-key',
+        authOptions: const AuthClientOptions(autoRefreshToken: false),
+      ),
+      isInitialized: false,
+    );
+  }
+}
 
 final currentUserIsAdminProvider = FutureProvider<bool>((ref) async {
   final service = ref.watch(userProfileServiceProvider);
@@ -158,6 +178,18 @@ final foodCategoriesProvider = FutureProvider.autoDispose<List<String>>((
   final service = ref.watch(foodLibraryServiceProvider);
   return service.getCategories();
 });
+
+final adminFoodCategoriesProvider =
+    FutureProvider.autoDispose<List<FoodCategory>>((ref) async {
+      final service = ref.watch(foodLibraryServiceProvider);
+      return service.getFoodCategories(activeOnly: false);
+    });
+
+final adminFoodCatalogItemsProvider = FutureProvider.autoDispose
+    .family<List<FoodItem>, String?>((ref, categoryId) async {
+      final service = ref.watch(foodLibraryServiceProvider);
+      return service.getAdminFoods(categoryId: categoryId);
+    });
 
 final dietRecordsByDateProvider =
     FutureProvider.family<List<DietRecord>, DateTime>((ref, date) async {

@@ -64,10 +64,13 @@ double _parseNutritionValue(Object? raw, {double fallback = 0}) {
 @immutable
 class FoodItem {
   const FoodItem({
+    this.id,
     required this.foodCode,
     required this.foodName,
     required this.category,
+    this.categoryId,
     required this.edible,
+    required this.water,
     required this.energyKCal,
     required this.energyKJ,
     required this.protein,
@@ -75,14 +78,42 @@ class FoodItem {
     required this.carb,
     required this.dietaryFiber,
     required this.cholesterol,
+    required this.ash,
+    required this.vitaminA,
+    required this.carotene,
+    required this.retinol,
+    required this.thiamin,
+    required this.riboflavin,
+    required this.niacin,
+    required this.vitaminC,
+    required this.vitaminETotal,
+    required this.vitaminE1,
+    required this.vitaminE2,
+    required this.vitaminE3,
+    required this.calcium,
+    required this.phosphorus,
+    required this.potassium,
     required this.sodium,
+    required this.magnesium,
+    required this.iron,
+    required this.zinc,
+    required this.selenium,
+    required this.copper,
+    required this.manganese,
     this.remark,
+    this.searchKeywords = '',
+    this.sortOrder = 0,
+    this.source = 'china-food-composition',
+    this.isActive = true,
   });
 
+  final String? id;
   final String foodCode;
   final String foodName;
   final String category;
+  final String? categoryId;
   final double edible;
+  final double water;
   final double energyKCal;
   final double energyKJ;
   final double protein;
@@ -90,33 +121,99 @@ class FoodItem {
   final double carb;
   final double dietaryFiber;
   final double cholesterol;
+  final double ash;
+  final double vitaminA;
+  final double carotene;
+  final double retinol;
+  final double thiamin;
+  final double riboflavin;
+  final double niacin;
+  final double vitaminC;
+  final double vitaminETotal;
+  final double vitaminE1;
+  final double vitaminE2;
+  final double vitaminE3;
+  final double calcium;
+  final double phosphorus;
+  final double potassium;
   final double sodium;
+  final double magnesium;
+  final double iron;
+  final double zinc;
+  final double selenium;
+  final double copper;
+  final double manganese;
   final String? remark;
+  final String searchKeywords;
+  final int sortOrder;
+  final String source;
+  final bool isActive;
 
   factory FoodItem.fromJson(Map<String, dynamic> json) {
+    final categoryRow = json['food_categories'];
+    final categoryName = categoryRow is Map<String, dynamic>
+        ? categoryRow['name']?.toString()
+        : null;
     return FoodItem(
-      foodCode: json['foodCode']?.toString() ?? '',
-      foodName: json['foodName']?.toString() ?? '',
-      category: json['category']?.toString() ?? '未分类',
+      id: json['id']?.toString(),
+      foodCode: (json['foodCode'] ?? json['food_code'])?.toString() ?? '',
+      foodName: (json['foodName'] ?? json['food_name'])?.toString() ?? '',
+      category: categoryName ?? json['category']?.toString() ?? '未分类',
+      categoryId: json['category_id']?.toString(),
       edible: _parseNutritionValue(json['edible'], fallback: 100),
-      energyKCal: _parseNutritionValue(json['energyKCal']),
-      energyKJ: _parseNutritionValue(json['energyKJ']),
+      water: _parseNutritionValue(json['water']),
+      energyKCal: _parseNutritionValue(
+        json['energyKCal'] ?? json['energy_kcal'],
+      ),
+      energyKJ: _parseNutritionValue(json['energyKJ'] ?? json['energy_kj']),
       protein: _parseNutritionValue(json['protein']),
       fat: _parseNutritionValue(json['fat']),
-      carb: _parseNutritionValue(json['CHO']),
-      dietaryFiber: _parseNutritionValue(json['dietaryFiber']),
+      carb: _parseNutritionValue(json['CHO'] ?? json['carb']),
+      dietaryFiber: _parseNutritionValue(
+        json['dietaryFiber'] ?? json['dietary_fiber'],
+      ),
       cholesterol: _parseNutritionValue(json['cholesterol']),
-      sodium: _parseNutritionValue(json['Na']),
+      ash: _parseNutritionValue(json['ash']),
+      vitaminA: _parseNutritionValue(json['vitaminA'] ?? json['vitamin_a']),
+      carotene: _parseNutritionValue(json['carotene']),
+      retinol: _parseNutritionValue(json['retinol']),
+      thiamin: _parseNutritionValue(json['thiamin']),
+      riboflavin: _parseNutritionValue(json['riboflavin']),
+      niacin: _parseNutritionValue(json['niacin']),
+      vitaminC: _parseNutritionValue(json['vitaminC'] ?? json['vitamin_c']),
+      vitaminETotal: _parseNutritionValue(
+        json['vitaminETotal'] ?? json['vitamin_e_total'],
+      ),
+      vitaminE1: _parseNutritionValue(json['vitaminE1'] ?? json['vitamin_e1']),
+      vitaminE2: _parseNutritionValue(json['vitaminE2'] ?? json['vitamin_e2']),
+      vitaminE3: _parseNutritionValue(json['vitaminE3'] ?? json['vitamin_e3']),
+      calcium: _parseNutritionValue(json['Ca'] ?? json['calcium']),
+      phosphorus: _parseNutritionValue(json['P'] ?? json['phosphorus']),
+      potassium: _parseNutritionValue(json['K'] ?? json['potassium']),
+      sodium: _parseNutritionValue(json['Na'] ?? json['sodium']),
+      magnesium: _parseNutritionValue(json['Mg'] ?? json['magnesium']),
+      iron: _parseNutritionValue(json['Fe'] ?? json['iron']),
+      zinc: _parseNutritionValue(json['Zn'] ?? json['zinc']),
+      selenium: _parseNutritionValue(json['Se'] ?? json['selenium']),
+      copper: _parseNutritionValue(json['Cu'] ?? json['copper']),
+      manganese: _parseNutritionValue(json['Mn'] ?? json['manganese']),
       remark: json['remark']?.toString(),
+      searchKeywords: json['search_keywords']?.toString() ?? '',
+      sortOrder: int.tryParse('${json['sort_order'] ?? 0}') ?? 0,
+      source: json['source']?.toString() ?? 'china-food-composition',
+      isActive: json['is_active'] != false,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
+      if (id != null) 'id': id,
       'foodCode': foodCode,
       'foodName': foodName,
       'category': category,
+      if (categoryId != null) 'category_id': categoryId,
       'edible': edible,
+      'water': water,
       'energyKCal': energyKCal,
       'energyKJ': energyKJ,
       'protein': protein,
@@ -124,9 +221,109 @@ class FoodItem {
       'CHO': carb,
       'dietaryFiber': dietaryFiber,
       'cholesterol': cholesterol,
+      'ash': ash,
+      'vitaminA': vitaminA,
+      'carotene': carotene,
+      'retinol': retinol,
+      'thiamin': thiamin,
+      'riboflavin': riboflavin,
+      'niacin': niacin,
+      'vitaminC': vitaminC,
+      'vitaminETotal': vitaminETotal,
+      'vitaminE1': vitaminE1,
+      'vitaminE2': vitaminE2,
+      'vitaminE3': vitaminE3,
+      'Ca': calcium,
+      'P': phosphorus,
+      'K': potassium,
       'Na': sodium,
+      'Mg': magnesium,
+      'Fe': iron,
+      'Zn': zinc,
+      'Se': selenium,
+      'Cu': copper,
+      'Mn': manganese,
       'remark': remark,
+      'search_keywords': searchKeywords,
+      'sort_order': sortOrder,
+      'source': source,
+      'is_active': isActive,
     };
+  }
+
+  Map<String, dynamic> toSupabaseJson({
+    required String categoryId,
+    String? createdBy,
+  }) {
+    final json = {
+      'food_code': foodCode,
+      'food_name': foodName,
+      'category_id': categoryId,
+      'edible': edible,
+      'water': water,
+      'energy_kcal': energyKCal,
+      'energy_kj': energyKJ,
+      'protein': protein,
+      'fat': fat,
+      'carb': carb,
+      'dietary_fiber': dietaryFiber,
+      'cholesterol': cholesterol,
+      'ash': ash,
+      'vitamin_a': vitaminA,
+      'carotene': carotene,
+      'retinol': retinol,
+      'thiamin': thiamin,
+      'riboflavin': riboflavin,
+      'niacin': niacin,
+      'vitamin_c': vitaminC,
+      'vitamin_e_total': vitaminETotal,
+      'vitamin_e1': vitaminE1,
+      'vitamin_e2': vitaminE2,
+      'vitamin_e3': vitaminE3,
+      'calcium': calcium,
+      'phosphorus': phosphorus,
+      'potassium': potassium,
+      'sodium': sodium,
+      'magnesium': magnesium,
+      'iron': iron,
+      'zinc': zinc,
+      'selenium': selenium,
+      'copper': copper,
+      'manganese': manganese,
+      'remark': remark,
+      'search_keywords': searchKeywords,
+      'sort_order': sortOrder,
+      'source': source,
+      'is_active': isActive,
+    };
+    if (createdBy != null) {
+      json['created_by'] = createdBy;
+    }
+    return json;
+  }
+}
+
+@immutable
+class FoodCategory {
+  const FoodCategory({
+    required this.id,
+    required this.name,
+    required this.sortOrder,
+    required this.isActive,
+  });
+
+  final String id;
+  final String name;
+  final int sortOrder;
+  final bool isActive;
+
+  factory FoodCategory.fromJson(Map<String, dynamic> json) {
+    return FoodCategory(
+      id: json['id']?.toString() ?? '',
+      name: json['name']?.toString() ?? '',
+      sortOrder: int.tryParse('${json['sort_order'] ?? 0}') ?? 0,
+      isActive: json['is_active'] != false,
+    );
   }
 }
 

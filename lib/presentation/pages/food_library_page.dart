@@ -37,11 +37,13 @@ class FoodLibraryPage extends ConsumerStatefulWidget {
 
 class _FoodLibraryPageState extends ConsumerState<FoodLibraryPage> {
   late final TextEditingController _searchController;
+  late final ScrollController _foodListController;
 
   @override
   void initState() {
     super.initState();
     _searchController = TextEditingController();
+    _foodListController = ScrollController();
     Future<void>(() {
       if (!mounted) {
         return;
@@ -62,6 +64,7 @@ class _FoodLibraryPageState extends ConsumerState<FoodLibraryPage> {
   @override
   void dispose() {
     _searchController.dispose();
+    _foodListController.dispose();
     super.dispose();
   }
 
@@ -237,6 +240,9 @@ class _FoodLibraryPageState extends ConsumerState<FoodLibraryPage> {
                         categories: categoryOptions,
                         selectedCategory: activeCategory,
                         onSelect: (category) {
+                          if (_foodListController.hasClients) {
+                            _foodListController.jumpTo(0);
+                          }
                           ref
                                   .read(selectedFoodCategoryProvider.notifier)
                                   .state =
@@ -252,6 +258,7 @@ class _FoodLibraryPageState extends ConsumerState<FoodLibraryPage> {
                               return const Center(child: Text('没有匹配的食物'));
                             }
                             return ListView.separated(
+                              controller: _foodListController,
                               padding: const EdgeInsets.fromLTRB(
                                 AppSpacing.md,
                                 0,

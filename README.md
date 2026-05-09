@@ -67,3 +67,18 @@ dart run tool/update_exercise_name_zh.dart
 兼容环境变量：
 
 - `FREE_EXERCISE_NAME_ZH_SOURCE`：旧变量名，语义等同于 `FREE_EXERCISE_ZH_JSON_PATH`
+
+## 食物库导入
+
+如需将 `assets/datasets/china-food-composition` 导入到当前 Supabase 项目，先执行对应 migration，再运行导入脚本：
+
+```bash
+SUPABASE_URL=你的_SUPABASE_URL \
+SUPABASE_SERVICE_ROLE_KEY=你的_SUPABASE_SERVICE_ROLE_KEY \
+dart run tool/import_china_food_composition.dart
+```
+
+可选环境变量：
+
+- `CHINA_FOOD_COMPOSITION_DIR`：默认 `assets/datasets/china-food-composition`
+- `CHINA_FOOD_IMPORT_BATCH_SIZE`：默认 `100`

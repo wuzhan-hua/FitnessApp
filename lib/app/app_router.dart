@@ -4,6 +4,7 @@ import '../application/state/session_editor_controller.dart';
 import '../domain/entities/workout_models.dart';
 import '../presentation/pages/auth_page.dart';
 import '../presentation/pages/admin_exercise_catalog_page.dart';
+import '../presentation/pages/admin_food_catalog_page.dart';
 import '../presentation/pages/food_entry_page.dart';
 import '../presentation/pages/food_library_page.dart';
 import '../presentation/pages/meal_analysis_page.dart';
@@ -96,6 +97,12 @@ class AppRouter {
     if (settings.name == AdminExerciseCatalogPage.routeName) {
       return MaterialPageRoute<void>(
         builder: (_) => const AdminExerciseCatalogPage(),
+        settings: settings,
+      );
+    }
+    if (settings.name == AdminFoodCatalogPage.routeName) {
+      return MaterialPageRoute<void>(
+        builder: (_) => const AdminFoodCatalogPage(),
         settings: settings,
       );
     }

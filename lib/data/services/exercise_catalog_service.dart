@@ -10,7 +10,8 @@ import '../../utils/app_error.dart';
 import '../../utils/app_logger.dart';
 
 class ExerciseCatalogService {
-  ExerciseCatalogService(this._client);
+  ExerciseCatalogService(this._client, {bool useRemote = true})
+    : _useRemote = useRemote;
 
   static const unlabeledEquipment = '未标注';
   static const _bucketName = 'exercise-reference';
@@ -35,6 +36,7 @@ class ExerciseCatalogService {
   ];
 
   final SupabaseClient _client;
+  final bool _useRemote;
   List<ExerciseCatalogItem>? _memoryCache;
   Future<List<ExerciseCatalogItem>>? _catalogLoadFuture;
   Future<bool>? _refreshFuture;
@@ -258,6 +260,9 @@ class ExerciseCatalogService {
   }
 
   Future<bool> refreshCatalogIfStale() {
+    if (!_useRemote) {
+      return Future.value(false);
+    }
     final ongoing = _refreshFuture;
     if (ongoing != null) {
       return ongoing;
@@ -291,6 +296,10 @@ class ExerciseCatalogService {
     if (cachedItems.isNotEmpty) {
       _memoryCache = cachedItems;
       return cachedItems;
+    }
+    if (!_useRemote) {
+      _memoryCache = const [];
+      return const [];
     }
     final remoteItems = await _fetchAllActiveExercisesRemote();
     _memoryCache = remoteItems;
