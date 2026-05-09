@@ -165,7 +165,8 @@ class FoodLibraryService {
     String? categoryId,
   }) {
     final fallbackCategory = category ?? _categoryNameForId(categoryId);
-    return foods.where((food) {
+    final normalizedKeyword = tokens.isEmpty ? '' : tokens.first;
+    final matchedFoods = foods.where((food) {
       final hasKeyword = tokens.isNotEmpty;
       final hasCategoryId = categoryId != null && categoryId.isNotEmpty;
       final matchCategory = hasCategoryId
@@ -179,6 +180,22 @@ class FoodLibraryService {
           !hasKeyword || tokens.any((token) => haystack.contains(token));
       return matchCategory && matchKeyword;
     }).toList();
+    if (normalizedKeyword.isEmpty) {
+      return matchedFoods;
+    }
+    final exactMatches = <FoodItem>[];
+    final tokenMatches = <FoodItem>[];
+    for (final food in matchedFoods) {
+      final haystack =
+          '${food.foodName} ${food.searchKeywords} ${food.category}'
+              .toLowerCase();
+      if (haystack.contains(normalizedKeyword)) {
+        exactMatches.add(food);
+      } else {
+        tokenMatches.add(food);
+      }
+    }
+    return [...exactMatches, ...tokenMatches];
   }
 
   Future<List<FoodItem>> getAdminFoods({String? categoryId}) async {
