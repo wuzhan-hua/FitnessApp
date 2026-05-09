@@ -15,6 +15,18 @@ List<FoodItem> _rebuildFoodSortOrders(List<FoodItem> items) {
   }).toList();
 }
 
+List<FoodCategory> _rebuildCategorySortOrders(List<FoodCategory> categories) {
+  return categories.asMap().entries.map((entry) {
+    final category = entry.value;
+    return FoodCategory(
+      id: category.id,
+      name: category.name,
+      sortOrder: entry.key,
+      isActive: category.isActive,
+    );
+  }).toList();
+}
+
 class AdminFoodCatalogPage extends ConsumerStatefulWidget {
   const AdminFoodCatalogPage({super.key});
 
@@ -28,32 +40,58 @@ class AdminFoodCatalogPage extends ConsumerStatefulWidget {
 class _AdminFoodCatalogPageState extends ConsumerState<AdminFoodCatalogPage> {
   String? _selectedCategoryId;
   List<FoodItem> _items = const [];
+  String? _itemsCategoryId;
+  List<FoodCategory> _categories = const [];
   bool _hasOrderChanges = false;
+  bool _hasCategoryOrderChanges = false;
   bool _isSavingOrder = false;
-  final Set<String> _savingIds = <String>{};
+  bool _isSavingCategoryOrder = false;
 
-  Future<void> _saveOrder() async {
+  Future<void> _saveOrder(
+    String categoryId,
+    List<FoodItem> currentItems,
+  ) async {
     if (_isSavingOrder || !_hasOrderChanges) {
+      return;
+    }
+    final orderedItems = _rebuildFoodSortOrders(currentItems);
+    final orderedFoodIds = orderedItems
+        .map((item) => item.id ?? '')
+        .where((id) => id.isNotEmpty)
+        .toList();
+    if (orderedFoodIds.length != orderedItems.length) {
+      showLatestSnackBar(context, '食物数据缺少 ID，无法保存排序。');
       return;
     }
     setState(() => _isSavingOrder = true);
     try {
-      await ref
+      final savedFoodIds = await ref
           .read(foodLibraryServiceProvider)
           .saveFoodOrders(
-            orderedFoodIds: _items
-                .map((item) => item.id ?? '')
-                .where((id) => id.isNotEmpty)
-                .toList(),
+            categoryId: categoryId,
+            orderedFoodIds: orderedFoodIds,
           );
-      _invalidateFoodProviders();
+      final savedPrefix = savedFoodIds.take(orderedFoodIds.length).toList();
+      final orderMatched =
+          savedPrefix.length == orderedFoodIds.length &&
+          List.generate(
+            orderedFoodIds.length,
+            (index) => savedPrefix[index] == orderedFoodIds[index],
+          ).every((matched) => matched);
+      if (!orderMatched) {
+        final expected = orderedFoodIds.take(3).join(', ');
+        final actual = savedPrefix.take(3).join(', ');
+        throw AppError(message: '排序保存未生效，请重试。期望：$expected；实际：$actual');
+      }
       if (!mounted) {
         return;
       }
       setState(() {
-        _items = _rebuildFoodSortOrders(_items);
+        _items = orderedItems;
+        _itemsCategoryId = categoryId;
         _hasOrderChanges = false;
       });
+      _invalidateFoodProviders(categoryId: categoryId);
       showLatestSnackBar(context, '食物排序已保存');
     } catch (error) {
       if (!mounted) {
@@ -70,7 +108,101 @@ class _AdminFoodCatalogPageState extends ConsumerState<AdminFoodCatalogPage> {
     }
   }
 
+  Future<void> _saveCategoryOrder() async {
+    if (_isSavingCategoryOrder || !_hasCategoryOrderChanges) {
+      return;
+    }
+    final orderedCategoryIds = _categories
+        .map((category) => category.id)
+        .where((id) => id.isNotEmpty)
+        .toList();
+    if (orderedCategoryIds.length != _categories.length) {
+      showLatestSnackBar(context, '分类数据缺少 ID，无法保存排序。');
+      return;
+    }
+    setState(() => _isSavingCategoryOrder = true);
+    try {
+      final savedCategoryIds = await ref
+          .read(foodLibraryServiceProvider)
+          .saveCategoryOrders(
+            orderedCategoryIds: orderedCategoryIds,
+          );
+      final savedPrefix = savedCategoryIds.take(orderedCategoryIds.length).toList();
+      final orderMatched =
+          savedPrefix.length == orderedCategoryIds.length &&
+          List.generate(
+            orderedCategoryIds.length,
+            (index) => savedPrefix[index] == orderedCategoryIds[index],
+          ).every((matched) => matched);
+      if (!orderMatched) {
+        final expected = orderedCategoryIds.take(3).join(', ');
+        final actual = savedPrefix.take(3).join(', ');
+        throw AppError(message: '分类排序保存未生效，请重试。期望：$expected；实际：$actual');
+      }
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _categories = const [];
+        _hasCategoryOrderChanges = false;
+      });
+      _invalidateFoodProviders(categoryId: _selectedCategoryId);
+      showLatestSnackBar(context, '分类排序已保存');
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      showLatestSnackBar(
+        context,
+        AppError.from(error, fallbackMessage: '保存分类排序失败，请稍后重试。').message,
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isSavingCategoryOrder = false);
+      }
+    }
+  }
+
+  Future<void> _editCategoryOrder(
+    FoodCategory category,
+    List<FoodCategory> currentCategories,
+  ) async {
+    final result = await showDialog<String>(
+      context: context,
+      builder: (_) =>
+          _EditFoodOrderDialog(currentPosition: category.sortOrder + 1),
+    );
+    if (!mounted || result == null) {
+      return;
+    }
+    final parsed = int.tryParse(result);
+    if (parsed == null) {
+      showLatestSnackBar(context, '请输入有效排序名次');
+      return;
+    }
+    final currentIndex = currentCategories.indexWhere(
+      (current) => current.id == category.id,
+    );
+    if (currentIndex < 0 || currentCategories.isEmpty) {
+      return;
+    }
+    final targetIndex = parsed.clamp(1, currentCategories.length) - 1;
+    if (targetIndex == currentIndex) {
+      return;
+    }
+    final reordered = [...currentCategories];
+    final moved = reordered.removeAt(currentIndex);
+    reordered.insert(targetIndex, moved);
+    setState(() {
+      _categories = _rebuildCategorySortOrders(reordered);
+      _hasCategoryOrderChanges = true;
+      _selectedCategoryId = category.id;
+    });
+    showLatestSnackBar(context, '分类已移动到第 ${targetIndex + 1} 位');
+  }
+
   Future<void> _editItemOrder(
+    String categoryId,
     FoodItem item,
     List<FoodItem> currentItems,
   ) async {
@@ -101,6 +233,7 @@ class _AdminFoodCatalogPageState extends ConsumerState<AdminFoodCatalogPage> {
     reordered.insert(targetIndex, moved);
     setState(() {
       _items = _rebuildFoodSortOrders(reordered);
+      _itemsCategoryId = categoryId;
       _hasOrderChanges = true;
     });
     showLatestSnackBar(context, '已移动到第 ${targetIndex + 1} 位');
@@ -139,7 +272,7 @@ class _AdminFoodCatalogPageState extends ConsumerState<AdminFoodCatalogPage> {
         }
         showLatestSnackBar(context, '食物已保存');
       }
-      _invalidateFoodProviders();
+      _invalidateFoodProviders(categoryId: result.categoryId);
     } catch (error) {
       if (!mounted) {
         return;
@@ -148,36 +281,6 @@ class _AdminFoodCatalogPageState extends ConsumerState<AdminFoodCatalogPage> {
         context,
         AppError.from(error, fallbackMessage: '保存食物失败，请稍后重试。').message,
       );
-    }
-  }
-
-  Future<void> _toggleActive(FoodItem item) async {
-    final id = item.id;
-    if (id == null || id.isEmpty) {
-      return;
-    }
-    setState(() => _savingIds.add(id));
-    try {
-      await ref
-          .read(foodLibraryServiceProvider)
-          .setFoodActive(id: id, isActive: !item.isActive);
-      _invalidateFoodProviders();
-      if (!mounted) {
-        return;
-      }
-      showLatestSnackBar(context, item.isActive ? '食物已停用' : '食物已启用');
-    } catch (error) {
-      if (!mounted) {
-        return;
-      }
-      showLatestSnackBar(
-        context,
-        AppError.from(error, fallbackMessage: '更新食物状态失败，请稍后重试。').message,
-      );
-    } finally {
-      if (mounted) {
-        setState(() => _savingIds.remove(id));
-      }
     }
   }
 
@@ -200,7 +303,9 @@ class _AdminFoodCatalogPageState extends ConsumerState<AdminFoodCatalogPage> {
       setState(() {
         _selectedCategoryId = category.id;
         _items = const [];
+        _itemsCategoryId = null;
         _hasOrderChanges = false;
+        _hasCategoryOrderChanges = false;
       });
       showLatestSnackBar(context, '分类已新增');
     } catch (error) {
@@ -214,9 +319,9 @@ class _AdminFoodCatalogPageState extends ConsumerState<AdminFoodCatalogPage> {
     }
   }
 
-  void _invalidateFoodProviders() {
+  void _invalidateFoodProviders({String? categoryId}) {
     ref.invalidate(adminFoodCategoriesProvider);
-    ref.invalidate(adminFoodCatalogItemsProvider(_selectedCategoryId));
+    ref.invalidate(adminFoodCatalogItemsProvider(categoryId));
     ref.invalidate(foodLibraryProvider);
     ref.invalidate(foodCategoriesProvider);
   }
@@ -242,35 +347,31 @@ class _AdminFoodCatalogPageState extends ConsumerState<AdminFoodCatalogPage> {
             categoriesAsync: categoriesAsync,
             selectedCategoryId: _selectedCategoryId,
             items: _items,
+            itemsCategoryId: _itemsCategoryId,
+            localCategories: _categories,
             hasOrderChanges: _hasOrderChanges,
+            hasCategoryOrderChanges: _hasCategoryOrderChanges,
             isSavingOrder: _isSavingOrder,
-            savingIds: _savingIds,
+            isSavingCategoryOrder: _isSavingCategoryOrder,
             onCreateCategory: _createCategory,
             onSelectCategory: (categoryId) {
               setState(() {
                 _selectedCategoryId = categoryId;
                 _items = const [];
+                _itemsCategoryId = null;
                 _hasOrderChanges = false;
               });
+            },
+            onSetSelectedCategory: (categoryId) {
+              setState(() => _selectedCategoryId = categoryId);
             },
             onCreateFood: (categories) => _openFoodForm(categories: categories),
             onEditFood: (item, categories) =>
                 _openFoodForm(item: item, categories: categories),
-            onToggleActive: _toggleActive,
+            onEditCategoryOrder: _editCategoryOrder,
             onEditOrder: _editItemOrder,
             onSaveOrder: _saveOrder,
-            onReorder: (currentItems, oldIndex, newIndex) {
-              setState(() {
-                if (newIndex > oldIndex) {
-                  newIndex -= 1;
-                }
-                final reordered = [...currentItems];
-                final moved = reordered.removeAt(oldIndex);
-                reordered.insert(newIndex, moved);
-                _items = _rebuildFoodSortOrders(reordered);
-                _hasOrderChanges = true;
-              });
-            },
+            onSaveCategoryOrder: _saveCategoryOrder,
           );
         },
       ),
@@ -283,34 +384,51 @@ class _AdminFoodBody extends ConsumerWidget {
     required this.categoriesAsync,
     required this.selectedCategoryId,
     required this.items,
+    required this.itemsCategoryId,
+    required this.localCategories,
     required this.hasOrderChanges,
+    required this.hasCategoryOrderChanges,
     required this.isSavingOrder,
-    required this.savingIds,
+    required this.isSavingCategoryOrder,
     required this.onCreateCategory,
     required this.onSelectCategory,
+    required this.onSetSelectedCategory,
     required this.onCreateFood,
     required this.onEditFood,
-    required this.onToggleActive,
+    required this.onEditCategoryOrder,
     required this.onEditOrder,
     required this.onSaveOrder,
-    required this.onReorder,
+    required this.onSaveCategoryOrder,
   });
 
   final AsyncValue<List<FoodCategory>> categoriesAsync;
   final String? selectedCategoryId;
   final List<FoodItem> items;
+  final String? itemsCategoryId;
+  final List<FoodCategory> localCategories;
   final bool hasOrderChanges;
+  final bool hasCategoryOrderChanges;
   final bool isSavingOrder;
-  final Set<String> savingIds;
+  final bool isSavingCategoryOrder;
   final VoidCallback onCreateCategory;
   final ValueChanged<String> onSelectCategory;
+  final ValueChanged<String> onSetSelectedCategory;
   final ValueChanged<List<FoodCategory>> onCreateFood;
   final void Function(FoodItem item, List<FoodCategory> categories) onEditFood;
-  final ValueChanged<FoodItem> onToggleActive;
-  final void Function(FoodItem item, List<FoodItem> currentItems) onEditOrder;
-  final VoidCallback onSaveOrder;
-  final void Function(List<FoodItem> currentItems, int oldIndex, int newIndex)
-  onReorder;
+  final void Function(
+    FoodCategory category,
+    List<FoodCategory> currentCategories,
+  )
+  onEditCategoryOrder;
+  final void Function(
+    String categoryId,
+    FoodItem item,
+    List<FoodItem> currentItems,
+  )
+  onEditOrder;
+  final void Function(String categoryId, List<FoodItem> currentItems)
+  onSaveOrder;
+  final VoidCallback onSaveCategoryOrder;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -322,7 +440,10 @@ class _AdminFoodBody extends ConsumerWidget {
           AppError.from(error, fallbackMessage: '加载食物分类失败，请稍后重试。').message,
         ),
       ),
-      data: (categories) {
+      data: (remoteCategories) {
+        final categories = hasCategoryOrderChanges
+            ? localCategories
+            : remoteCategories;
         if (categories.isEmpty) {
           return Center(
             child: FilledButton.icon(
@@ -337,6 +458,11 @@ class _AdminFoodBody extends ConsumerWidget {
           (category) => category.id == activeCategoryId,
           orElse: () => categories.first,
         );
+        if (selectedCategoryId == null) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            onSetSelectedCategory(activeCategory.id);
+          });
+        }
         final itemsAsync = ref.watch(
           adminFoodCatalogItemsProvider(activeCategory.id),
         );
@@ -346,7 +472,12 @@ class _AdminFoodBody extends ConsumerWidget {
               categories: categories,
               selectedCategoryId: activeCategory.id,
               onSelect: onSelectCategory,
+              onEditOrder: (category) =>
+                  onEditCategoryOrder(category, categories),
               onCreateCategory: onCreateCategory,
+              onSaveOrder: onSaveCategoryOrder,
+              hasOrderChanges: hasCategoryOrderChanges,
+              isSavingOrder: isSavingCategoryOrder,
             ),
             Expanded(
               child: itemsAsync.when(
@@ -360,7 +491,11 @@ class _AdminFoodBody extends ConsumerWidget {
                   ),
                 ),
                 data: (data) {
-                  final displayItems = hasOrderChanges
+                  final useLocalItems =
+                      itemsCategoryId == activeCategory.id &&
+                      items.isNotEmpty &&
+                      (hasOrderChanges || !isSavingOrder);
+                  final displayItems = useLocalItems
                       ? items
                       : _rebuildFoodSortOrders(data);
                   return Column(
@@ -374,34 +509,46 @@ class _AdminFoodBody extends ConsumerWidget {
                             ),
                           ),
                         ),
-                        child: Row(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Expanded(
-                              child: Text(
-                                '${activeCategory.name} 食物排序',
-                                style: Theme.of(context).textTheme.titleLarge,
-                              ),
+                            Text(
+                              '${activeCategory.name} 食物排序',
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context).textTheme.titleLarge,
                             ),
-                            OutlinedButton.icon(
-                              onPressed: () => onCreateFood(categories),
-                              icon: const Icon(Icons.add),
-                              label: const Text('新增食物'),
-                            ),
-                            const SizedBox(width: AppSpacing.sm),
-                            FilledButton.icon(
-                              onPressed: hasOrderChanges && !isSavingOrder
-                                  ? onSaveOrder
-                                  : null,
-                              icon: isSavingOrder
-                                  ? const SizedBox(
-                                      width: 16,
-                                      height: 16,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                      ),
-                                    )
-                                  : const Icon(Icons.save_outlined),
-                              label: Text(isSavingOrder ? '保存中...' : '保存排序'),
+                            const SizedBox(height: AppSpacing.sm),
+                            Wrap(
+                              spacing: AppSpacing.sm,
+                              runSpacing: AppSpacing.xs,
+                              children: [
+                                OutlinedButton.icon(
+                                  onPressed: () => onCreateFood(categories),
+                                  icon: const Icon(Icons.add),
+                                  label: const Text('新增食物'),
+                                ),
+                                FilledButton.icon(
+                                  onPressed: hasOrderChanges && !isSavingOrder
+                                      ? () => onSaveOrder(
+                                          activeCategory.id,
+                                          displayItems,
+                                        )
+                                      : null,
+                                  icon: isSavingOrder
+                                      ? const SizedBox(
+                                          width: 16,
+                                          height: 16,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                          ),
+                                        )
+                                      : const Icon(Icons.save_outlined),
+                                  label: Text(
+                                    isSavingOrder ? '保存中...' : '保存排序',
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
@@ -409,23 +556,21 @@ class _AdminFoodBody extends ConsumerWidget {
                       Expanded(
                         child: displayItems.isEmpty
                             ? const Center(child: Text('当前分类暂无食物'))
-                            : ReorderableListView.builder(
+                            : ListView.builder(
                                 padding: const EdgeInsets.all(AppSpacing.md),
-                                buildDefaultDragHandles: false,
                                 itemCount: displayItems.length,
-                                onReorder: (oldIndex, newIndex) =>
-                                    onReorder(displayItems, oldIndex, newIndex),
                                 itemBuilder: (context, index) {
                                   final item = displayItems[index];
                                   return _FoodAdminTile(
                                     key: ValueKey(item.id ?? item.foodCode),
                                     item: item,
                                     index: index,
-                                    isSaving: savingIds.contains(item.id),
                                     onEdit: () => onEditFood(item, categories),
-                                    onToggleActive: () => onToggleActive(item),
-                                    onEditOrder: () =>
-                                        onEditOrder(item, displayItems),
+                                    onEditOrder: () => onEditOrder(
+                                      activeCategory.id,
+                                      item,
+                                      displayItems,
+                                    ),
                                   );
                                 },
                               ),
@@ -447,13 +592,21 @@ class _FoodAdminCategorySidebar extends StatelessWidget {
     required this.categories,
     required this.selectedCategoryId,
     required this.onSelect,
+    required this.onEditOrder,
     required this.onCreateCategory,
+    required this.onSaveOrder,
+    required this.hasOrderChanges,
+    required this.isSavingOrder,
   });
 
   final List<FoodCategory> categories;
   final String selectedCategoryId;
   final ValueChanged<String> onSelect;
+  final ValueChanged<FoodCategory> onEditOrder;
   final VoidCallback onCreateCategory;
+  final VoidCallback onSaveOrder;
+  final bool hasOrderChanges;
+  final bool isSavingOrder;
 
   @override
   Widget build(BuildContext context) {
@@ -487,18 +640,79 @@ class _FoodAdminCategorySidebar extends StatelessWidget {
                         color: selected ? colors.accent : Colors.transparent,
                         borderRadius: BorderRadius.circular(14),
                       ),
-                      child: Text(
-                        category.name,
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: selected ? Colors.white : colors.textPrimary,
-                        ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            category.name,
+                            textAlign: TextAlign.center,
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                  color: selected
+                                      ? Colors.white
+                                      : colors.textPrimary,
+                                ),
+                          ),
+                          const SizedBox(height: 6),
+                          SizedBox(
+                            height: 28,
+                            child: OutlinedButton(
+                              onPressed: () => onEditOrder(category),
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: selected
+                                    ? Colors.white
+                                    : colors.accent,
+                                side: BorderSide(
+                                  color: selected
+                                      ? Colors.white.withValues(alpha: 0.64)
+                                      : colors.accent.withValues(alpha: 0.42),
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              child: const Text('排序'),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
                 );
               },
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.xs,
+              0,
+              AppSpacing.xs,
+              AppSpacing.xs,
+            ),
+            child: SizedBox(
+              width: double.infinity,
+              child: FilledButton(
+                onPressed: hasOrderChanges && !isSavingOrder
+                    ? onSaveOrder
+                    : null,
+                style: FilledButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                ),
+                child: Text(
+                  isSavingOrder ? '保存中' : '保存排序',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: hasOrderChanges && !isSavingOrder
+                        ? Colors.white
+                        : null,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
             ),
           ),
           Padding(
@@ -520,17 +734,13 @@ class _FoodAdminTile extends StatelessWidget {
     super.key,
     required this.item,
     required this.index,
-    required this.isSaving,
     required this.onEdit,
-    required this.onToggleActive,
     required this.onEditOrder,
   });
 
   final FoodItem item;
   final int index;
-  final bool isSaving;
   final VoidCallback onEdit;
-  final VoidCallback onToggleActive;
   final VoidCallback onEditOrder;
 
   @override
@@ -588,36 +798,34 @@ class _FoodAdminTile extends StatelessWidget {
             const SizedBox(height: AppSpacing.sm),
             Padding(
               padding: const EdgeInsets.only(left: 40),
-              child: Row(
+              child: Wrap(
+                spacing: AppSpacing.xs,
+                runSpacing: AppSpacing.xs,
                 children: [
-                  Expanded(
+                  SizedBox(
+                    width: 88,
                     child: OutlinedButton(
                       onPressed: onEditOrder,
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
                       child: const Text('排序'),
                     ),
                   ),
-                  const SizedBox(width: AppSpacing.xs),
-                  Expanded(
+                  SizedBox(
+                    width: 88,
                     child: OutlinedButton(
                       onPressed: onEdit,
-                      child: const Text('编辑'),
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.xs),
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: isSaving ? null : onToggleActive,
-                      child: Text(item.isActive ? '停用' : '启用'),
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.xs),
-                  Expanded(
-                    child: ReorderableDragStartListener(
-                      index: index,
-                      child: OutlinedButton(
-                        onPressed: () {},
-                        child: const Text('拖动'),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
                       ),
+                      child: const Text('编辑'),
                     ),
                   ),
                 ],

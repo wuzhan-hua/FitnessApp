@@ -103,6 +103,7 @@ class FoodItem {
     this.remark,
     this.searchKeywords = '',
     this.sortOrder = 0,
+    this.categorySortOrder = 0,
     this.source = 'china-food-composition',
     this.isActive = true,
   });
@@ -146,6 +147,7 @@ class FoodItem {
   final String? remark;
   final String searchKeywords;
   final int sortOrder;
+  final int categorySortOrder;
   final String source;
   final bool isActive;
 
@@ -154,6 +156,9 @@ class FoodItem {
     final categoryName = categoryRow is Map<String, dynamic>
         ? categoryRow['name']?.toString()
         : null;
+    final categorySortOrder = categoryRow is Map<String, dynamic>
+        ? categoryRow['sort_order']
+        : json['category_sort_order'];
     return FoodItem(
       id: json['id']?.toString(),
       foodCode: (json['foodCode'] ?? json['food_code'])?.toString() ?? '',
@@ -200,6 +205,7 @@ class FoodItem {
       remark: json['remark']?.toString(),
       searchKeywords: json['search_keywords']?.toString() ?? '',
       sortOrder: int.tryParse('${json['sort_order'] ?? 0}') ?? 0,
+      categorySortOrder: int.tryParse('${categorySortOrder ?? 0}') ?? 0,
       source: json['source']?.toString() ?? 'china-food-composition',
       isActive: json['is_active'] != false,
     );
@@ -246,6 +252,7 @@ class FoodItem {
       'remark': remark,
       'search_keywords': searchKeywords,
       'sort_order': sortOrder,
+      'category_sort_order': categorySortOrder,
       'source': source,
       'is_active': isActive,
     };

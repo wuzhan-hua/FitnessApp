@@ -168,15 +168,15 @@ final foodLibraryProvider = FutureProvider.autoDispose<List<FoodItem>>((
 ) async {
   final service = ref.watch(foodLibraryServiceProvider);
   final keyword = ref.watch(foodSearchKeywordProvider);
-  final category = ref.watch(selectedFoodCategoryProvider);
-  return service.searchFoods(keyword: keyword, category: category);
+  final categoryId = ref.watch(selectedFoodCategoryProvider);
+  return service.searchFoods(keyword: keyword, categoryId: categoryId);
 });
 
-final foodCategoriesProvider = FutureProvider.autoDispose<List<String>>((
+final foodCategoriesProvider = FutureProvider.autoDispose<List<FoodCategory>>((
   ref,
 ) async {
   final service = ref.watch(foodLibraryServiceProvider);
-  return service.getCategories();
+  return service.getFoodCategories();
 });
 
 final adminFoodCategoriesProvider =

@@ -96,6 +96,7 @@ class FoodLibraryService {
             (category) => category.id.isNotEmpty && category.name.isNotEmpty,
           )
           .toList();
+      categories.sort(_compareFoodCategory);
       if (activeOnly) {
         _remoteCategoryCache = categories;
       }
@@ -127,16 +128,50 @@ class FoodLibraryService {
   Future<List<FoodItem>> searchFoods({
     String keyword = '',
     String? category,
+    String? categoryId,
   }) async {
-    final foods = await loadFoods();
     final tokens = _buildSearchTokens(keyword);
+    final hasCategoryId = categoryId != null && categoryId.isNotEmpty;
+    if (_useRemote && hasCategoryId) {
+      try {
+        final foods = await _loadRemoteFoodsByCategory(categoryId);
+        return _filterFoods(
+          foods,
+          tokens: tokens,
+          category: category,
+          categoryId: categoryId,
+        );
+      } catch (error, stackTrace) {
+        AppLogger.error(
+          '按分类加载 Supabase 食物库失败，回退本地食物库',
+          error: error,
+          stackTrace: stackTrace,
+        );
+      }
+    }
+    final foods = await loadFoods();
+    return _filterFoods(
+      foods,
+      tokens: tokens,
+      category: category,
+      categoryId: categoryId,
+    );
+  }
+
+  List<FoodItem> _filterFoods(
+    List<FoodItem> foods, {
+    required List<String> tokens,
+    String? category,
+    String? categoryId,
+  }) {
+    final fallbackCategory = category ?? _categoryNameForId(categoryId);
     return foods.where((food) {
       final hasKeyword = tokens.isNotEmpty;
-      final matchCategory =
-          hasKeyword ||
-          category == null ||
-          category.isEmpty ||
-          food.category == category;
+      final hasCategoryId = categoryId != null && categoryId.isNotEmpty;
+      final matchCategory = hasCategoryId
+          ? food.categoryId == categoryId ||
+                (fallbackCategory != null && food.category == fallbackCategory)
+          : category == null || category.isEmpty || food.category == category;
       final haystack =
           '${food.foodName} ${food.searchKeywords} ${food.category}'
               .toLowerCase();
@@ -155,9 +190,11 @@ class FoodLibraryService {
         query = query.eq('category_id', categoryId);
       }
       final rows = await query.order('sort_order').order('food_name');
-      return List<Map<String, dynamic>>.from(
+      final foods = List<Map<String, dynamic>>.from(
         rows as List<dynamic>,
       ).map(FoodItem.fromJson).toList();
+      foods.sort(_compareAdminFoodItem);
+      return foods;
     } catch (error, stackTrace) {
       AppLogger.error('加载管理食物列表失败', error: error, stackTrace: stackTrace);
       throw AppError.from(error, fallbackMessage: '加载食物列表失败，请稍后重试。');
@@ -220,18 +257,52 @@ class FoodLibraryService {
     }
   }
 
-  Future<void> saveFoodOrders({required List<String> orderedFoodIds}) async {
+  Future<List<String>> saveFoodOrders({
+    required String categoryId,
+    required List<String> orderedFoodIds,
+  }) async {
     try {
-      for (final entry in orderedFoodIds.asMap().entries) {
-        await _client
-            .from('food_catalog_items')
-            .update({'sort_order': entry.key})
-            .eq('id', entry.value);
-      }
+      final rows = orderedFoodIds
+          .asMap()
+          .entries
+          .map((entry) => {'id': entry.value, 'sort_order': entry.key})
+          .toList();
+      final response = await _client.rpc(
+        'save_food_catalog_item_orders',
+        params: {'p_category_id': categoryId, 'order_rows': rows},
+      );
       clearCache();
+      return List<Map<String, dynamic>>.from(response as List<dynamic>)
+          .map((row) => row['id']?.toString() ?? '')
+          .where((id) => id.isNotEmpty)
+          .toList();
     } catch (error, stackTrace) {
       AppLogger.error('保存食物排序失败', error: error, stackTrace: stackTrace);
       throw AppError.from(error, fallbackMessage: '保存食物排序失败，请稍后重试。');
+    }
+  }
+
+  Future<List<String>> saveCategoryOrders({
+    required List<String> orderedCategoryIds,
+  }) async {
+    try {
+      final rows = orderedCategoryIds
+          .asMap()
+          .entries
+          .map((entry) => {'id': entry.value, 'sort_order': entry.key})
+          .toList();
+      final response = await _client.rpc(
+        'save_food_category_orders',
+        params: {'order_rows': rows},
+      );
+      clearCache();
+      return List<Map<String, dynamic>>.from(response as List<dynamic>)
+          .map((row) => row['id']?.toString() ?? '')
+          .where((id) => id.isNotEmpty)
+          .toList();
+    } catch (error, stackTrace) {
+      AppLogger.error('保存食物分类排序失败', error: error, stackTrace: stackTrace);
+      throw AppError.from(error, fallbackMessage: '保存食物分类排序失败，请稍后重试。');
     }
   }
 
@@ -279,9 +350,25 @@ class FoodLibraryService {
     final foods = List<Map<String, dynamic>>.from(
       rows as List<dynamic>,
     ).map(FoodItem.fromJson).toList();
+    foods.sort(_compareFoodItem);
     if (activeOnly) {
       _remoteFoodCache = foods;
     }
+    return foods;
+  }
+
+  Future<List<FoodItem>> _loadRemoteFoodsByCategory(String categoryId) async {
+    final rows = await _client
+        .from('food_catalog_items')
+        .select('*,food_categories(id,name,sort_order,is_active)')
+        .eq('is_active', true)
+        .eq('category_id', categoryId)
+        .order('sort_order')
+        .order('food_name');
+    final foods = List<Map<String, dynamic>>.from(
+      rows as List<dynamic>,
+    ).map(FoodItem.fromJson).toList();
+    foods.sort(_compareAdminFoodItem);
     return foods;
   }
 
@@ -304,7 +391,8 @@ class FoodLibraryService {
             continue;
           }
           final enriched = Map<String, dynamic>.from(item)
-            ..['category'] = entry.value;
+            ..['category'] = entry.value
+            ..['category_id'] = entry.value;
           final food = FoodItem.fromJson(enriched);
           if (food.foodCode.isEmpty || food.foodName.trim().isEmpty) {
             continue;
@@ -372,5 +460,45 @@ class FoodLibraryService {
       return 1;
     }
     return a.compareTo(b);
+  }
+
+  int _compareFoodCategory(FoodCategory a, FoodCategory b) {
+    final orderCompare = a.sortOrder.compareTo(b.sortOrder);
+    if (orderCompare != 0) {
+      return orderCompare;
+    }
+    return a.name.compareTo(b.name);
+  }
+
+  String? _categoryNameForId(String? categoryId) {
+    if (categoryId == null || categoryId.isEmpty) {
+      return null;
+    }
+    final categories = _remoteCategoryCache;
+    if (categories == null) {
+      return null;
+    }
+    for (final category in categories) {
+      if (category.id == categoryId) {
+        return category.name;
+      }
+    }
+    return null;
+  }
+
+  int _compareFoodItem(FoodItem a, FoodItem b) {
+    final categoryCompare = a.categorySortOrder.compareTo(b.categorySortOrder);
+    if (categoryCompare != 0) {
+      return categoryCompare;
+    }
+    return _compareAdminFoodItem(a, b);
+  }
+
+  int _compareAdminFoodItem(FoodItem a, FoodItem b) {
+    final orderCompare = a.sortOrder.compareTo(b.sortOrder);
+    if (orderCompare != 0) {
+      return orderCompare;
+    }
+    return a.foodName.compareTo(b.foodName);
   }
 }

@@ -11,6 +11,7 @@ import '../widgets/async_tab_content.dart';
 import '../widgets/diet_food_entry_dialog.dart';
 
 const _allFoodCategory = '';
+const _allFoodCategoryName = '全部';
 
 class FoodLibraryPageArgs {
   const FoodLibraryPageArgs({
@@ -220,10 +221,6 @@ class _FoodLibraryPageState extends ConsumerState<FoodLibraryPage> {
                   ),
                 ),
                 data: (categories) {
-                  final categoryOptions = <String>[
-                    _allFoodCategory,
-                    ...categories,
-                  ];
                   final activeCategory = selectedCategory ?? _allFoodCategory;
                   if (selectedCategory == null) {
                     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -237,16 +234,16 @@ class _FoodLibraryPageState extends ConsumerState<FoodLibraryPage> {
                   return Row(
                     children: [
                       _FoodCategorySidebar(
-                        categories: categoryOptions,
-                        selectedCategory: activeCategory,
-                        onSelect: (category) {
+                        categories: categories,
+                        selectedCategoryId: activeCategory,
+                        onSelect: (categoryId) {
                           if (_foodListController.hasClients) {
                             _foodListController.jumpTo(0);
                           }
                           ref
                                   .read(selectedFoodCategoryProvider.notifier)
                                   .state =
-                              category;
+                              categoryId;
                         },
                       ),
                       Expanded(
@@ -336,12 +333,12 @@ class _FoodLibraryPageState extends ConsumerState<FoodLibraryPage> {
 class _FoodCategorySidebar extends StatelessWidget {
   const _FoodCategorySidebar({
     required this.categories,
-    required this.selectedCategory,
+    required this.selectedCategoryId,
     required this.onSelect,
   });
 
-  final List<String> categories;
-  final String? selectedCategory;
+  final List<FoodCategory> categories;
+  final String? selectedCategoryId;
   final ValueChanged<String> onSelect;
 
   @override
@@ -352,17 +349,19 @@ class _FoodCategorySidebar extends StatelessWidget {
       color: colors.panelAlt,
       child: ListView.separated(
         padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-        itemCount: categories.length,
+        itemCount: categories.length + 1,
         separatorBuilder: (_, _) => const SizedBox(height: 6),
         itemBuilder: (context, index) {
-          final category = categories[index];
-          final selected = selectedCategory == category;
-          final categoryLabel = category.isEmpty ? '全部' : category;
+          final isAll = index == 0;
+          final category = isAll ? null : categories[index - 1];
+          final categoryId = category?.id ?? _allFoodCategory;
+          final selected = selectedCategoryId == categoryId;
+          final categoryLabel = category?.name ?? _allFoodCategoryName;
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
             child: InkWell(
               borderRadius: BorderRadius.circular(14),
-              onTap: () => onSelect(category),
+              onTap: () => onSelect(categoryId),
               child: Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 8,
