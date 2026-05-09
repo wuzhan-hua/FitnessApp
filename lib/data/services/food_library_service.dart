@@ -51,6 +51,7 @@ class FoodLibraryService {
     '婴幼儿食品',
     '其他',
   ];
+  static const int _remoteFoodPageSize = 1000;
 
   List<FoodItem>? _remoteFoodCache;
   List<FoodItem>? _assetFoodCache;
@@ -131,19 +132,26 @@ class FoodLibraryService {
     String? categoryId,
   }) async {
     final tokens = _buildSearchTokens(keyword);
+    final normalizedKeyword = tokens.isEmpty ? '' : tokens.first;
     final hasCategoryId = categoryId != null && categoryId.isNotEmpty;
-    if (_useRemote && hasCategoryId) {
+    if (_useRemote) {
       try {
-        final foods = await _loadRemoteFoodsByCategory(categoryId);
+        final foods = hasCategoryId
+            ? await _loadRemoteFoodsByCategory(categoryId)
+            : await _loadRemoteFoods(
+                activeOnly: true,
+                useCache: normalizedKeyword.isEmpty,
+              );
         return _filterFoods(
           foods,
           tokens: tokens,
           category: category,
           categoryId: categoryId,
+          allowCategoryNameFallback: false,
         );
       } catch (error, stackTrace) {
         AppLogger.error(
-          '按分类加载 Supabase 食物库失败，回退本地食物库',
+          '加载 Supabase 食物库搜索数据失败，回退本地食物库',
           error: error,
           stackTrace: stackTrace,
         );
@@ -155,6 +163,7 @@ class FoodLibraryService {
       tokens: tokens,
       category: category,
       categoryId: categoryId,
+      allowCategoryNameFallback: true,
     );
   }
 
@@ -163,6 +172,7 @@ class FoodLibraryService {
     required List<String> tokens,
     String? category,
     String? categoryId,
+    required bool allowCategoryNameFallback,
   }) {
     final fallbackCategory = category ?? _categoryNameForId(categoryId);
     final normalizedKeyword = tokens.isEmpty ? '' : tokens.first;
@@ -171,7 +181,9 @@ class FoodLibraryService {
       final hasCategoryId = categoryId != null && categoryId.isNotEmpty;
       final matchCategory = hasCategoryId
           ? food.categoryId == categoryId ||
-                (fallbackCategory != null && food.category == fallbackCategory)
+                (allowCategoryNameFallback &&
+                    fallbackCategory != null &&
+                    food.category == fallbackCategory)
           : category == null || category.isEmpty || food.category == category;
       final haystack =
           '${food.foodName} ${food.searchKeywords} ${food.category}'
@@ -183,19 +195,15 @@ class FoodLibraryService {
     if (normalizedKeyword.isEmpty) {
       return matchedFoods;
     }
-    final exactMatches = <FoodItem>[];
-    final tokenMatches = <FoodItem>[];
-    for (final food in matchedFoods) {
-      final haystack =
-          '${food.foodName} ${food.searchKeywords} ${food.category}'
-              .toLowerCase();
-      if (haystack.contains(normalizedKeyword)) {
-        exactMatches.add(food);
-      } else {
-        tokenMatches.add(food);
-      }
-    }
-    return [...exactMatches, ...tokenMatches];
+    matchedFoods.sort(
+      (a, b) => _compareSearchResult(
+        a,
+        b,
+        normalizedKeyword: normalizedKeyword,
+        tokens: tokens,
+      ),
+    );
+    return matchedFoods;
   }
 
   Future<List<FoodItem>> getAdminFoods({String? categoryId}) async {
@@ -353,22 +361,38 @@ class FoodLibraryService {
     _remoteCategoryCache = null;
   }
 
-  Future<List<FoodItem>> _loadRemoteFoods({required bool activeOnly}) async {
-    if (activeOnly && _remoteFoodCache != null) {
+  Future<List<FoodItem>> _loadRemoteFoods({
+    required bool activeOnly,
+    bool useCache = true,
+  }) async {
+    if (activeOnly && useCache && _remoteFoodCache != null) {
       return _remoteFoodCache!;
     }
-    var query = _client
-        .from('food_catalog_items')
-        .select('*,food_categories(id,name,sort_order,is_active)');
-    if (activeOnly) {
-      query = query.eq('is_active', true);
+
+    final allRows = <Map<String, dynamic>>[];
+    var offset = 0;
+    while (true) {
+      var query = _client
+          .from('food_catalog_items')
+          .select('*,food_categories(id,name,sort_order,is_active)');
+      if (activeOnly) {
+        query = query.eq('is_active', true);
+      }
+      final rows = await query
+          .order('sort_order')
+          .order('food_name')
+          .range(offset, offset + _remoteFoodPageSize - 1);
+      final pageRows = List<Map<String, dynamic>>.from(rows as List<dynamic>);
+      allRows.addAll(pageRows);
+      if (pageRows.length < _remoteFoodPageSize) {
+        break;
+      }
+      offset += _remoteFoodPageSize;
     }
-    final rows = await query.order('sort_order').order('food_name');
-    final foods = List<Map<String, dynamic>>.from(
-      rows as List<dynamic>,
-    ).map(FoodItem.fromJson).toList();
+
+    final foods = allRows.map(FoodItem.fromJson).toList();
     foods.sort(_compareFoodItem);
-    if (activeOnly) {
+    if (activeOnly && useCache) {
       _remoteFoodCache = foods;
     }
     return foods;
@@ -517,5 +541,73 @@ class FoodLibraryService {
       return orderCompare;
     }
     return a.foodName.compareTo(b.foodName);
+  }
+
+  int _compareSearchResult(
+    FoodItem a,
+    FoodItem b, {
+    required String normalizedKeyword,
+    required List<String> tokens,
+  }) {
+    final scoreCompare = _searchScore(
+      a,
+      normalizedKeyword: normalizedKeyword,
+      tokens: tokens,
+    ).compareTo(
+      _searchScore(
+        b,
+        normalizedKeyword: normalizedKeyword,
+        tokens: tokens,
+      ),
+    );
+    if (scoreCompare != 0) {
+      return scoreCompare;
+    }
+
+    final lengthCompare = a.foodName.length.compareTo(b.foodName.length);
+    if (lengthCompare != 0) {
+      return lengthCompare;
+    }
+
+    return _compareFoodItem(a, b);
+  }
+
+  int _searchScore(
+    FoodItem food, {
+    required String normalizedKeyword,
+    required List<String> tokens,
+  }) {
+    final name = food.foodName.toLowerCase();
+    final keywords = food.searchKeywords.toLowerCase();
+    final category = food.category.toLowerCase();
+
+    if (name == normalizedKeyword) {
+      return 0;
+    }
+    if (name.startsWith(normalizedKeyword)) {
+      return 1;
+    }
+    if (name.endsWith(normalizedKeyword)) {
+      return 2;
+    }
+    if (name.contains(normalizedKeyword)) {
+      return 3;
+    }
+    if (keywords.contains(normalizedKeyword)) {
+      return 4;
+    }
+    if (category.contains(normalizedKeyword)) {
+      return 5;
+    }
+    if (tokens.any(name.contains)) {
+      return 6;
+    }
+    if (tokens.any(keywords.contains)) {
+      return 7;
+    }
+    if (tokens.any(category.contains)) {
+      return 8;
+    }
+    return 9;
   }
 }
