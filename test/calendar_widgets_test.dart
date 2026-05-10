@@ -1,4 +1,5 @@
 import 'package:fitness_client/domain/entities/workout_models.dart';
+import 'package:fitness_client/domain/entities/diet_models.dart';
 import 'package:fitness_client/application/state/session_editor_controller.dart';
 import 'package:fitness_client/presentation/pages/session_analysis_page.dart';
 import 'package:fitness_client/presentation/pages/session_editor_page.dart';
@@ -8,6 +9,71 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  testWidgets('training cells use a unified border tone', (
+    tester,
+  ) async {
+    final month = DateTime(2026, 5, 1);
+    final chestA = DateTime(2026, 5, 3);
+    final chestB = DateTime(2026, 5, 8);
+    final back = DateTime(2026, 5, 4);
+
+    await tester.pumpWidget(
+      _buildCalendar(
+        month: month,
+        sessions: [
+          _sessionWithTitle(chestA, '胸训练日'),
+          _sessionWithTitle(chestB, '推训练日'),
+          _sessionWithTitle(back, '背训练日'),
+        ],
+      ),
+    );
+
+    final chestAContainer = _cellContainer(tester, chestA);
+    final chestBContainer = _cellContainer(tester, chestB);
+    final backContainer = _cellContainer(tester, back);
+
+    expect(
+      ((chestAContainer.decoration! as BoxDecoration).border! as Border)
+          .top
+          .color,
+      const Color(0xFF8AA4D6),
+    );
+    expect(
+      ((chestBContainer.decoration! as BoxDecoration).border! as Border)
+          .top
+          .color,
+      const Color(0xFF8AA4D6),
+    );
+    expect(
+      ((backContainer.decoration! as BoxDecoration).border! as Border)
+          .top
+          .color,
+      const Color(0xFF8AA4D6),
+    );
+  });
+
+  testWidgets('shows kcal for diet-only and training days', (tester) async {
+    final today = _day(DateTime.now());
+    final dietOnlyDay = today;
+    final trainingDay = today.subtract(const Duration(days: 1));
+
+    await tester.pumpWidget(
+      _buildCalendar(
+        month: DateTime(today.year, today.month),
+        sessions: [_sessionWithTitle(trainingDay, '胸训练日')],
+        dietSummaries: {
+          dietOnlyDay: _dietSummary(dietOnlyDay, 520),
+          trainingDay: _dietSummary(trainingDay, 860),
+        },
+      ),
+    );
+
+    expect(find.text('520 卡'), findsOneWidget);
+    expect(find.text('860 卡'), findsOneWidget);
+    expect(find.text('未训练'), findsOneWidget);
+    expect(find.text('胸'), findsOneWidget);
+  });
+
   testWidgets('today with session opens read only page directly', (
     tester,
   ) async {
@@ -69,6 +135,7 @@ void main() {
 Widget _buildCalendar({
   required DateTime month,
   List<WorkoutSession> sessions = const [],
+  Map<DateTime, DailyDietSummary> dietSummaries = const {},
 }) {
   return MaterialApp(
     theme: AppTheme.light,
@@ -103,6 +170,7 @@ Widget _buildCalendar({
         child: CalendarBody(
           month: month,
           sessions: sessions,
+          dietSummaries: dietSummaries,
           onSessionChanged: () {},
         ),
       ),
@@ -119,12 +187,49 @@ ValueKey<String> _calendarDayKey(DateTime date) {
 }
 
 WorkoutSession _sessionOn(DateTime date) {
+  return _sessionWithTitle(date, '推训练日');
+}
+
+WorkoutSession _sessionWithTitle(DateTime date, String title) {
   return WorkoutSession(
     id: 'session-${date.millisecondsSinceEpoch}',
     date: date,
-    title: '推训练日',
+    title: title,
     status: SessionStatus.completed,
     durationMinutes: 60,
     exercises: const [],
   );
+}
+
+Container _cellContainer(WidgetTester tester, DateTime date) {
+  final containerFinder = find.descendant(
+    of: find.byKey(_calendarDayKey(date)),
+    matching: find.byType(Container),
+  );
+  return tester.widgetList<Container>(containerFinder).firstWhere(
+    (container) => container.decoration is BoxDecoration,
+  );
+}
+
+DailyDietSummary _dietSummary(DateTime date, double kcal) {
+  return DailyDietSummary.fromRecords(date, [
+    DietRecord(
+      id: 'diet-${date.millisecondsSinceEpoch}-$kcal',
+      userId: 'user-1',
+      consumedAt: date.add(const Duration(hours: 8)),
+      mealType: MealType.breakfast,
+      foodCode: 'code',
+      foodName: 'food',
+      foodCategory: 'category',
+      grams: 100,
+      energyKCal: kcal,
+      protein: 10,
+      fat: 10,
+      carb: 10,
+      dietaryFiber: 1,
+      cholesterol: 0,
+      sodium: 0,
+      createdAt: date.add(const Duration(hours: 8)),
+    ),
+  ]);
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../../application/state/session_editor_controller.dart';
+import '../../../domain/entities/diet_models.dart';
 import '../../../domain/entities/workout_models.dart';
 import '../../../theme/app_theme.dart';
 import '../../../utils/snackbar_helper.dart';
@@ -65,11 +66,13 @@ class CalendarBody extends StatelessWidget {
     super.key,
     required this.month,
     required this.sessions,
+    required this.dietSummaries,
     required this.onSessionChanged,
   });
 
   final DateTime month;
   final List<WorkoutSession> sessions;
+  final Map<DateTime, DailyDietSummary> dietSummaries;
   final VoidCallback onSessionChanged;
 
   DateTime _day(DateTime date) => DateTime(date.year, date.month, date.day);
@@ -134,6 +137,7 @@ class CalendarBody extends StatelessWidget {
                     ),
                     day: day,
                     session: session,
+                    dietSummary: dietSummaries[_day(day)],
                     inMonth: inCurrentMonth,
                     compact: compact,
                     isToday: today,
@@ -174,6 +178,7 @@ class _CalendarCell extends StatelessWidget {
     super.key,
     required this.day,
     required this.session,
+    required this.dietSummary,
     required this.inMonth,
     required this.compact,
     required this.isToday,
@@ -182,6 +187,7 @@ class _CalendarCell extends StatelessWidget {
 
   final DateTime day;
   final WorkoutSession? session;
+  final DailyDietSummary? dietSummary;
   final bool inMonth;
   final bool compact;
   final bool isToday;
@@ -335,26 +341,54 @@ class _CalendarCell extends StatelessWidget {
     return '训练';
   }
 
+  _CalendarCellTone _trainingTone(AppPalette colors) {
+    return _CalendarCellTone(
+      fill: colors.panel,
+      border: const Color(0xFF8AA4D6),
+      text: colors.textPrimary,
+    );
+  }
+
+  String _formatKcalText(double totalEnergyKCal) {
+    return '${totalEnergyKCal.toStringAsFixed(0)} 卡';
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = AppColors.of(context);
     final hasSession = session != null;
     final today = _day(DateTime.now());
     final isFutureDay = _day(day).isAfter(today);
+    final trainingLabel = hasSession ? _trainingTypeLabel(session!.title) : null;
+    final tone = hasSession
+        ? _trainingTone(colors)
+        : _CalendarCellTone(
+            fill: colors.panel,
+            border: Colors.transparent,
+            text: colors.textPrimary,
+          );
+    final hasDiet = (dietSummary?.totalEnergyKCal ?? 0) > 0;
+    final kcalText = hasDiet
+        ? _formatKcalText(dietSummary!.totalEnergyKCal)
+        : null;
+    final borderColor = isToday
+        ? colors.accent.withValues(alpha: 0.72)
+        : hasSession
+        ? tone.border
+        : Colors.transparent;
+    final dayTextColor = inMonth
+        ? colors.textPrimary
+        : colors.textMuted.withValues(alpha: 0.6);
 
     return InkWell(
       borderRadius: AppRadius.card,
       onTap: () => _handleTap(context),
       child: Container(
         decoration: BoxDecoration(
-          color: hasSession ? colors.panelAlt : colors.panel,
+          color: colors.panel,
           borderRadius: AppRadius.card,
           border: Border.all(
-            color: isToday
-                ? colors.accent
-                : hasSession
-                ? colors.accent.withValues(alpha: 0.4)
-                : Colors.transparent,
+            color: borderColor,
             width: isToday ? 1.5 : 1,
           ),
         ),
@@ -365,25 +399,44 @@ class _CalendarCell extends StatelessWidget {
             Text(
               '${day.day}',
               style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                color: inMonth
-                    ? colors.textPrimary
-                    : colors.textMuted.withValues(alpha: 0.6),
+                color: dayTextColor,
                 fontWeight: FontWeight.w700,
                 fontSize: compact ? 12 : 14,
               ),
             ),
             const Spacer(),
+            if (kcalText != null)
+              Padding(
+                padding: EdgeInsets.only(bottom: compact ? 1 : 2),
+                child: Text(
+                  kcalText,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: colors.textMuted.withValues(
+                      alpha: inMonth ? 0.88 : 0.65,
+                    ),
+                    fontSize: compact ? 7 : 8,
+                    fontWeight: FontWeight.w600,
+                    height: 1,
+                  ),
+                ),
+              ),
             if (hasSession)
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    _trainingTypeLabel(session!.title),
+                    trainingLabel!,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: colors.textMuted,
-                      fontSize: compact ? 9.5 : null,
+                      color: colors.textPrimary.withValues(
+                        alpha: inMonth ? 0.95 : 0.72,
+                      ),
+                      fontWeight: FontWeight.w600,
+                      fontSize: compact ? 8.8 : 10,
+                      height: 1.05,
                     ),
                   ),
                   Text(
@@ -391,8 +444,11 @@ class _CalendarCell extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: colors.textMuted.withValues(alpha: 0.85),
-                      fontSize: compact ? 9.5 : null,
+                      color: colors.textMuted.withValues(
+                        alpha: inMonth ? 0.88 : 0.68,
+                      ),
+                      fontSize: compact ? 8.4 : 9.5,
+                      height: 1.05,
                     ),
                   ),
                 ],
@@ -402,7 +458,8 @@ class _CalendarCell extends StatelessWidget {
                 isToday ? '未训练' : '补录',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: colors.textMuted,
-                  fontSize: compact ? 9.5 : null,
+                  fontSize: compact ? 8.8 : 10,
+                  height: 1.05,
                 ),
               )
             else
@@ -412,4 +469,16 @@ class _CalendarCell extends StatelessWidget {
       ),
     );
   }
+}
+
+class _CalendarCellTone {
+  const _CalendarCellTone({
+    required this.fill,
+    required this.border,
+    required this.text,
+  });
+
+  final Color fill;
+  final Color border;
+  final Color text;
 }

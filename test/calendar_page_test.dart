@@ -1,5 +1,6 @@
 import 'package:fitness_client/application/providers/providers.dart';
 import 'package:fitness_client/data/repositories/workout_repository.dart';
+import 'package:fitness_client/domain/entities/diet_models.dart';
 import 'package:fitness_client/domain/entities/workout_models.dart';
 import 'package:fitness_client/presentation/pages/calendar_page.dart';
 import 'package:fitness_client/theme/app_theme.dart';
@@ -118,4 +119,52 @@ void main() {
     expect(find.text('130分'), findsNWidgets(2));
     expect(find.text('120分'), findsOneWidget);
   });
+
+  testWidgets('五月页会显示四月底跨月格子的饮食热量', (tester) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          workoutRepositoryProvider.overrideWithValue(_CalendarRangeRepo()),
+          monthlyDietSummariesProvider.overrideWith((ref, month) async {
+            return {
+              DateTime(2026, 4, 28): _dietSummary(DateTime(2026, 4, 28), 680),
+              DateTime(2026, 5, 2): _dietSummary(DateTime(2026, 5, 2), 920),
+            };
+          }),
+          calendarMonthProvider.overrideWith((ref) => DateTime(2026, 5, 1)),
+        ],
+        child: MaterialApp(
+          theme: AppTheme.light,
+          home: const Scaffold(body: CalendarPage()),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('680 卡'), findsOneWidget);
+    expect(find.text('920 卡'), findsOneWidget);
+  });
+}
+
+DailyDietSummary _dietSummary(DateTime date, double kcal) {
+  return DailyDietSummary.fromRecords(date, [
+    DietRecord(
+      id: 'diet-${date.year}-${date.month}-${date.day}-$kcal',
+      userId: 'user-1',
+      consumedAt: date.add(const Duration(hours: 12)),
+      mealType: MealType.lunch,
+      foodCode: 'food-code',
+      foodName: '鸡胸肉',
+      foodCategory: '蛋白质',
+      grams: 100,
+      energyKCal: kcal,
+      protein: 10,
+      fat: 5,
+      carb: 15,
+      dietaryFiber: 2,
+      cholesterol: 0,
+      sodium: 0,
+      createdAt: date.add(const Duration(hours: 12)),
+    ),
+  ]);
 }

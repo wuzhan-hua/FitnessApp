@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../application/providers/providers.dart';
+import '../../domain/entities/diet_models.dart';
 import '../../domain/entities/workout_models.dart';
 import '../../theme/app_theme.dart';
 import '../widgets/async_tab_content.dart';
@@ -93,11 +94,14 @@ class CalendarPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final month = ref.watch(calendarMonthProvider);
-    final sessionsAsync = ref.watch(sessionsByCalendarGridProvider(month));
+    final calendarDataAsync = ref.watch(
+      _calendarPageDataProvider(month),
+    );
     final monthNotifier = ref.read(calendarMonthProvider.notifier);
 
     void refreshMonthSessions() {
       ref.invalidate(sessionsByCalendarGridProvider(month));
+      ref.invalidate(monthlyDietSummariesProvider(month));
     }
 
     Future<void> pickMonthYear() async {
@@ -123,12 +127,13 @@ class CalendarPage extends ConsumerWidget {
             ),
             const SizedBox(height: AppSpacing.sm),
             Expanded(
-              child: AsyncTabContent<List<WorkoutSession>>(
-                asyncValue: sessionsAsync,
+              child: AsyncTabContent<_CalendarPageData>(
+                asyncValue: calendarDataAsync,
                 errorPrefix: '日历加载失败',
-                builder: (context, sessions) => CalendarBody(
+                builder: (context, data) => CalendarBody(
                   month: month,
-                  sessions: sessions,
+                  sessions: data.sessions,
+                  dietSummaries: data.dietSummaries,
                   onSessionChanged: refreshMonthSessions,
                 ),
               ),
@@ -139,3 +144,27 @@ class CalendarPage extends ConsumerWidget {
     );
   }
 }
+
+class _CalendarPageData {
+  const _CalendarPageData({
+    required this.sessions,
+    required this.dietSummaries,
+  });
+
+  final List<WorkoutSession> sessions;
+  final Map<DateTime, DailyDietSummary> dietSummaries;
+}
+
+final _calendarPageDataProvider =
+    FutureProvider.family<_CalendarPageData, DateTime>((ref, month) async {
+      final sessions = await ref.watch(
+        sessionsByCalendarGridProvider(month).future,
+      );
+      final dietSummaries = await ref.watch(
+        monthlyDietSummariesProvider(month).future,
+      );
+      return _CalendarPageData(
+        sessions: sessions,
+        dietSummaries: dietSummaries,
+      );
+    });
