@@ -9,46 +9,48 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  testWidgets('training cells use a unified border tone', (
+  testWidgets('non-today training cells have no border while today keeps highlight', (
     tester,
   ) async {
-    final month = DateTime(2026, 5, 1);
-    final chestA = DateTime(2026, 5, 3);
-    final chestB = DateTime(2026, 5, 8);
-    final back = DateTime(2026, 5, 4);
+    final today = _day(DateTime.now());
+    final chestA = today.subtract(const Duration(days: 2));
+    final chestB = today.subtract(const Duration(days: 1));
+    final todayTraining = today;
 
     await tester.pumpWidget(
       _buildCalendar(
-        month: month,
+        month: DateTime(today.year, today.month),
         sessions: [
           _sessionWithTitle(chestA, '胸训练日'),
           _sessionWithTitle(chestB, '推训练日'),
-          _sessionWithTitle(back, '背训练日'),
+          _sessionWithTitle(todayTraining, '背训练日'),
         ],
       ),
     );
 
     final chestAContainer = _cellContainer(tester, chestA);
     final chestBContainer = _cellContainer(tester, chestB);
-    final backContainer = _cellContainer(tester, back);
+    final todayContainer = _cellContainer(tester, todayTraining);
 
     expect(
       ((chestAContainer.decoration! as BoxDecoration).border! as Border)
           .top
           .color,
-      const Color(0xFF8AA4D6),
+      Colors.transparent,
     );
     expect(
       ((chestBContainer.decoration! as BoxDecoration).border! as Border)
           .top
           .color,
-      const Color(0xFF8AA4D6),
+      Colors.transparent,
     );
     expect(
-      ((backContainer.decoration! as BoxDecoration).border! as Border)
+      ((todayContainer.decoration! as BoxDecoration).border! as Border)
           .top
           .color,
-      const Color(0xFF8AA4D6),
+      AppColors.of(
+        tester.element(find.byKey(_calendarDayKey(todayTraining))),
+      ).accent.withValues(alpha: 0.72),
     );
   });
 
@@ -72,6 +74,46 @@ void main() {
     expect(find.text('860 卡'), findsOneWidget);
     expect(find.text('未训练'), findsOneWidget);
     expect(find.text('胸'), findsOneWidget);
+  });
+
+  testWidgets('shows training markers and cardio uses a different color', (
+    tester,
+  ) async {
+    final today = _day(DateTime.now());
+    final strengthDay = today.subtract(const Duration(days: 2));
+    final cardioDay = today.subtract(const Duration(days: 1));
+    final restDay = today.subtract(const Duration(days: 3));
+
+    await tester.pumpWidget(
+      _buildCalendar(
+        month: DateTime(today.year, today.month),
+        sessions: [
+          _sessionWithTitle(strengthDay, '胸训练日'),
+          _sessionWithTitle(cardioDay, '有氧训练日'),
+        ],
+      ),
+    );
+
+    final strengthMarker = tester.widget<Container>(
+      find.byKey(_trainingMarkerKey(strengthDay)),
+    );
+    final cardioMarker = tester.widget<Container>(
+      find.byKey(_trainingMarkerKey(cardioDay)),
+    );
+
+    expect(find.byKey(_trainingMarkerKey(strengthDay)), findsOneWidget);
+    expect(find.byKey(_trainingMarkerKey(cardioDay)), findsOneWidget);
+    expect(find.byKey(_trainingMarkerKey(restDay)), findsNothing);
+    expect(
+      (strengthMarker.decoration! as BoxDecoration).color,
+      AppColors.of(
+        tester.element(find.byKey(_calendarDayKey(strengthDay))),
+      ).accent.withValues(alpha: 0.85),
+    );
+    expect(
+      (cardioMarker.decoration! as BoxDecoration).color,
+      const Color(0xFF38B2AC),
+    );
   });
 
   testWidgets('today with session opens read only page directly', (
@@ -183,6 +225,12 @@ DateTime _day(DateTime date) => DateTime(date.year, date.month, date.day);
 ValueKey<String> _calendarDayKey(DateTime date) {
   return ValueKey<String>(
     'calendar-day-${date.year}-${date.month}-${date.day}',
+  );
+}
+
+ValueKey<String> _trainingMarkerKey(DateTime date) {
+  return ValueKey<String>(
+    'calendar-training-marker-${date.year}-${date.month}-${date.day}',
   );
 }
 

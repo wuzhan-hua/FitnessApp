@@ -341,16 +341,15 @@ class _CalendarCell extends StatelessWidget {
     return '训练';
   }
 
-  _CalendarCellTone _trainingTone(AppPalette colors) {
-    return _CalendarCellTone(
-      fill: colors.panel,
-      border: const Color(0xFF8AA4D6),
-      text: colors.textPrimary,
-    );
-  }
-
   String _formatKcalText(double totalEnergyKCal) {
     return '${totalEnergyKCal.toStringAsFixed(0)} 卡';
+  }
+
+  Color _trainingMarkerColor(AppPalette colors, String label) {
+    if (label == '有氧') {
+      return const Color(0xFF38B2AC);
+    }
+    return colors.accent.withValues(alpha: 0.85);
   }
 
   @override
@@ -360,21 +359,12 @@ class _CalendarCell extends StatelessWidget {
     final today = _day(DateTime.now());
     final isFutureDay = _day(day).isAfter(today);
     final trainingLabel = hasSession ? _trainingTypeLabel(session!.title) : null;
-    final tone = hasSession
-        ? _trainingTone(colors)
-        : _CalendarCellTone(
-            fill: colors.panel,
-            border: Colors.transparent,
-            text: colors.textPrimary,
-          );
     final hasDiet = (dietSummary?.totalEnergyKCal ?? 0) > 0;
     final kcalText = hasDiet
         ? _formatKcalText(dietSummary!.totalEnergyKCal)
         : null;
     final borderColor = isToday
         ? colors.accent.withValues(alpha: 0.72)
-        : hasSession
-        ? tone.border
         : Colors.transparent;
     final dayTextColor = inMonth
         ? colors.textPrimary
@@ -396,13 +386,31 @@ class _CalendarCell extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              '${day.day}',
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                color: dayTextColor,
-                fontWeight: FontWeight.w700,
-                fontSize: compact ? 12 : 14,
-              ),
+            Row(
+              children: [
+                Text(
+                  '${day.day}',
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    color: dayTextColor,
+                    fontWeight: FontWeight.w700,
+                    fontSize: compact ? 12 : 14,
+                  ),
+                ),
+                if (hasSession) ...[
+                  SizedBox(width: compact ? 4 : 5),
+                  Container(
+                    key: ValueKey<String>(
+                      'calendar-training-marker-${day.year}-${day.month}-${day.day}',
+                    ),
+                    width: compact ? 6 : 7,
+                    height: compact ? 6 : 7,
+                    decoration: BoxDecoration(
+                      color: _trainingMarkerColor(colors, trainingLabel!),
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ],
+              ],
             ),
             const Spacer(),
             if (kcalText != null)
@@ -469,16 +477,4 @@ class _CalendarCell extends StatelessWidget {
       ),
     );
   }
-}
-
-class _CalendarCellTone {
-  const _CalendarCellTone({
-    required this.fill,
-    required this.border,
-    required this.text,
-  });
-
-  final Color fill;
-  final Color border;
-  final Color text;
 }
