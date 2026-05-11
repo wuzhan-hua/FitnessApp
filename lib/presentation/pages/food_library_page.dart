@@ -144,28 +144,26 @@ class _FoodLibraryPageState extends ConsumerState<FoodLibraryPage> {
                         );
                         ref.invalidate(
                           monthlyDietSummariesProvider(
-                            DateTime(
-                              widget.args.date.year,
-                              widget.args.date.month,
-                              1,
+                            monthKey(widget.args.date),
+                          ),
+                        );
+                        ref.invalidate(
+                          monthlyDietSummariesProvider(
+                            monthKey(
+                              DateTime(
+                                widget.args.date.year,
+                                widget.args.date.month - 1,
+                              ),
                             ),
                           ),
                         );
                         ref.invalidate(
                           monthlyDietSummariesProvider(
-                            DateTime(
-                              widget.args.date.year,
-                              widget.args.date.month - 1,
-                              1,
-                            ),
-                          ),
-                        );
-                        ref.invalidate(
-                          monthlyDietSummariesProvider(
-                            DateTime(
-                              widget.args.date.year,
-                              widget.args.date.month + 1,
-                              1,
+                            monthKey(
+                              DateTime(
+                                widget.args.date.year,
+                                widget.args.date.month + 1,
+                              ),
                             ),
                           ),
                         );

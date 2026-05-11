@@ -114,13 +114,17 @@ DateTime dietCalendarGridStartDay(DateTime month) {
   return firstDay.subtract(Duration(days: firstDay.weekday % 7));
 }
 
+DateTime monthKey(DateTime date) => DateTime(date.year, date.month, 1);
+
 final workoutSessionByIdProvider =
     FutureProvider.family<WorkoutSession?, String>((ref, sessionId) async {
       final service = ref.watch(workoutServiceProvider);
       return service.getSessionById(sessionId);
     });
 
-final calendarMonthProvider = StateProvider<DateTime>((ref) => DateTime.now());
+final calendarMonthProvider = StateProvider<DateTime>(
+  (ref) => monthKey(DateTime.now()),
+);
 
 final sessionsByCalendarGridProvider =
     FutureProvider.family<List<WorkoutSession>, DateTime>((ref, month) async {
@@ -209,7 +213,7 @@ final monthlyDietSummariesProvider =
       month,
     ) async {
       final service = ref.watch(dietRecordServiceProvider);
-      final gridStart = dietCalendarGridStartDay(month);
+      final gridStart = dietCalendarGridStartDay(monthKey(month));
       final gridEnd = gridStart.add(const Duration(days: 42));
       final records = await service.getDietRecordsInRange(
         fromInclusive: gridStart,

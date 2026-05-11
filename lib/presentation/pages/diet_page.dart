@@ -20,15 +20,19 @@ class DietPage extends ConsumerWidget {
   const DietPage({super.key});
 
   void _invalidateDietDateCaches(WidgetRef ref, DateTime date) {
-    final month = DateTime(date.year, date.month, 1);
+    final month = monthKey(date);
     ref.invalidate(dietRecordsByDateProvider(date));
     ref.invalidate(dailyDietSummaryProvider(date));
     ref.invalidate(monthlyDietSummariesProvider(month));
     ref.invalidate(
-      monthlyDietSummariesProvider(DateTime(date.year, date.month - 1, 1)),
+      monthlyDietSummariesProvider(
+        monthKey(DateTime(date.year, date.month - 1)),
+      ),
     );
     ref.invalidate(
-      monthlyDietSummariesProvider(DateTime(date.year, date.month + 1, 1)),
+      monthlyDietSummariesProvider(
+        monthKey(DateTime(date.year, date.month + 1)),
+      ),
     );
   }
 
@@ -1593,14 +1597,16 @@ Future<void> _editDietRecord({
   void invalidateDietCaches() {
     container.invalidate(dietRecordsByDateProvider(date));
     container.invalidate(dailyDietSummaryProvider(date));
+    container.invalidate(monthlyDietSummariesProvider(monthKey(date)));
     container.invalidate(
-      monthlyDietSummariesProvider(DateTime(date.year, date.month, 1)),
+      monthlyDietSummariesProvider(
+        monthKey(DateTime(date.year, date.month - 1)),
+      ),
     );
     container.invalidate(
-      monthlyDietSummariesProvider(DateTime(date.year, date.month - 1, 1)),
-    );
-    container.invalidate(
-      monthlyDietSummariesProvider(DateTime(date.year, date.month + 1, 1)),
+      monthlyDietSummariesProvider(
+        monthKey(DateTime(date.year, date.month + 1)),
+      ),
     );
   }
 

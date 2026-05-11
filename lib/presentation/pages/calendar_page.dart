@@ -93,7 +93,7 @@ class CalendarPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final month = ref.watch(calendarMonthProvider);
+    final month = monthKey(ref.watch(calendarMonthProvider));
     final sessionsAsync = ref.watch(sessionsByCalendarGridProvider(month));
     final dietSummariesAsync = ref.watch(monthlyDietSummariesProvider(month));
     final calendarDataAsync = _mergeCalendarData(
@@ -112,7 +112,7 @@ class CalendarPage extends ConsumerWidget {
       if (selected == null || !context.mounted) {
         return;
       }
-      monthNotifier.state = DateTime(selected.year, selected.month, 1);
+      monthNotifier.state = monthKey(selected);
     }
 
     return SafeArea(
@@ -122,10 +122,12 @@ class CalendarPage extends ConsumerWidget {
           children: [
             CalendarMonthHeader(
               month: month,
-              onPrevious: () =>
-                  monthNotifier.state = DateTime(month.year, month.month - 1),
-              onNext: () =>
-                  monthNotifier.state = DateTime(month.year, month.month + 1),
+              onPrevious: () => monthNotifier.state = monthKey(
+                DateTime(month.year, month.month - 1),
+              ),
+              onNext: () => monthNotifier.state = monthKey(
+                DateTime(month.year, month.month + 1),
+              ),
               onPickMonthYear: pickMonthYear,
             ),
             const SizedBox(height: AppSpacing.sm),

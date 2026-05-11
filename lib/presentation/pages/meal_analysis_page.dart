@@ -228,19 +228,15 @@ class MealAnalysisPage extends ConsumerWidget {
     void invalidateDietCaches() {
       ref.invalidate(dietRecordsByDateProvider(args.date));
       ref.invalidate(dailyDietSummaryProvider(args.date));
+      ref.invalidate(monthlyDietSummariesProvider(monthKey(args.date)));
       ref.invalidate(
         monthlyDietSummariesProvider(
-          DateTime(args.date.year, args.date.month, 1),
+          monthKey(DateTime(args.date.year, args.date.month - 1)),
         ),
       );
       ref.invalidate(
         monthlyDietSummariesProvider(
-          DateTime(args.date.year, args.date.month - 1, 1),
-        ),
-      );
-      ref.invalidate(
-        monthlyDietSummariesProvider(
-          DateTime(args.date.year, args.date.month + 1, 1),
+          monthKey(DateTime(args.date.year, args.date.month + 1)),
         ),
       );
     }

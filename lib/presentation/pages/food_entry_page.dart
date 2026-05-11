@@ -148,6 +148,19 @@ class FoodEntryPage extends ConsumerWidget {
                     }
                     ref.invalidate(dietRecordsByDateProvider(args.date));
                     ref.invalidate(dailyDietSummaryProvider(args.date));
+                    ref.invalidate(
+                      monthlyDietSummariesProvider(monthKey(args.date)),
+                    );
+                    ref.invalidate(
+                      monthlyDietSummariesProvider(
+                        monthKey(DateTime(args.date.year, args.date.month - 1)),
+                      ),
+                    );
+                    ref.invalidate(
+                      monthlyDietSummariesProvider(
+                        monthKey(DateTime(args.date.year, args.date.month + 1)),
+                      ),
+                    );
                     showLatestSnackBar(context, '饮食记录已保存');
                     Navigator.of(context).pop(true);
                   } catch (error) {
