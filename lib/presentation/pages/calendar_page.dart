@@ -94,8 +94,11 @@ class CalendarPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final month = ref.watch(calendarMonthProvider);
-    final calendarDataAsync = ref.watch(
-      _calendarPageDataProvider(month),
+    final sessionsAsync = ref.watch(sessionsByCalendarGridProvider(month));
+    final dietSummariesAsync = ref.watch(monthlyDietSummariesProvider(month));
+    final calendarDataAsync = _mergeCalendarData(
+      sessionsAsync,
+      dietSummariesAsync,
     );
     final monthNotifier = ref.read(calendarMonthProvider.notifier);
 
@@ -155,16 +158,32 @@ class _CalendarPageData {
   final Map<DateTime, DailyDietSummary> dietSummaries;
 }
 
-final _calendarPageDataProvider =
-    FutureProvider.family<_CalendarPageData, DateTime>((ref, month) async {
-      final sessions = await ref.watch(
-        sessionsByCalendarGridProvider(month).future,
-      );
-      final dietSummaries = await ref.watch(
-        monthlyDietSummariesProvider(month).future,
-      );
-      return _CalendarPageData(
-        sessions: sessions,
-        dietSummaries: dietSummaries,
-      );
-    });
+AsyncValue<_CalendarPageData> _mergeCalendarData(
+  AsyncValue<List<WorkoutSession>> sessionsAsync,
+  AsyncValue<Map<DateTime, DailyDietSummary>> dietSummariesAsync,
+) {
+  if (sessionsAsync.hasError) {
+    return AsyncValue.error(
+      sessionsAsync.error!,
+      sessionsAsync.stackTrace ?? StackTrace.current,
+    );
+  }
+  if (dietSummariesAsync.hasError) {
+    return AsyncValue.error(
+      dietSummariesAsync.error!,
+      dietSummariesAsync.stackTrace ?? StackTrace.current,
+    );
+  }
+  if (sessionsAsync.isLoading ||
+      dietSummariesAsync.isLoading ||
+      !sessionsAsync.hasValue ||
+      !dietSummariesAsync.hasValue) {
+    return const AsyncValue.loading();
+  }
+  return AsyncValue.data(
+    _CalendarPageData(
+      sessions: sessionsAsync.requireValue,
+      dietSummaries: dietSummariesAsync.requireValue,
+    ),
+  );
+}

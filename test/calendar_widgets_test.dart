@@ -76,13 +76,14 @@ void main() {
     expect(find.text('胸'), findsOneWidget);
   });
 
-  testWidgets('shows training markers and cardio uses a different color', (
+  testWidgets('shows colored training labels for strength, cardio and rest day', (
     tester,
   ) async {
     final today = _day(DateTime.now());
-    final strengthDay = today.subtract(const Duration(days: 2));
-    final cardioDay = today.subtract(const Duration(days: 1));
-    final restDay = today.subtract(const Duration(days: 3));
+    final strengthDay = today.subtract(const Duration(days: 3));
+    final cardioDay = today.subtract(const Duration(days: 2));
+    final restDay = today.subtract(const Duration(days: 1));
+    final noSessionDay = today.subtract(const Duration(days: 4));
 
     await tester.pumpWidget(
       _buildCalendar(
@@ -90,29 +91,40 @@ void main() {
         sessions: [
           _sessionWithTitle(strengthDay, '胸训练日'),
           _sessionWithTitle(cardioDay, '有氧训练日'),
+          _sessionWithTitle(restDay, '休息日'),
         ],
       ),
     );
 
-    final strengthMarker = tester.widget<Container>(
-      find.byKey(_trainingMarkerKey(strengthDay)),
+    final strengthLabel = tester.widget<Text>(
+      find.byKey(_trainingLabelKey(strengthDay)),
     );
-    final cardioMarker = tester.widget<Container>(
-      find.byKey(_trainingMarkerKey(cardioDay)),
+    final cardioLabel = tester.widget<Text>(
+      find.byKey(_trainingLabelKey(cardioDay)),
+    );
+    final restLabel = tester.widget<Text>(
+      find.byKey(_trainingLabelKey(restDay)),
     );
 
-    expect(find.byKey(_trainingMarkerKey(strengthDay)), findsOneWidget);
-    expect(find.byKey(_trainingMarkerKey(cardioDay)), findsOneWidget);
-    expect(find.byKey(_trainingMarkerKey(restDay)), findsNothing);
+    expect(find.byKey(_trainingLabelKey(strengthDay)), findsOneWidget);
+    expect(find.byKey(_trainingLabelKey(cardioDay)), findsOneWidget);
+    expect(find.byKey(_trainingLabelKey(restDay)), findsOneWidget);
+    expect(find.byKey(_trainingLabelKey(noSessionDay)), findsNothing);
     expect(
-      (strengthMarker.decoration! as BoxDecoration).color,
+      strengthLabel.style?.color,
       AppColors.of(
         tester.element(find.byKey(_calendarDayKey(strengthDay))),
-      ).accent.withValues(alpha: 0.85),
+      ).textPrimary,
     );
     expect(
-      (cardioMarker.decoration! as BoxDecoration).color,
-      const Color(0xFF38B2AC),
+      cardioLabel.style?.color,
+      AppColors.of(
+        tester.element(find.byKey(_calendarDayKey(cardioDay))),
+      ).textPrimary,
+    );
+    expect(
+      restLabel.style?.color,
+      const Color(0xFFD35D6E),
     );
   });
 
@@ -228,9 +240,9 @@ ValueKey<String> _calendarDayKey(DateTime date) {
   );
 }
 
-ValueKey<String> _trainingMarkerKey(DateTime date) {
+ValueKey<String> _trainingLabelKey(DateTime date) {
   return ValueKey<String>(
-    'calendar-training-marker-${date.year}-${date.month}-${date.day}',
+    'calendar-training-label-${date.year}-${date.month}-${date.day}',
   );
 }
 

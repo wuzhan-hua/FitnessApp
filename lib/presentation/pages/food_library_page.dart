@@ -142,6 +142,33 @@ class _FoodLibraryPageState extends ConsumerState<FoodLibraryPage> {
                         ref.invalidate(
                           dailyDietSummaryProvider(widget.args.date),
                         );
+                        ref.invalidate(
+                          monthlyDietSummariesProvider(
+                            DateTime(
+                              widget.args.date.year,
+                              widget.args.date.month,
+                              1,
+                            ),
+                          ),
+                        );
+                        ref.invalidate(
+                          monthlyDietSummariesProvider(
+                            DateTime(
+                              widget.args.date.year,
+                              widget.args.date.month - 1,
+                              1,
+                            ),
+                          ),
+                        );
+                        ref.invalidate(
+                          monthlyDietSummariesProvider(
+                            DateTime(
+                              widget.args.date.year,
+                              widget.args.date.month + 1,
+                              1,
+                            ),
+                          ),
+                        );
                         Navigator.of(context).pop(true);
                       } catch (error) {
                         if (!context.mounted) {

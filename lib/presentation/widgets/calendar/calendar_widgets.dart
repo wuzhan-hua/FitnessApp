@@ -345,11 +345,11 @@ class _CalendarCell extends StatelessWidget {
     return '${totalEnergyKCal.toStringAsFixed(0)} 卡';
   }
 
-  Color _trainingMarkerColor(AppPalette colors, String label) {
-    if (label == '有氧') {
-      return const Color(0xFF38B2AC);
+  Color _trainingLabelColor(AppPalette colors, String label) {
+    if (label == '休息日') {
+      return const Color(0xFFD35D6E);
     }
-    return colors.accent.withValues(alpha: 0.85);
+    return colors.textPrimary;
   }
 
   @override
@@ -386,31 +386,13 @@ class _CalendarCell extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Text(
-                  '${day.day}',
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    color: dayTextColor,
-                    fontWeight: FontWeight.w700,
-                    fontSize: compact ? 12 : 14,
-                  ),
-                ),
-                if (hasSession) ...[
-                  SizedBox(width: compact ? 4 : 5),
-                  Container(
-                    key: ValueKey<String>(
-                      'calendar-training-marker-${day.year}-${day.month}-${day.day}',
-                    ),
-                    width: compact ? 6 : 7,
-                    height: compact ? 6 : 7,
-                    decoration: BoxDecoration(
-                      color: _trainingMarkerColor(colors, trainingLabel!),
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                ],
-              ],
+            Text(
+              '${day.day}',
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                color: dayTextColor,
+                fontWeight: FontWeight.w700,
+                fontSize: compact ? 12 : 14,
+              ),
             ),
             const Spacer(),
             if (kcalText != null)
@@ -424,7 +406,7 @@ class _CalendarCell extends StatelessWidget {
                     color: colors.textMuted.withValues(
                       alpha: inMonth ? 0.88 : 0.65,
                     ),
-                    fontSize: compact ? 7 : 8,
+                    fontSize: compact ? 7.4 : 8.4,
                     fontWeight: FontWeight.w600,
                     height: 1,
                   ),
@@ -436,14 +418,18 @@ class _CalendarCell extends StatelessWidget {
                 children: [
                   Text(
                     trainingLabel!,
+                    key: ValueKey<String>(
+                      'calendar-training-label-${day.year}-${day.month}-${day.day}',
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: colors.textPrimary.withValues(
-                        alpha: inMonth ? 0.95 : 0.72,
-                      ),
+                      color: _trainingLabelColor(
+                        colors,
+                        trainingLabel,
+                      ).withValues(alpha: inMonth ? 1 : 0.72),
                       fontWeight: FontWeight.w600,
-                      fontSize: compact ? 8.8 : 10,
+                      fontSize: compact ? 9.2 : 10.4,
                       height: 1.05,
                     ),
                   ),
@@ -455,7 +441,7 @@ class _CalendarCell extends StatelessWidget {
                       color: colors.textMuted.withValues(
                         alpha: inMonth ? 0.88 : 0.68,
                       ),
-                      fontSize: compact ? 8.4 : 9.5,
+                      fontSize: compact ? 8.8 : 9.9,
                       height: 1.05,
                     ),
                   ),

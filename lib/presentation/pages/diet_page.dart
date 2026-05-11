@@ -19,6 +19,19 @@ import 'meal_analysis_page.dart';
 class DietPage extends ConsumerWidget {
   const DietPage({super.key});
 
+  void _invalidateDietDateCaches(WidgetRef ref, DateTime date) {
+    final month = DateTime(date.year, date.month, 1);
+    ref.invalidate(dietRecordsByDateProvider(date));
+    ref.invalidate(dailyDietSummaryProvider(date));
+    ref.invalidate(monthlyDietSummariesProvider(month));
+    ref.invalidate(
+      monthlyDietSummariesProvider(DateTime(date.year, date.month - 1, 1)),
+    );
+    ref.invalidate(
+      monthlyDietSummariesProvider(DateTime(date.year, date.month + 1, 1)),
+    );
+  }
+
   String _resolveTitle(DateTime date) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
@@ -71,8 +84,7 @@ class DietPage extends ConsumerWidget {
       return;
     }
     if (saved == true) {
-      ref.invalidate(dietRecordsByDateProvider(selectedDate));
-      ref.invalidate(dailyDietSummaryProvider(selectedDate));
+      _invalidateDietDateCaches(ref, selectedDate);
       showLatestSnackBar(context, '${mealType.label}已保存');
     }
   }
@@ -1575,6 +1587,23 @@ Future<void> _editDietRecord({
   required DietRecord record,
   required DateTime date,
 }) async {
+  final container = ProviderScope.containerOf(context, listen: false);
+  final service = container.read(dietRecordServiceProvider);
+  var deleted = false;
+  void invalidateDietCaches() {
+    container.invalidate(dietRecordsByDateProvider(date));
+    container.invalidate(dailyDietSummaryProvider(date));
+    container.invalidate(
+      monthlyDietSummariesProvider(DateTime(date.year, date.month, 1)),
+    );
+    container.invalidate(
+      monthlyDietSummariesProvider(DateTime(date.year, date.month - 1, 1)),
+    );
+    container.invalidate(
+      monthlyDietSummariesProvider(DateTime(date.year, date.month + 1, 1)),
+    );
+  }
+
   final grams = await showDietFoodEntryDialog(
     context: context,
     title: record.foodName,
@@ -1583,20 +1612,30 @@ Future<void> _editDietRecord({
     initialGrams: record.grams,
     calculationBuilder: (value) =>
         DietEntryCalculation.fromRecord(record, value),
+    onDelete: () async {
+      await service.deleteDietRecord(record.id);
+      deleted = true;
+    },
   );
+  if (deleted) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      invalidateDietCaches();
+    });
+    if (context.mounted) {
+      showLatestSnackBar(context, '已删除食物');
+    }
+    return;
+  }
   if (grams == null || !context.mounted) {
     return;
   }
-  final container = ProviderScope.containerOf(context, listen: false);
-  final service = container.read(dietRecordServiceProvider);
   try {
     await service.updateDietRecordGrams(record: record, grams: grams);
     if (!context.mounted) {
       return;
     }
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      container.invalidate(dietRecordsByDateProvider(date));
-      container.invalidate(dailyDietSummaryProvider(date));
+      invalidateDietCaches();
     });
     showLatestSnackBar(context, '已更新食物克数');
   } catch (error) {

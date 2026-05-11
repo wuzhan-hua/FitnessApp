@@ -5,6 +5,8 @@ import '../../theme/app_theme.dart';
 
 typedef DietCalculationBuilder = DietEntryCalculation Function(double grams);
 
+const _deleteColor = Color(0xFFEF4444);
+
 Future<double?> showDietFoodEntryDialog({
   required BuildContext context,
   required String title,
@@ -12,6 +14,8 @@ Future<double?> showDietFoodEntryDialog({
   required String confirmLabel,
   required DietCalculationBuilder calculationBuilder,
   double initialGrams = 100,
+  Future<void> Function()? onDelete,
+  String deleteLabel = '删除',
 }) async {
   return showDialog<double>(
     context: context,
@@ -21,6 +25,8 @@ Future<double?> showDietFoodEntryDialog({
       confirmLabel: confirmLabel,
       initialGrams: initialGrams,
       calculationBuilder: calculationBuilder,
+      onDelete: onDelete,
+      deleteLabel: deleteLabel,
     ),
   );
 }
@@ -32,6 +38,8 @@ class _DietFoodEntryDialog extends StatefulWidget {
     required this.confirmLabel,
     required this.initialGrams,
     required this.calculationBuilder,
+    required this.onDelete,
+    required this.deleteLabel,
   });
 
   final String title;
@@ -39,6 +47,8 @@ class _DietFoodEntryDialog extends StatefulWidget {
   final String confirmLabel;
   final double initialGrams;
   final DietCalculationBuilder calculationBuilder;
+  final Future<void> Function()? onDelete;
+  final String deleteLabel;
 
   @override
   State<_DietFoodEntryDialog> createState() => _DietFoodEntryDialogState();
@@ -47,6 +57,7 @@ class _DietFoodEntryDialog extends StatefulWidget {
 class _DietFoodEntryDialogState extends State<_DietFoodEntryDialog> {
   late final TextEditingController _gramsController;
   late double _grams;
+  bool _isDeleting = false;
 
   @override
   void initState() {
@@ -72,7 +83,30 @@ class _DietFoodEntryDialogState extends State<_DietFoodEntryDialog> {
 
     return AlertDialog(
       backgroundColor: colors.panel,
-      title: Text(widget.title),
+      titlePadding: const EdgeInsets.fromLTRB(24, 20, 16, 0),
+      title: Row(
+        children: [
+          Expanded(child: Text(widget.title)),
+          if (widget.onDelete != null)
+            IconButton(
+              tooltip: widget.deleteLabel,
+              onPressed: _isDeleting ? null : _deleteFood,
+              icon: _isDeleting
+                  ? SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: _deleteColor,
+                      ),
+                    )
+                  : const Icon(
+                      Icons.delete_outline_rounded,
+                      color: _deleteColor,
+                    ),
+            ),
+        ],
+      ),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -137,6 +171,34 @@ class _DietFoodEntryDialogState extends State<_DietFoodEntryDialog> {
         ),
       ],
     );
+  }
+
+  Future<void> _deleteFood() async {
+    final onDelete = widget.onDelete;
+    if (onDelete == null) {
+      return;
+    }
+    setState(() {
+      _isDeleting = true;
+    });
+    try {
+      await onDelete();
+      if (mounted) {
+        Navigator.of(context).pop(null);
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('删除失败，请稍后重试。')));
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isDeleting = false;
+        });
+      }
+    }
   }
 }
 

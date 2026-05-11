@@ -76,11 +76,7 @@ class MealAnalysisPage extends ConsumerWidget {
             ),
           ),
           data: (summary) {
-            final fetchedRecords =
-                summary.mealGroups[args.mealType] ?? const [];
-            final resolvedRecords = fetchedRecords.isNotEmpty
-                ? fetchedRecords
-                : args.initialRecords;
+            final resolvedRecords = _resolveMealRecords(summary);
             final mealEnergy = _mealEnergy(resolvedRecords);
             final totalGrams = _mealTotalGrams(resolvedRecords);
             final nutrientStats = _buildMacroStats(resolvedRecords);
@@ -171,11 +167,7 @@ class MealAnalysisPage extends ConsumerWidget {
                   final summary = await ref.read(
                     dailyDietSummaryProvider(args.date).future,
                   );
-                  final fetchedRecords =
-                      summary.mealGroups[args.mealType] ?? const [];
-                  final resolvedRecords = fetchedRecords.isNotEmpty
-                      ? fetchedRecords
-                      : args.initialRecords;
+                  final resolvedRecords = _resolveMealRecords(summary);
                   if (!context.mounted) {
                     return;
                   }
@@ -192,6 +184,10 @@ class MealAnalysisPage extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  List<DietRecord> _resolveMealRecords(DailyDietSummary summary) {
+    return summary.mealGroups[args.mealType] ?? const [];
   }
 
   Future<void> _openFoodLibrary({
@@ -228,6 +224,27 @@ class MealAnalysisPage extends ConsumerWidget {
     required DietRecordService service,
     required DietRecord record,
   }) async {
+    var deleted = false;
+    void invalidateDietCaches() {
+      ref.invalidate(dietRecordsByDateProvider(args.date));
+      ref.invalidate(dailyDietSummaryProvider(args.date));
+      ref.invalidate(
+        monthlyDietSummariesProvider(
+          DateTime(args.date.year, args.date.month, 1),
+        ),
+      );
+      ref.invalidate(
+        monthlyDietSummariesProvider(
+          DateTime(args.date.year, args.date.month - 1, 1),
+        ),
+      );
+      ref.invalidate(
+        monthlyDietSummariesProvider(
+          DateTime(args.date.year, args.date.month + 1, 1),
+        ),
+      );
+    }
+
     final grams = await showDietFoodEntryDialog(
       context: context,
       title: record.foodName,
@@ -236,7 +253,20 @@ class MealAnalysisPage extends ConsumerWidget {
       initialGrams: record.grams,
       calculationBuilder: (value) =>
           DietEntryCalculation.fromRecord(record, value),
+      onDelete: () async {
+        await service.deleteDietRecord(record.id);
+        deleted = true;
+      },
     );
+    if (deleted) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        invalidateDietCaches();
+      });
+      if (context.mounted) {
+        showLatestSnackBar(context, '已删除食物');
+      }
+      return;
+    }
     if (grams == null) {
       return;
     }
@@ -246,8 +276,7 @@ class MealAnalysisPage extends ConsumerWidget {
         return;
       }
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        ref.invalidate(dietRecordsByDateProvider(args.date));
-        ref.invalidate(dailyDietSummaryProvider(args.date));
+        invalidateDietCaches();
       });
       showLatestSnackBar(context, '已更新食物克数');
     } catch (error) {

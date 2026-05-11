@@ -17,44 +17,47 @@ class AnalyticsPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final analyticsAsync = ref.watch(analyticsSnapshotProvider);
 
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        child: AsyncTabContent<AnalyticsSnapshot>(
-          asyncValue: analyticsAsync,
-          errorPrefix: '统计加载失败',
-          builder: (context, snapshot) => ListView(
-            children: [
-              SectionCard(
-                title: '训练频率',
-                child: StatTile(
-                  label: '近30天训练天数',
-                  value: '${snapshot.trainingFrequency}',
-                  hint: '与日历补录同步',
+    return Scaffold(
+      appBar: AppBar(title: const Text('训练统计')),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          child: AsyncTabContent<AnalyticsSnapshot>(
+            asyncValue: analyticsAsync,
+            errorPrefix: '统计加载失败',
+            builder: (context, snapshot) => ListView(
+              children: [
+                SectionCard(
+                  title: '训练频率',
+                  child: StatTile(
+                    label: '近30天训练天数',
+                    value: '${snapshot.trainingFrequency}',
+                    hint: '与日历补录同步',
+                  ),
                 ),
-              ),
-              SectionCard(
-                title: '周训练量',
-                child: SizedBox(
-                  height: 180,
-                  child: _VolumeBarChart(points: snapshot.weeklyVolume),
+                SectionCard(
+                  title: '周训练量',
+                  child: SizedBox(
+                    height: 180,
+                    child: _VolumeBarChart(points: snapshot.weeklyVolume),
+                  ),
                 ),
-              ),
-              SectionCard(
-                title: '近4周训练量',
-                child: SizedBox(
-                  height: 180,
-                  child: _VolumeBarChart(points: snapshot.monthlyVolume),
+                SectionCard(
+                  title: '近4周训练量',
+                  child: SizedBox(
+                    height: 180,
+                    child: _VolumeBarChart(points: snapshot.monthlyVolume),
+                  ),
                 ),
-              ),
-              SectionCard(
-                title: 'PR 趋势',
-                child: SizedBox(
-                  height: 200,
-                  child: _PrLineChart(points: snapshot.prTrend),
+                SectionCard(
+                  title: 'PR 趋势',
+                  child: SizedBox(
+                    height: 200,
+                    child: _PrLineChart(points: snapshot.prTrend),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
