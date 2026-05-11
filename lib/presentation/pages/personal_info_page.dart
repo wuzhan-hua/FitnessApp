@@ -255,8 +255,16 @@ class _PersonalInfoPageState extends ConsumerState<PersonalInfoPage> {
     return InputDecoration(
       labelText: label,
       filled: true,
-      fillColor: Colors.white.withValues(alpha: 0.82),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      fillColor: colors.panel,
+      labelStyle: TextStyle(color: colors.textMuted, fontSize: 14),
+      floatingLabelStyle: TextStyle(
+        color: colors.accent,
+        fontSize: 13,
+        fontWeight: FontWeight.w700,
+      ),
+      hintStyle: TextStyle(color: colors.textMuted.withValues(alpha: 0.68)),
+      errorStyle: TextStyle(color: colors.warning, fontSize: 12, height: 1.2),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
         borderSide: BorderSide(color: colors.textMuted.withValues(alpha: 0.35)),
@@ -278,6 +286,10 @@ class _PersonalInfoPageState extends ConsumerState<PersonalInfoPage> {
         borderSide: BorderSide(color: colors.warning, width: 1.5),
       ),
     );
+  }
+
+  TextStyle _inputTextStyle(AppPalette colors) {
+    return TextStyle(color: colors.textPrimary, fontSize: 15, height: 1.2);
   }
 
   @override
@@ -369,6 +381,7 @@ class _PersonalInfoPageState extends ConsumerState<PersonalInfoPage> {
                 TextFormField(
                   controller: _nameController,
                   onChanged: (_) => setState(() {}),
+                  style: _inputTextStyle(colors),
                   decoration: _inputDecoration(
                     '昵称*',
                   ).copyWith(hintText: '请输入昵称'),
@@ -391,12 +404,17 @@ class _PersonalInfoPageState extends ConsumerState<PersonalInfoPage> {
                   controller: _birthDateController,
                   readOnly: true,
                   onTap: _pickBirthDate,
+                  style: _inputTextStyle(colors),
                   decoration: _inputDecoration('生日').copyWith(
                     hintText: '点击选择生日',
+                    suffixIconConstraints: const BoxConstraints(
+                      minWidth: 50,
+                      minHeight: 50,
+                    ),
                     suffixIcon: Container(
                       margin: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: colors.panelAlt,
+                        color: colors.panelAlt.withValues(alpha: 0.86),
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(
                           color: colors.textMuted.withValues(alpha: 0.28),
@@ -404,6 +422,7 @@ class _PersonalInfoPageState extends ConsumerState<PersonalInfoPage> {
                       ),
                       child: IconButton(
                         icon: const Icon(Icons.event, size: 18),
+                        color: colors.textMuted,
                         onPressed: _pickBirthDate,
                       ),
                     ),
@@ -426,6 +445,7 @@ class _PersonalInfoPageState extends ConsumerState<PersonalInfoPage> {
                 const SizedBox(height: AppSpacing.sm),
                 TextFormField(
                   controller: _heightController,
+                  style: _inputTextStyle(colors),
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),
@@ -444,6 +464,7 @@ class _PersonalInfoPageState extends ConsumerState<PersonalInfoPage> {
                 const SizedBox(height: AppSpacing.sm),
                 TextFormField(
                   controller: _weightController,
+                  style: _inputTextStyle(colors),
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),

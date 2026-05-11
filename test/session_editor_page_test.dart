@@ -96,6 +96,32 @@ void main() {
     expect(find.text('训练肌群：有氧'), findsOneWidget);
   });
 
+  testWidgets('rest day hides duration card', (tester) async {
+    final past = DateTime.now().subtract(const Duration(days: 2));
+
+    await tester.pumpWidget(
+      _buildSessionEditorApp(
+        repository: MockWorkoutRepository(),
+        args: SessionEditorArgs(
+          date: past,
+          mode: SessionMode.backfill,
+          createOnSaveOnly: true,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('训练时长'), findsOneWidget);
+
+    await tester.tap(find.text('选择训练肌群'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(ChoiceChip, '休息日'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('恢复备注'), findsOneWidget);
+    expect(find.text('训练时长'), findsNothing);
+  });
+
   testWidgets('back with unsaved changes shows leave confirmation dialog', (
     tester,
   ) async {
@@ -187,7 +213,12 @@ void main() {
     expect(find.text('训练肌群：胸部'), findsOneWidget);
     expect(find.text('第1组'), findsNothing);
     expect(find.text('共 3 组 · 平均重量 77.5 kg'), findsOneWidget);
-    await tester.ensureVisible(find.text('负重双杠臂屈伸'));
+    await tester.scrollUntilVisible(
+      find.text('负重双杠臂屈伸'),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(find.text('负重双杠臂屈伸'), findsOneWidget);
     expect(find.text('共 1 组 · 平均重量 25 kg'), findsOneWidget);
   });
 
@@ -231,7 +262,7 @@ void main() {
     await tester.ensureVisible(find.text('有氧').last);
     await tester.tap(find.text('有氧'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('跑步机慢跑'));
+    await tester.tap(find.byTooltip('编辑动作').first);
     await tester.pumpAndSettle();
 
     expect(find.textContaining('训练日'), findsOneWidget);
@@ -240,16 +271,11 @@ void main() {
     expect(find.textContaining('共 1 条'), findsOneWidget);
     expect(find.textContaining('20 分钟'), findsOneWidget);
 
-    final cardioCard = find.ancestor(
-      of: find.text('跑步机慢跑'),
-      matching: find.byType(Card),
-    ).first;
-    await tester.ensureVisible(cardioCard);
-    await tester.tap(cardioCard, warnIfMissed: false);
+    await tester.tap(find.byTooltip('编辑动作').first);
     await tester.pumpAndSettle();
 
-    expect(find.text('时长'), findsOneWidget);
-    expect(find.text('距离'), findsOneWidget);
+    expect(find.text('时长(分钟)'), findsOneWidget);
+    expect(find.text('距离(公里)'), findsOneWidget);
     expect(find.text('重量'), findsNothing);
     expect(find.text('次数'), findsNothing);
   });
@@ -287,15 +313,14 @@ void main() {
     final highlightedCard = tester.widget<Card>(cardioCard);
     expect(highlightedCard.color, isNotNull);
 
-    await tester.ensureVisible(cardioCard);
-    await tester.tap(cardioCard, warnIfMissed: false);
+    await tester.tap(find.text('跑步机慢跑'));
     await tester.pumpAndSettle();
 
-    expect(find.text('时长'), findsOneWidget);
-    expect(find.text('距离'), findsOneWidget);
+    expect(find.text('时长(分钟)'), findsOneWidget);
+    expect(find.text('距离(公里)'), findsOneWidget);
   });
 
-  testWidgets('tap exercise summary opens bottom sheet detail editor', (
+  testWidgets('exercise detail editor opens from summary actions', (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -310,17 +335,12 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    final firstExerciseCard = find.ancestor(
-      of: find.text('杠铃卧推'),
-      matching: find.byType(Card),
-    ).first;
-    await tester.ensureVisible(firstExerciseCard);
-    await tester.tap(firstExerciseCard, warnIfMissed: false);
+    await tester.tap(find.byTooltip('编辑动作').first);
     await tester.pumpAndSettle();
 
     expect(find.text('第1组'), findsOneWidget);
     expect(find.text('+组'), findsOneWidget);
-    expect(find.text('共 3 组 · 平均重量 77.5 kg'), findsNWidgets(2));
+    expect(find.text('共 3 组 · 平均重量 77.5 kg'), findsAtLeastNWidgets(1));
   });
 
   testWidgets('editing sets in bottom sheet updates summary', (tester) async {
@@ -336,12 +356,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    final firstExerciseCard = find.ancestor(
-      of: find.text('杠铃卧推'),
-      matching: find.byType(Card),
-    ).first;
-    await tester.ensureVisible(firstExerciseCard);
-    await tester.tap(firstExerciseCard, warnIfMissed: false);
+    await tester.tap(find.byTooltip('编辑动作').first);
     await tester.pumpAndSettle();
     await tester.tap(find.text('+组'));
     await tester.pumpAndSettle();

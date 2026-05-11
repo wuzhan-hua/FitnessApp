@@ -1137,31 +1137,32 @@ class _SessionEditorPageState extends ConsumerState<SessionEditorPage> {
                           ),
                         );
                       }),
-                      SectionCard(
-                        title: '训练时长',
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Slider(
-                                min: 20,
-                                max: 150,
-                                divisions: 26,
-                                value: (state.session?.durationMinutes ?? 0)
-                                    .toDouble()
-                                    .clamp(20, 150),
-                                onChanged: _isReadOnly
-                                    ? null
-                                    : (value) {
-                                        controller.updateDuration(
-                                          value.round(),
-                                        );
-                                      },
+                      if (!_isRestDay)
+                        SectionCard(
+                          title: '训练时长',
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Slider(
+                                  min: 20,
+                                  max: 150,
+                                  divisions: 26,
+                                  value: (state.session?.durationMinutes ?? 0)
+                                      .toDouble()
+                                      .clamp(20, 150),
+                                  onChanged: _isReadOnly
+                                      ? null
+                                      : (value) {
+                                          controller.updateDuration(
+                                            value.round(),
+                                          );
+                                        },
+                                ),
                               ),
-                            ),
-                            Text('${state.session?.durationMinutes ?? 0} 分钟'),
-                          ],
+                              Text('${state.session?.durationMinutes ?? 0} 分钟'),
+                            ],
+                          ),
                         ),
-                      ),
                     ],
                   ),
           ),
