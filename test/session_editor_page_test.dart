@@ -82,10 +82,13 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(ChoiceChip, '胸部'));
     await tester.pumpAndSettle();
+    await tester.tap(find.text('取消'));
+    await tester.pumpAndSettle();
 
     expect(find.text('胸部训练日'), findsOneWidget);
     expect(find.text('训练肌群：胸部'), findsOneWidget);
 
+    await tester.ensureVisible(find.text('更换训练肌群'));
     await tester.tap(find.text('更换训练肌群'));
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(ChoiceChip, '有氧'));
@@ -122,6 +125,91 @@ void main() {
     expect(find.text('训练时长'), findsNothing);
   });
 
+  testWidgets('new draft selecting muscle group can prompt copying last completed session', (
+    tester,
+  ) async {
+    final past = DateTime.now().subtract(const Duration(days: 2));
+
+    await tester.pumpWidget(
+      _buildSessionEditorApp(
+        repository: MockWorkoutRepository(),
+        args: SessionEditorArgs(
+          date: past,
+          mode: SessionMode.backfill,
+          createOnSaveOnly: true,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('选择训练肌群'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(ChoiceChip, '胸部'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('复制上次训练动作？'), findsOneWidget);
+    expect(find.text('胸部训练日'), findsOneWidget);
+    expect(find.textContaining('共 1 个动作'), findsOneWidget);
+  });
+
+  testWidgets('cancel copy keeps selected muscle group but does not fill exercises', (
+    tester,
+  ) async {
+    final past = DateTime.now().subtract(const Duration(days: 2));
+
+    await tester.pumpWidget(
+      _buildSessionEditorApp(
+        repository: MockWorkoutRepository(),
+        args: SessionEditorArgs(
+          date: past,
+          mode: SessionMode.backfill,
+          createOnSaveOnly: true,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('选择训练肌群'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(ChoiceChip, '胸部'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('取消'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('胸部训练日'), findsOneWidget);
+    expect(find.text('训练肌群：胸部'), findsOneWidget);
+    expect(find.text('站姿推举'), findsNothing);
+  });
+
+  testWidgets('confirm copy fills exercises from last completed session', (
+    tester,
+  ) async {
+    final past = DateTime.now().subtract(const Duration(days: 2));
+
+    await tester.pumpWidget(
+      _buildSessionEditorApp(
+        repository: MockWorkoutRepository(),
+        args: SessionEditorArgs(
+          date: past,
+          mode: SessionMode.backfill,
+          createOnSaveOnly: true,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('选择训练肌群'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(ChoiceChip, '胸部'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('复制'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('胸部训练日'), findsOneWidget);
+    expect(find.text('站姿推举'), findsOneWidget);
+    expect(find.text('共 2 组 · 平均重量 46.3 kg'), findsOneWidget);
+  });
+
   testWidgets('back with unsaved changes shows leave confirmation dialog', (
     tester,
   ) async {
@@ -145,6 +233,8 @@ void main() {
     await tester.tap(find.text('选择训练肌群'));
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(ChoiceChip, '胸部'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('取消'));
     await tester.pumpAndSettle();
 
     await tester.pageBack();
@@ -182,6 +272,8 @@ void main() {
     await tester.tap(find.text('选择训练肌群'));
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(ChoiceChip, '胸部'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('取消'));
     await tester.pumpAndSettle();
 
     await tester.pageBack();
@@ -260,9 +352,15 @@ void main() {
     await tester.tap(find.text('新增动作').last);
     await tester.pumpAndSettle();
     await tester.ensureVisible(find.text('有氧').last);
-    await tester.tap(find.text('有氧'));
+    await tester.tap(find.text('有氧').last, warnIfMissed: false);
     await tester.pumpAndSettle();
-    await tester.tap(find.byTooltip('编辑动作').first);
+    await tester.tap(find.text('跑步机慢跑'));
+    await tester.pumpAndSettle();
+    final addedCard = find.ancestor(
+      of: find.text('跑步机慢跑'),
+      matching: find.byType(Card),
+    ).first;
+    await tester.tap(addedCard, warnIfMissed: false);
     await tester.pumpAndSettle();
 
     expect(find.textContaining('训练日'), findsOneWidget);
@@ -298,7 +396,7 @@ void main() {
     await tester.tap(find.text('新增动作').last);
     await tester.pumpAndSettle();
     await tester.ensureVisible(find.text('有氧').last);
-    await tester.tap(find.text('有氧'));
+    await tester.tap(find.text('有氧').last, warnIfMissed: false);
     await tester.pumpAndSettle();
     await tester.tap(find.text('跑步机慢跑'));
     await tester.pumpAndSettle();
@@ -313,7 +411,7 @@ void main() {
     final highlightedCard = tester.widget<Card>(cardioCard);
     expect(highlightedCard.color, isNotNull);
 
-    await tester.tap(find.text('跑步机慢跑'));
+    await tester.tap(cardioCard, warnIfMissed: false);
     await tester.pumpAndSettle();
 
     expect(find.text('时长(分钟)'), findsOneWidget);
@@ -335,7 +433,11 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byTooltip('编辑动作').first);
+    final benchCard = find.ancestor(
+      of: find.text('杠铃卧推'),
+      matching: find.byType(Card),
+    ).first;
+    await tester.tap(benchCard, warnIfMissed: false);
     await tester.pumpAndSettle();
 
     expect(find.text('第1组'), findsOneWidget);
@@ -356,7 +458,11 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byTooltip('编辑动作').first);
+    final benchCard = find.ancestor(
+      of: find.text('杠铃卧推'),
+      matching: find.byType(Card),
+    ).first;
+    await tester.tap(benchCard, warnIfMissed: false);
     await tester.pumpAndSettle();
     await tester.tap(find.text('+组'));
     await tester.pumpAndSettle();

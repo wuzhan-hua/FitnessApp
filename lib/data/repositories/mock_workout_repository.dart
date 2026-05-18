@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import '../../constants/exercise_catalog_constants.dart';
 import '../../domain/entities/workout_models.dart';
 import 'workout_repository.dart';
 
@@ -417,6 +418,27 @@ class MockWorkoutRepository implements WorkoutRepository {
   }
 
   @override
+  Future<WorkoutSession?> getLatestCompletedSessionByMuscleGroup(
+    String muscleGroup,
+  ) async {
+    final normalizedGroup = muscleGroup.trim();
+    if (normalizedGroup.isEmpty) {
+      return null;
+    }
+    final copied = [..._sessions]..sort((a, b) => b.date.compareTo(a.date));
+    return copied
+        .where((session) => session.status == SessionStatus.completed)
+        .where(
+          (session) =>
+              ExerciseCatalogConstants.inferSessionGroupFromTitle(
+                session.title,
+              ) ==
+              normalizedGroup,
+        )
+        .firstOrNull;
+  }
+
+  @override
   Future<WorkoutSession> saveSession(WorkoutSession session) async {
     final persisted = session.id.startsWith('draft-')
         ? session.copyWith(
@@ -530,7 +552,7 @@ class MockWorkoutRepository implements WorkoutRepository {
         WorkoutSession(
           id: 'session-1',
           date: now.subtract(const Duration(days: 1)),
-          title: '下肢增肌',
+          title: '腿部训练日',
           status: SessionStatus.completed,
           durationMinutes: 74,
           exercises: const [
@@ -569,7 +591,7 @@ class MockWorkoutRepository implements WorkoutRepository {
         WorkoutSession(
           id: 'session-2',
           date: now.subtract(const Duration(days: 3)),
-          title: '拉训练日 · 容量',
+          title: '背部训练日',
           status: SessionStatus.completed,
           durationMinutes: 68,
           exercises: const [
@@ -608,7 +630,7 @@ class MockWorkoutRepository implements WorkoutRepository {
         WorkoutSession(
           id: 'session-backfill',
           date: now.subtract(const Duration(days: 9)),
-          title: '补录 · 推训练日',
+          title: '胸部训练日',
           status: SessionStatus.completed,
           durationMinutes: 61,
           exercises: const [

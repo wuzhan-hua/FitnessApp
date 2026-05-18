@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../constants/exercise_catalog_constants.dart';
 import '../../domain/entities/workout_models.dart';
 import '../../utils/app_error.dart';
 import '../../utils/app_time.dart';
@@ -120,6 +121,27 @@ class SupabaseWorkoutRepository implements WorkoutRepository {
       descendingByDate: true,
       limit: limit,
     );
+  }
+
+  @override
+  Future<WorkoutSession?> getLatestCompletedSessionByMuscleGroup(
+    String muscleGroup,
+  ) async {
+    final normalizedGroup = muscleGroup.trim();
+    if (normalizedGroup.isEmpty) {
+      return null;
+    }
+    final recentSessions = await getRecentSessions(limit: 50);
+    for (final session in recentSessions) {
+      if (session.status != SessionStatus.completed) {
+        continue;
+      }
+      if (ExerciseCatalogConstants.inferSessionGroupFromTitle(session.title) ==
+          normalizedGroup) {
+        return session;
+      }
+    }
+    return null;
   }
 
   @override

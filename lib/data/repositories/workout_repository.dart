@@ -12,6 +12,10 @@ abstract class WorkoutRepository {
 
   Future<List<WorkoutSession>> getRecentSessions({int limit = 10});
 
+  Future<WorkoutSession?> getLatestCompletedSessionByMuscleGroup(
+    String muscleGroup,
+  );
+
   Future<WorkoutSession?> getSessionById(String id);
 
   Future<WorkoutSession?> getSessionByDate(DateTime date);

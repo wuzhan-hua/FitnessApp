@@ -203,6 +203,37 @@ class SessionEditorController extends StateNotifier<SessionEditorState> {
     );
   }
 
+  void replaceExercisesFromTemplate(WorkoutSession templateSession) {
+    if (_isReadOnly) {
+      return;
+    }
+    final session = state.session;
+    if (session == null) {
+      return;
+    }
+    final copiedExercises = List<SessionExercise>.generate(
+      templateSession.exercises.length,
+      (index) {
+        final exercise = templateSession.exercises[index];
+        final exerciseSeed = DateTime.now().microsecondsSinceEpoch + index;
+        return SessionExercise(
+          id: 'copy-$exerciseSeed',
+          exerciseId: exercise.exerciseId,
+          exerciseName: exercise.exerciseName,
+          targetSets: exercise.targetSets,
+          order: index,
+          sets: List<ExerciseSet>.generate(
+            exercise.sets.length,
+            (setIndex) => exercise.sets[setIndex].copyWith(index: setIndex + 1),
+          ),
+        );
+      },
+    );
+    _updateSession(
+      _promoteDraftIfNeeded(session.copyWith(exercises: copiedExercises)),
+    );
+  }
+
   void addSet({required String exerciseId}) {
     if (_isReadOnly) {
       return;

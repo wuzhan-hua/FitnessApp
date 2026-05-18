@@ -462,6 +462,42 @@ class _SessionEditorPageState extends ConsumerState<SessionEditorPage> {
         session.title == _defaultNewSessionTitle;
   }
 
+  bool _shouldPromptCopyPreviousSession(WorkoutSession? session, String item) {
+    return widget.args.createOnSaveOnly &&
+        item != '休息日' &&
+        session != null &&
+        session.exercises.isEmpty &&
+        _shouldKeepTrainingTypeUnselected(session);
+  }
+
+  String _formatSessionDate(DateTime date) {
+    return DateFormat('M月d日').format(date);
+  }
+
+  Future<bool> _showCopyPreviousSessionDialog(WorkoutSession session) async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('复制上次训练动作？'),
+        content: Text(
+          '检测到你在${_formatSessionDate(session.date)}记录过「${session.title}」，'
+          '共 ${session.exercises.length} 个动作，是否复制到今天的训练中？',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('取消'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('复制'),
+          ),
+        ],
+      ),
+    );
+    return result ?? false;
+  }
+
   Future<void> _showTrainingTypeDialog(
     SessionEditorController controller,
     WorkoutSession? session,
@@ -507,14 +543,14 @@ class _SessionEditorPageState extends ConsumerState<SessionEditorPage> {
     if (!mounted || result == null) {
       return;
     }
-    _handleTrainingTypeSelected(result, controller, session);
+    await _handleTrainingTypeSelected(result, controller, session);
   }
 
-  void _handleTrainingTypeSelected(
+  Future<void> _handleTrainingTypeSelected(
     String item,
     SessionEditorController controller,
     WorkoutSession? session,
-  ) {
+  ) async {
     if (_isReadOnly) {
       return;
     }
@@ -527,6 +563,23 @@ class _SessionEditorPageState extends ConsumerState<SessionEditorPage> {
     setState(() {
       _selectedTrainingType = item;
     });
+
+    if (!_shouldPromptCopyPreviousSession(session, item)) {
+      return;
+    }
+
+    final latest = await ref
+        .read(workoutServiceProvider)
+        .getLatestCompletedSessionByMuscleGroup(item);
+    if (!mounted || latest == null) {
+      return;
+    }
+
+    final shouldCopy = await _showCopyPreviousSessionDialog(latest);
+    if (!mounted || !shouldCopy) {
+      return;
+    }
+    controller.replaceExercisesFromTemplate(latest);
   }
 
   bool _isCardioExercise(SessionExercise exercise) {

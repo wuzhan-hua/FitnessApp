@@ -1,4 +1,5 @@
 import '../../domain/entities/workout_models.dart';
+import '../../constants/exercise_catalog_constants.dart';
 import '../../utils/app_error.dart';
 import '../../utils/app_logger.dart';
 import '../repositories/workout_repository.dart';
@@ -24,6 +25,27 @@ class WorkoutService {
       AppLogger.error('加载日历数据失败', error: error, stackTrace: stackTrace);
       throw AppError.from(error, fallbackMessage: '加载日历数据失败，请稍后重试。');
     }
+  }
+
+  Future<WorkoutSession?> getLatestCompletedSessionByMuscleGroup(
+    String muscleGroup,
+  ) async {
+    try {
+      return await _repository.getLatestCompletedSessionByMuscleGroup(
+        muscleGroup,
+      );
+    } catch (error, stackTrace) {
+      AppLogger.error(
+        '加载最近同肌群训练失败',
+        error: error,
+        stackTrace: stackTrace,
+      );
+      throw AppError.from(error, fallbackMessage: '加载历史训练失败，请稍后重试。');
+    }
+  }
+
+  String inferSessionGroupFromTitle(String? title) {
+    return ExerciseCatalogConstants.inferSessionGroupFromTitle(title);
   }
 
   Future<List<WorkoutSession>> getSessionsInRange({
