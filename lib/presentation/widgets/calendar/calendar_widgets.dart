@@ -5,6 +5,7 @@ import '../../../application/state/session_editor_controller.dart';
 import '../../../domain/entities/diet_models.dart';
 import '../../../domain/entities/workout_models.dart';
 import '../../../theme/app_theme.dart';
+import '../../../utils/app_text_scale.dart';
 import '../../../utils/snackbar_helper.dart';
 import '../../pages/session_analysis_page.dart';
 import '../../pages/session_editor_page.dart';
@@ -25,6 +26,7 @@ class CalendarMonthHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final textScale = AppTextScale.resolve(context);
     final colors = AppColors.of(context);
     return Container(
       decoration: BoxDecoration(
@@ -49,7 +51,7 @@ class CalendarMonthHeader extends StatelessWidget {
                   textAlign: TextAlign.center,
                   style: Theme.of(
                     context,
-                  ).textTheme.headlineSmall?.copyWith(fontSize: 24),
+                  ).textTheme.headlineSmall?.copyWith(fontSize: 24 / textScale),
                 ),
               ),
             ),
@@ -358,7 +360,9 @@ class _CalendarCell extends StatelessWidget {
     final hasSession = session != null;
     final today = _day(DateTime.now());
     final isFutureDay = _day(day).isAfter(today);
-    final trainingLabel = hasSession ? _trainingTypeLabel(session!.title) : null;
+    final trainingLabel = hasSession
+        ? _trainingTypeLabel(session!.title)
+        : null;
     final hasDiet = (dietSummary?.totalEnergyKCal ?? 0) > 0;
     final kcalText = hasDiet
         ? _formatKcalText(dietSummary!.totalEnergyKCal)
@@ -369,6 +373,7 @@ class _CalendarCell extends StatelessWidget {
     final dayTextColor = inMonth
         ? colors.textPrimary
         : colors.textMuted.withValues(alpha: 0.6);
+    final textScale = AppTextScale.resolve(context);
 
     return InkWell(
       borderRadius: AppRadius.card,
@@ -377,10 +382,7 @@ class _CalendarCell extends StatelessWidget {
         decoration: BoxDecoration(
           color: colors.panel,
           borderRadius: AppRadius.card,
-          border: Border.all(
-            color: borderColor,
-            width: isToday ? 1.5 : 1,
-          ),
+          border: Border.all(color: borderColor, width: isToday ? 1.5 : 1),
         ),
         padding: EdgeInsets.all(compact ? 5 : 8),
         child: Column(
@@ -391,7 +393,7 @@ class _CalendarCell extends StatelessWidget {
               style: Theme.of(context).textTheme.titleSmall?.copyWith(
                 color: dayTextColor,
                 fontWeight: FontWeight.w700,
-                fontSize: compact ? 12 : 14,
+                fontSize: (compact ? 12 : 14) / textScale,
               ),
             ),
             const Spacer(),
@@ -406,7 +408,7 @@ class _CalendarCell extends StatelessWidget {
                     color: colors.textMuted.withValues(
                       alpha: inMonth ? 0.88 : 0.65,
                     ),
-                    fontSize: compact ? 7.4 : 8.4,
+                    fontSize: (compact ? 7.4 : 8.4) / textScale,
                     fontWeight: FontWeight.w600,
                     height: 1,
                   ),
@@ -429,7 +431,7 @@ class _CalendarCell extends StatelessWidget {
                         trainingLabel,
                       ).withValues(alpha: inMonth ? 1 : 0.72),
                       fontWeight: FontWeight.w600,
-                      fontSize: compact ? 9.2 : 10.4,
+                      fontSize: (compact ? 9.2 : 10.4) / textScale,
                       height: 1.05,
                     ),
                   ),
@@ -441,7 +443,7 @@ class _CalendarCell extends StatelessWidget {
                       color: colors.textMuted.withValues(
                         alpha: inMonth ? 0.88 : 0.68,
                       ),
-                      fontSize: compact ? 8.8 : 9.9,
+                      fontSize: (compact ? 8.8 : 9.9) / textScale,
                       height: 1.05,
                     ),
                   ),
@@ -452,7 +454,7 @@ class _CalendarCell extends StatelessWidget {
                 isToday ? '未训练' : '补录',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: colors.textMuted,
-                  fontSize: compact ? 8.8 : 10,
+                  fontSize: (compact ? 8.8 : 10) / textScale,
                   height: 1.05,
                 ),
               )

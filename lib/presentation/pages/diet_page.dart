@@ -11,6 +11,7 @@ import '../../domain/entities/diet_models.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/app_error.dart';
 import '../../utils/snackbar_helper.dart';
+import '../../utils/app_text_scale.dart';
 import '../widgets/async_tab_content.dart';
 import '../widgets/diet_food_entry_dialog.dart';
 import 'food_library_page.dart';
@@ -398,6 +399,7 @@ class _DailyDietOverviewCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = AppColors.of(context);
+    final textScale = AppTextScale.resolve(context);
     final remaining = math.max(0.0, targets.calories - summary.totalEnergyKCal);
     return _DietSurface(
       child: Column(
@@ -423,7 +425,7 @@ class _DailyDietOverviewCard extends StatelessWidget {
                 child: Text(
                   'CRD 饮食',
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontSize: 15,
+                    fontSize: 15 / textScale,
                     fontWeight: FontWeight.w700,
                     color: colors.textPrimary,
                   ),
@@ -500,7 +502,7 @@ class _DailyDietOverviewCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(14),
               ),
               textStyle: Theme.of(context).textTheme.titleSmall?.copyWith(
-                fontSize: 15,
+                fontSize: 15 / textScale,
                 fontWeight: FontWeight.w700,
               ),
             ),
@@ -520,6 +522,7 @@ class _OverviewMetric extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = AppColors.of(context);
+    final textScale = AppTextScale.resolve(context);
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -529,7 +532,7 @@ class _OverviewMetric extends StatelessWidget {
           overflow: TextOverflow.ellipsis,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
             color: colors.textMuted.withValues(alpha: 0.72),
-            fontSize: 12,
+            fontSize: 12 / textScale,
             fontWeight: FontWeight.w700,
           ),
         ),
@@ -539,7 +542,7 @@ class _OverviewMetric extends StatelessWidget {
           child: Text(
             value,
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              fontSize: 30,
+              fontSize: 30 / textScale,
               fontWeight: FontWeight.w800,
               color: colors.textPrimary,
             ),
@@ -564,6 +567,7 @@ class _RemainingEnergyRing extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = AppColors.of(context);
+    final textScale = AppTextScale.resolve(context);
     const progressColor = Color(0xFF35D88A);
     final ratio = targets.calories <= 0
         ? 0.0
@@ -609,7 +613,7 @@ class _RemainingEnergyRing extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: colors.textMuted.withValues(alpha: 0.72),
-                  fontSize: 12,
+                  fontSize: 12 / textScale,
                   fontWeight: FontWeight.w700,
                 ),
               ),
@@ -617,7 +621,7 @@ class _RemainingEnergyRing extends StatelessWidget {
               Text(
                 remaining.toStringAsFixed(0),
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  fontSize: 33,
+                  fontSize: 33 / textScale,
                   fontWeight: FontWeight.w800,
                   color: colors.textPrimary,
                 ),
@@ -628,7 +632,7 @@ class _RemainingEnergyRing extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: colors.textMuted.withValues(alpha: 0.7),
-                  fontSize: 10.5,
+                  fontSize: 10.5 / textScale,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -656,6 +660,7 @@ class _MacroProgressStat extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = AppColors.of(context);
+    final textScale = AppTextScale.resolve(context);
     final ratio = target <= 0 ? 0.0 : (value / target).clamp(0.0, 1.0);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -664,7 +669,7 @@ class _MacroProgressStat extends StatelessWidget {
           label,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
             color: colors.textPrimary,
-            fontSize: 14,
+            fontSize: 14 / textScale,
             fontWeight: FontWeight.w700,
           ),
         ),
@@ -685,7 +690,7 @@ class _MacroProgressStat extends StatelessWidget {
             '${value.toStringAsFixed(0)} / ${target.toStringAsFixed(0)} 克',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: colors.textMuted,
-              fontSize: 12,
+              fontSize: 12 / textScale,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -711,6 +716,7 @@ class _MealCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = AppColors.of(context);
+    final textScale = AppTextScale.resolve(context);
     final mealEnergy = _mealEnergy(records);
     final recommendation = targets.mealRange(mealType);
     return _DietSurface(
@@ -740,7 +746,7 @@ class _MealCard extends StatelessWidget {
                       text: TextSpan(
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           color: colors.textPrimary,
-                          fontSize: 21,
+                          fontSize: 21 / textScale,
                           fontWeight: FontWeight.w700,
                         ),
                         children: [
@@ -751,7 +757,7 @@ class _MealCard extends StatelessWidget {
                             style: Theme.of(context).textTheme.bodyMedium
                                 ?.copyWith(
                                   color: colors.textMuted,
-                                  fontSize: 12.5,
+                                  fontSize: 12.5 / textScale,
                                   fontWeight: FontWeight.w600,
                                 ),
                           ),
@@ -764,7 +770,7 @@ class _MealCard extends StatelessWidget {
                     '${mealEnergy.toStringAsFixed(0)}千卡',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       color: colors.textMuted,
-                      fontSize: 15.5,
+                      fontSize: 15.5 / textScale,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -804,6 +810,7 @@ class _DietMealRecordTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = AppColors.of(context);
+    final textScale = AppTextScale.resolve(context);
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.sm),
       child: InkWell(
@@ -836,7 +843,7 @@ class _DietMealRecordTile extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontSize: 15.5,
+                        fontSize: 15.5 / textScale,
                         fontWeight: FontWeight.w700,
                         color: colors.textPrimary,
                       ),
@@ -848,7 +855,7 @@ class _DietMealRecordTile extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: colors.textMuted,
-                        fontSize: 12,
+                        fontSize: 12 / textScale,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -860,7 +867,7 @@ class _DietMealRecordTile extends StatelessWidget {
                 '${record.energyKCal.toStringAsFixed(0)}千卡',
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   color: colors.textMuted,
-                  fontSize: 14.5,
+                  fontSize: 14.5 / textScale,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -883,6 +890,7 @@ class _DietEmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = AppColors.of(context);
+    final textScale = AppTextScale.resolve(context);
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: 34, horizontal: 18),
@@ -907,7 +915,7 @@ class _DietEmptyState extends StatelessWidget {
             '记录下今日的饮食吧',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: colors.textMuted.withValues(alpha: 0.72),
-              fontSize: 14,
+              fontSize: 14 / textScale,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -1478,6 +1486,7 @@ class _MealQuickAddItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = AppColors.of(context);
+    final textScale = AppTextScale.resolve(context);
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
@@ -1496,7 +1505,7 @@ class _MealQuickAddItem extends StatelessWidget {
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: colors.textPrimary,
                   fontWeight: FontWeight.w700,
-                  fontSize: 10.5,
+                  fontSize: 10.5 / textScale,
                 ),
               ),
             ),

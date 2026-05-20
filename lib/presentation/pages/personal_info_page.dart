@@ -10,6 +10,7 @@ import '../../application/state/auth_status.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/app_error.dart';
 import '../../utils/snackbar_helper.dart';
+import '../../utils/app_text_scale.dart';
 import '../widgets/section_card.dart';
 
 class PersonalInfoPage extends ConsumerStatefulWidget {
@@ -260,18 +261,23 @@ class _PersonalInfoPageState extends ConsumerState<PersonalInfoPage> {
 
   InputDecoration _inputDecoration(String label) {
     final colors = AppColors.of(context);
+    final textScale = AppTextScale.resolve(context);
     return InputDecoration(
       labelText: label,
       filled: true,
       fillColor: colors.panel,
-      labelStyle: TextStyle(color: colors.textMuted, fontSize: 14),
+      labelStyle: TextStyle(color: colors.textMuted, fontSize: 14 / textScale),
       floatingLabelStyle: TextStyle(
         color: colors.accent,
-        fontSize: 13,
+        fontSize: 13 / textScale,
         fontWeight: FontWeight.w700,
       ),
       hintStyle: TextStyle(color: colors.textMuted.withValues(alpha: 0.68)),
-      errorStyle: TextStyle(color: colors.warning, fontSize: 12, height: 1.2),
+      errorStyle: TextStyle(
+        color: colors.warning,
+        fontSize: 12 / textScale,
+        height: 1.2,
+      ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
@@ -297,7 +303,12 @@ class _PersonalInfoPageState extends ConsumerState<PersonalInfoPage> {
   }
 
   TextStyle _inputTextStyle(AppPalette colors) {
-    return TextStyle(color: colors.textPrimary, fontSize: 15, height: 1.2);
+    final textScale = AppTextScale.resolve(context);
+    return TextStyle(
+      color: colors.textPrimary,
+      fontSize: 15 / textScale,
+      height: 1.2,
+    );
   }
 
   @override
@@ -407,9 +418,9 @@ class _PersonalInfoPageState extends ConsumerState<PersonalInfoPage> {
                     readOnly: true,
                     enabled: false,
                     style: _inputTextStyle(colors),
-                    decoration: _inputDecoration('当前账号邮箱').copyWith(
-                      hintText: '未获取到邮箱',
-                    ),
+                    decoration: _inputDecoration(
+                      '当前账号邮箱',
+                    ).copyWith(hintText: '未获取到邮箱'),
                   ),
                 ],
                 const SizedBox(height: AppSpacing.sm),
@@ -680,7 +691,7 @@ class _ChoiceField extends StatelessWidget {
               selectedColor: colors.accent.withValues(alpha: 0.28),
               labelStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
-                fontSize: 14,
+                fontSize: 14 / AppTextScale.resolve(context),
                 color: selected ? colors.textPrimary : colors.textMuted,
               ),
             );

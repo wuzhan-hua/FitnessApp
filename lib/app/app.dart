@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../application/providers/providers.dart';
 import '../theme/app_theme.dart';
+import '../utils/app_text_scale.dart';
 import 'auth_gate.dart';
 import 'app_router.dart';
 
@@ -51,11 +52,17 @@ class FitnessApp extends ConsumerWidget {
         GlobalCupertinoLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
       ],
-      routes: {
-        Navigator.defaultRouteName: (_) => const AuthGate(),
-      },
+      routes: {Navigator.defaultRouteName: (_) => const AuthGate()},
       onGenerateRoute: AppRouter.onGenerateRoute,
       onGenerateInitialRoutes: _handleInitialRoutes,
+      builder: (context, child) {
+        final mediaQuery = MediaQuery.of(context);
+        final textScale = AppTextScale.resolve(context);
+        return MediaQuery(
+          data: mediaQuery.copyWith(textScaler: TextScaler.linear(textScale)),
+          child: child ?? const SizedBox.shrink(),
+        );
+      },
     );
   }
 }
