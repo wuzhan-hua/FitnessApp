@@ -107,6 +107,14 @@ class CalendarPage extends ConsumerWidget {
       ref.invalidate(monthlyDietSummariesProvider(month));
     }
 
+    Future<void> refreshCalendar() async {
+      refreshMonthSessions();
+      await Future.wait([
+        ref.read(sessionsByCalendarGridProvider(month).future),
+        ref.read(monthlyDietSummariesProvider(month).future),
+      ]);
+    }
+
     Future<void> pickMonthYear() async {
       final selected = await _showYearMonthPicker(context, month);
       if (selected == null || !context.mounted) {
@@ -132,14 +140,23 @@ class CalendarPage extends ConsumerWidget {
             ),
             const SizedBox(height: AppSpacing.sm),
             Expanded(
-              child: AsyncTabContent<_CalendarPageData>(
-                asyncValue: calendarDataAsync,
-                errorPrefix: '日历加载失败',
-                builder: (context, data) => CalendarBody(
-                  month: month,
-                  sessions: data.sessions,
-                  dietSummaries: data.dietSummaries,
-                  onSessionChanged: refreshMonthSessions,
+              child: RefreshIndicator(
+                onRefresh: refreshCalendar,
+                child: AsyncTabContent<_CalendarPageData>(
+                  asyncValue: calendarDataAsync,
+                  errorPrefix: '日历加载失败',
+                  builder: (context, data) => ListView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: EdgeInsets.zero,
+                    children: [
+                      CalendarBody(
+                        month: month,
+                        sessions: data.sessions,
+                        dietSummaries: data.dietSummaries,
+                        onSessionChanged: refreshMonthSessions,
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),

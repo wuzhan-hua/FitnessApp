@@ -47,6 +47,14 @@ class _PersonalInfoPageState extends ConsumerState<PersonalInfoPage> {
   static const _supportedAvatarExtensions = {'jpg', 'jpeg', 'png', 'webp'};
   static const _unsupportedAvatarExtensions = {'heic', 'heif'};
 
+  String? get _currentEmail {
+    final email = ref.read(authServiceProvider).currentSession?.user.email;
+    if (email == null || email.trim().isEmpty) {
+      return null;
+    }
+    return email.trim();
+  }
+
   @override
   void initState() {
     super.initState();
@@ -392,6 +400,18 @@ class _PersonalInfoPageState extends ConsumerState<PersonalInfoPage> {
                     return null;
                   },
                 ),
+                if (_currentEmail != null) ...[
+                  const SizedBox(height: AppSpacing.sm),
+                  TextFormField(
+                    initialValue: _currentEmail,
+                    readOnly: true,
+                    enabled: false,
+                    style: _inputTextStyle(colors),
+                    decoration: _inputDecoration('当前账号邮箱').copyWith(
+                      hintText: '未获取到邮箱',
+                    ),
+                  ),
+                ],
                 const SizedBox(height: AppSpacing.sm),
                 _ChoiceField(
                   label: '性别',

@@ -144,10 +144,8 @@ class _AuthPageState extends ConsumerState<AuthPage> {
       emailSignUpPendingProvider.notifier,
     );
     final guestSoftSignedOut = guestSoftSignedOutProvider;
-    final homeSnapshot = homeSnapshotProvider;
-    final analyticsSnapshot = analyticsSnapshotProvider;
     final calendarMonth = ref.read(calendarMonthProvider);
-    final sessionsByMonth = sessionsByMonthProvider(calendarMonth);
+    final selectedDietDate = ref.read(selectedDietDateProvider);
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
     final isUpgradeFlow = widget.preferUpgrade && status.isGuest;
@@ -183,9 +181,11 @@ class _AuthPageState extends ConsumerState<AuthPage> {
       }
 
       ref.invalidate(guestSoftSignedOut);
-      ref.invalidate(homeSnapshot);
-      ref.invalidate(analyticsSnapshot);
-      ref.invalidate(sessionsByMonth);
+      invalidateUserScopedMainPageProviders(
+        ref,
+        calendarMonth: calendarMonth,
+        dietDate: selectedDietDate,
+      );
 
       if (Navigator.of(context).canPop()) {
         Navigator.of(context).pop();
@@ -213,6 +213,11 @@ class _AuthPageState extends ConsumerState<AuthPage> {
       await authService.signInAsGuest();
       if (!mounted) return;
       ref.invalidate(guestSoftSignedOutProvider);
+      invalidateUserScopedMainPageProviders(
+        ref,
+        calendarMonth: ref.read(calendarMonthProvider),
+        dietDate: ref.read(selectedDietDateProvider),
+      );
       showLatestSnackBar(context, '游客登录成功');
       if (Navigator.of(context).canPop()) {
         Navigator.of(context).pop();

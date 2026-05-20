@@ -74,6 +74,22 @@ class DietPage extends ConsumerWidget {
     );
   }
 
+  Future<void> _refreshDiet(WidgetRef ref, DateTime selectedDate) async {
+    final normalizedDate = DateTime(
+      selectedDate.year,
+      selectedDate.month,
+      selectedDate.day,
+    );
+    final month = monthKey(normalizedDate);
+    ref.invalidate(dietRecordsByDateProvider(normalizedDate));
+    ref.invalidate(dailyDietSummaryProvider(normalizedDate));
+    ref.invalidate(monthlyDietSummariesProvider(month));
+    await Future.wait([
+      ref.read(dailyDietSummaryProvider(normalizedDate).future),
+      ref.read(monthlyDietSummariesProvider(month).future),
+    ]);
+  }
+
   Future<void> _openFoodLibrary({
     required BuildContext context,
     required WidgetRef ref,
@@ -194,39 +210,43 @@ class DietPage extends ConsumerWidget {
               ),
               const SizedBox(height: AppSpacing.md),
               Expanded(
-                child: AsyncTabContent<DailyDietSummary>(
-                  asyncValue: summaryAsync,
-                  errorPrefix: '饮食数据加载失败',
-                  builder: (context, summary) {
-                    return ListView(
-                      padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                      children: [
-                        _DailyDietOverviewCard(
-                          summary: summary,
-                          targets: targets,
-                          onAdviceTap: () =>
-                              showLatestSnackBar(context, '今日饮食建议已按当前资料估算'),
-                        ),
-                        const SizedBox(height: AppSpacing.md),
-                        if (summary.recordCount == 0)
-                          const _DietEmptyState()
-                        else
-                          for (final mealType in MealType.values)
-                            if ((summary.mealGroups[mealType] ?? const [])
-                                .isNotEmpty) ...[
-                              _MealCard(
-                                date: selectedDate,
-                                mealType: mealType,
-                                records:
-                                    summary.mealGroups[mealType] ??
-                                    const <DietRecord>[],
-                                targets: targets,
-                              ),
-                              const SizedBox(height: AppSpacing.md),
-                            ],
-                      ],
-                    );
-                  },
+                child: RefreshIndicator(
+                  onRefresh: () => _refreshDiet(ref, selectedDate),
+                  child: AsyncTabContent<DailyDietSummary>(
+                    asyncValue: summaryAsync,
+                    errorPrefix: '饮食数据加载失败',
+                    builder: (context, summary) {
+                      return ListView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                        children: [
+                          _DailyDietOverviewCard(
+                            summary: summary,
+                            targets: targets,
+                            onAdviceTap: () =>
+                                showLatestSnackBar(context, '今日饮食建议已按当前资料估算'),
+                          ),
+                          const SizedBox(height: AppSpacing.md),
+                          if (summary.recordCount == 0)
+                            const _DietEmptyState()
+                          else
+                            for (final mealType in MealType.values)
+                              if ((summary.mealGroups[mealType] ?? const [])
+                                  .isNotEmpty) ...[
+                                _MealCard(
+                                  date: selectedDate,
+                                  mealType: mealType,
+                                  records:
+                                      summary.mealGroups[mealType] ??
+                                      const <DietRecord>[],
+                                  targets: targets,
+                                ),
+                                const SizedBox(height: AppSpacing.md),
+                              ],
+                        ],
+                      );
+                    },
+                  ),
                 ),
               ),
             ],

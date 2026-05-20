@@ -43,6 +43,12 @@ class _TestSettingsController extends SettingsController {
 }
 
 void main() {
+  Future<void> settleApp(WidgetTester tester) async {
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 200));
+    await tester.pump(const Duration(milliseconds: 200));
+  }
+
   testWidgets('renders 4 tabs and switches to calendar', (tester) async {
     await tester.pumpWidget(
       ProviderScope(
@@ -58,15 +64,15 @@ void main() {
         child: const FitnessApp(),
       ),
     );
-    await tester.pumpAndSettle();
+    await settleApp(tester);
 
-    expect(find.text('首页'), findsOneWidget);
+    expect(find.text('运动'), findsOneWidget);
     expect(find.text('日历'), findsOneWidget);
-    expect(find.text('统计'), findsOneWidget);
+    expect(find.text('饮食'), findsOneWidget);
     expect(find.text('我的'), findsOneWidget);
 
     await tester.tap(find.text('日历'));
-    await tester.pumpAndSettle();
+    await settleApp(tester);
 
     expect(find.textContaining('年'), findsWidgets);
   });
@@ -86,11 +92,11 @@ void main() {
         child: const FitnessApp(),
       ),
     );
-    await tester.pumpAndSettle();
+    await settleApp(tester);
 
     expect(find.text('今日状态'), findsOneWidget);
     expect(find.text('主操作区'), findsOneWidget);
-    expect(find.text('近7天概览'), findsOneWidget);
+    expect(find.text('今日计划 / 推荐'), findsOneWidget);
   });
 
   testWidgets('auth page defaults to password login and toggles to sign up', (
@@ -109,7 +115,7 @@ void main() {
         child: const FitnessApp(),
       ),
     );
-    await tester.pumpAndSettle();
+    await settleApp(tester);
 
     expect(find.text('密码登录'), findsAtLeastNWidgets(1));
     expect(find.text('邮箱注册'), findsAtLeastNWidgets(1));
@@ -118,7 +124,7 @@ void main() {
     expect(find.text('邮箱验证码'), findsNothing);
 
     await tester.tap(find.text('邮箱注册').first);
-    await tester.pumpAndSettle();
+    await settleApp(tester);
 
     expect(find.text('注册并自动登录'), findsOneWidget);
     expect(find.text('邮箱验证码'), findsOneWidget);

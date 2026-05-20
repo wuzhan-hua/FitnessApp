@@ -154,6 +154,24 @@ final analyticsSnapshotProvider = FutureProvider<AnalyticsSnapshot>((
   );
 });
 
+void invalidateUserScopedMainPageProviders(
+  WidgetRef ref, {
+  required DateTime calendarMonth,
+  required DateTime dietDate,
+}) {
+  final resolvedMonth = monthKey(calendarMonth);
+  final resolvedDietDate = DateTime(dietDate.year, dietDate.month, dietDate.day);
+  ref.invalidate(homeSnapshotProvider);
+  ref.invalidate(analyticsSnapshotProvider);
+  ref.invalidate(currentUserIsAdminProvider);
+  ref.invalidate(settingsProvider);
+  ref.invalidate(sessionsByMonthProvider(resolvedMonth));
+  ref.invalidate(sessionsByCalendarGridProvider(resolvedMonth));
+  ref.invalidate(monthlyDietSummariesProvider(resolvedMonth));
+  ref.invalidate(dietRecordsByDateProvider(resolvedDietDate));
+  ref.invalidate(dailyDietSummaryProvider(resolvedDietDate));
+}
+
 final selectedDietDateProvider = StateProvider<DateTime>((ref) {
   final now = DateTime.now();
   return DateTime(now.year, now.month, now.day);

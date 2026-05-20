@@ -33,6 +33,13 @@ class _CalendarRangeRepo implements WorkoutRepository {
       const [];
 
   @override
+  Future<WorkoutSession?> getLatestCompletedSessionByMuscleGroup(
+    String muscleGroup,
+  ) {
+    throw UnimplementedError();
+  }
+
+  @override
   Future<HomeSnapshot> getHomeSnapshot(DateTime date) {
     throw UnimplementedError();
   }
@@ -118,6 +125,24 @@ void main() {
     expect(find.text('背'), findsOneWidget);
     expect(find.text('130分'), findsNWidgets(2));
     expect(find.text('120分'), findsOneWidget);
+  });
+
+  testWidgets('日历页支持下拉刷新', (tester) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          workoutRepositoryProvider.overrideWithValue(_CalendarRangeRepo()),
+          calendarMonthProvider.overrideWith((ref) => DateTime(2026, 5, 1)),
+        ],
+        child: MaterialApp(
+          theme: AppTheme.light,
+          home: const Scaffold(body: CalendarPage()),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byType(RefreshIndicator), findsOneWidget);
   });
 
   testWidgets('五月页会显示四月底跨月格子的饮食热量', (tester) async {

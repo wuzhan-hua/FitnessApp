@@ -14,6 +14,11 @@ import 'session_editor_page.dart';
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
 
+  Future<void> _refreshHome(WidgetRef ref) {
+    ref.invalidate(homeSnapshotProvider);
+    return ref.read(homeSnapshotProvider.future);
+  }
+
   Future<void> _openEditor(
     BuildContext context, {
     required DateTime date,
@@ -67,56 +72,62 @@ class HomePage extends ConsumerWidget {
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.md),
-        child: AsyncTabContent<HomeSnapshot>(
-          asyncValue: snapshotAsync,
-          errorPrefix: '首页加载失败',
-          builder: (context, snapshot) {
-            return LayoutBuilder(
-              builder: (context, constraints) {
-                if (constraints.maxWidth >= 980) {
-                  return Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        flex: 7,
-                        child: SingleChildScrollView(
-                          child: HomeLeftColumn(
-                            snapshot: snapshot,
-                            openEditor: _openEditor,
+        child: RefreshIndicator(
+          onRefresh: () => _refreshHome(ref),
+          child: AsyncTabContent<HomeSnapshot>(
+            asyncValue: snapshotAsync,
+            errorPrefix: '首页加载失败',
+            builder: (context, snapshot) {
+              return LayoutBuilder(
+                builder: (context, constraints) {
+                  if (constraints.maxWidth >= 980) {
+                    return Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          flex: 7,
+                          child: SingleChildScrollView(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            child: HomeLeftColumn(
+                              snapshot: snapshot,
+                              openEditor: _openEditor,
+                            ),
                           ),
                         ),
-                      ),
-                      const SizedBox(width: AppSpacing.md),
-                      Expanded(
-                        flex: 5,
-                        child: SingleChildScrollView(
-                          child: HomeRightColumn(
-                            snapshot: snapshot,
-                            openSessionAnalysis: _openSessionAnalysis,
+                        const SizedBox(width: AppSpacing.md),
+                        Expanded(
+                          flex: 5,
+                          child: SingleChildScrollView(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            child: HomeRightColumn(
+                              snapshot: snapshot,
+                              openSessionAnalysis: _openSessionAnalysis,
+                            ),
                           ),
                         ),
-                      ),
-                    ],
-                  );
-                }
+                      ],
+                    );
+                  }
 
-                return SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      HomeLeftColumn(
-                        snapshot: snapshot,
-                        openEditor: _openEditor,
-                      ),
-                      HomeRightColumn(
-                        snapshot: snapshot,
-                        openSessionAnalysis: _openSessionAnalysis,
-                      ),
-                    ],
-                  ),
-                );
-              },
-            );
-          },
+                  return SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    child: Column(
+                      children: [
+                        HomeLeftColumn(
+                          snapshot: snapshot,
+                          openEditor: _openEditor,
+                        ),
+                        HomeRightColumn(
+                          snapshot: snapshot,
+                          openSessionAnalysis: _openSessionAnalysis,
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              );
+            },
+          ),
         ),
       ),
     );

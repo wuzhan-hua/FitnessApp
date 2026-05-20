@@ -25,6 +25,7 @@ class ProfilePage extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref,
     DateTime currentMonth,
+    DateTime selectedDietDate,
   ) async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -55,9 +56,11 @@ class ProfilePage extends ConsumerWidget {
     try {
       await ref.read(authServiceProvider).signOut();
       ref.invalidate(guestSoftSignedOutProvider);
-      ref.invalidate(homeSnapshotProvider);
-      ref.invalidate(analyticsSnapshotProvider);
-      ref.invalidate(sessionsByMonthProvider(currentMonth));
+      invalidateUserScopedMainPageProviders(
+        ref,
+        calendarMonth: currentMonth,
+        dietDate: selectedDietDate,
+      );
       if (!context.mounted) return;
       final currentStatus =
           ref.read(authStatusProvider).valueOrNull ?? AuthStatus.signedOut;
@@ -79,12 +82,24 @@ class ProfilePage extends ConsumerWidget {
         : const AsyncData(false);
     final colors = AppColors.of(context);
     final month = ref.watch(calendarMonthProvider);
+    final selectedDietDate = ref.watch(selectedDietDateProvider);
+
+    Future<void> refreshProfile() async {
+      try {
+        await ref.read(settingsProvider.notifier).loadPersonalInfo();
+      } catch (_) {}
+      ref.invalidate(currentUserIsAdminProvider);
+      await ref.read(currentUserIsAdminProvider.future).catchError((_) => false);
+    }
 
     return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        child: ListView(
-          children: [
+      child: RefreshIndicator(
+        onRefresh: refreshProfile,
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          child: ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            children: [
             _ProfileHeaderCard(
               colors: colors,
               settings: settings,
@@ -255,7 +270,12 @@ class ProfilePage extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     OutlinedButton.icon(
-                      onPressed: () => _confirmAndSignOut(context, ref, month),
+                      onPressed: () => _confirmAndSignOut(
+                        context,
+                        ref,
+                        month,
+                        selectedDietDate,
+                      ),
                       icon: const Icon(Icons.logout),
                       label: const Text('退出登录'),
                       style: OutlinedButton.styleFrom(
@@ -272,7 +292,8 @@ class ProfilePage extends ConsumerWidget {
                   ],
                 ),
               ),
-          ],
+            ],
+          ),
         ),
       ),
     );
