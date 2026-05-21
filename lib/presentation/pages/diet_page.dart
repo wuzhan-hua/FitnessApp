@@ -1486,6 +1486,7 @@ class _MealQuickAddItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = AppColors.of(context);
+    final itemColor = _mealQuickAddColor(colors);
     final textScale = AppTextScale.resolve(context);
     return InkWell(
       onTap: onTap,
@@ -1495,7 +1496,7 @@ class _MealQuickAddItem extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(_mealIcon(mealType), color: colors.textPrimary, size: 23),
+            Icon(_mealIcon(mealType), color: itemColor, size: 23),
             const SizedBox(height: 3),
             FittedBox(
               fit: BoxFit.scaleDown,
@@ -1503,7 +1504,7 @@ class _MealQuickAddItem extends StatelessWidget {
                 '+${mealType.label}',
                 maxLines: 1,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: colors.textPrimary,
+                  color: itemColor,
                   fontWeight: FontWeight.w700,
                   fontSize: 10.5 / textScale,
                 ),
@@ -1737,6 +1738,15 @@ IconData _mealIcon(MealType mealType) {
     case MealType.snack:
       return Icons.apple_rounded;
   }
+}
+
+Color _mealQuickAddColor(AppPalette colors) {
+  final isDark = colors.background.computeLuminance() < 0.5;
+  return Color.lerp(
+    colors.textMuted,
+    colors.textPrimary,
+    isDark ? 0.22 : 0.18,
+  )!;
 }
 
 IconData _foodIcon(String category) {
