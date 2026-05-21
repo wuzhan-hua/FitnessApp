@@ -10,7 +10,7 @@ const smtpHost = Deno.env.get("SMTP_HOST") ?? "";
 const smtpUser = Deno.env.get("SMTP_USER") ?? "";
 const smtpPass = Deno.env.get("SMTP_PASS") ?? "";
 const smtpFromEmail = Deno.env.get("SMTP_FROM_EMAIL") ?? smtpUser;
-const smtpFromName = Deno.env.get("SMTP_FROM_NAME") ?? "ForgeLog";
+const smtpFromName = Deno.env.get("SMTP_FROM_NAME") ?? "即训";
 const smtpPort = Number(Deno.env.get("SMTP_PORT") ?? "465");
 
 export const supabase = createClient(supabaseUrl, serviceRoleKey, {
@@ -58,8 +58,8 @@ export async function sha256(value: string) {
 
 function buildMailContent(code: string, purpose: VerificationPurpose) {
   const scene = purpose === verificationPurpose.guestUpgrade
-    ? "升级 ForgeLog 游客账号"
-    : "注册 ForgeLog 邮箱账号";
+    ? "升级即训游客账号"
+    : "注册即训邮箱账号";
   return buildSignupMailTemplate(code, scene);
 }
 
@@ -78,7 +78,7 @@ export async function sendVerificationMail(
   await transporter.sendMail({
     from: `${smtpFromName} <${smtpFromEmail}>`,
     to,
-    subject: "ForgeLog 邮箱验证码",
+    subject: "即训 邮箱验证码",
     html: buildMailContent(code, purpose),
   });
 }

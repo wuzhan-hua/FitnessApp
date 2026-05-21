@@ -527,11 +527,12 @@ class _ProfileHeaderCard extends StatelessWidget {
     final isGuest = authStatus.isGuest;
     final isSignedIn = authStatus.isSignedIn;
     final shortUserId = _shortUserId;
+    final normalizedProfileName = settings.profileName.trim();
     final displayName = isGuest
         ? '匿名用户 $shortUserId'
-        : settings.profileName.trim().isEmpty
-        ? '未设置昵称'
-        : settings.profileName.trim();
+        : normalizedProfileName.isEmpty
+        ? '即训用户'
+        : normalizedProfileName;
 
     return Card(
       child: Padding(
@@ -656,25 +657,13 @@ class _ProfileAvatar extends StatelessWidget {
   Widget build(BuildContext context) {
     final avatarUrl = settings.avatarUrl?.trim();
     final hasAvatar = avatarUrl != null && avatarUrl.isNotEmpty;
+    const appIcon = AssetImage('assets/branding/app_icon_source.png');
 
     return CircleAvatar(
       radius: 28,
       backgroundColor: colors.accent.withValues(alpha: 0.2),
-      backgroundImage: isGuest
-          ? const AssetImage('assets/branding/app_icon_source.png')
-          : hasAvatar
-          ? NetworkImage(avatarUrl)
-          : null,
-      child: isGuest || hasAvatar
-          ? null
-          : Text(
-              settings.profileName.trim().isEmpty
-                  ? '我'
-                  : settings.profileName.trim().substring(0, 1),
-              style: Theme.of(
-                context,
-              ).textTheme.headlineSmall?.copyWith(color: colors.accent),
-            ),
+      backgroundImage: isGuest ? appIcon : hasAvatar ? NetworkImage(avatarUrl) : appIcon,
+      child: null,
     );
   }
 }
