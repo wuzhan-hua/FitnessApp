@@ -11,14 +11,142 @@ import 'admin_exercise_catalog_page.dart';
 import 'admin_food_catalog_page.dart';
 import 'analytics_page.dart';
 import 'auth_page.dart';
+import 'contact_author_page.dart';
 import 'personal_info_page.dart';
-import '../widgets/section_card.dart';
 
 class ProfilePage extends ConsumerWidget {
   const ProfilePage({super.key});
 
   void _showFeedback(BuildContext context, String message) {
     showLatestSnackBar(context, message);
+  }
+
+  Future<void> _showUnitPicker(
+    BuildContext context,
+    WidgetRef ref,
+    bool useKilogram,
+  ) async {
+    final colors = AppColors.of(context);
+    final selected = await showModalBottomSheet<bool>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.md,
+            0,
+            AppSpacing.md,
+            AppSpacing.md,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '单位设置',
+                style: Theme.of(
+                  sheetContext,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              _UnitOptionTile(
+                contentPadding: EdgeInsets.zero,
+                value: true,
+                selectedValue: useKilogram,
+                title: const Text('kg'),
+                subtitle: const Text('训练重量以千克展示'),
+                selectedColor: colors.accent,
+                onTap: () => Navigator.of(sheetContext).pop(true),
+              ),
+              _UnitOptionTile(
+                contentPadding: EdgeInsets.zero,
+                value: false,
+                selectedValue: useKilogram,
+                title: const Text('lbs'),
+                subtitle: const Text('训练重量以磅展示'),
+                selectedColor: colors.accent,
+                onTap: () => Navigator.of(sheetContext).pop(false),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (selected == null || selected == useKilogram) {
+      return;
+    }
+
+    await ref.read(settingsProvider.notifier).toggleUnit(selected);
+    if (!context.mounted) return;
+    _showFeedback(context, selected ? '单位已切换为 kg' : '单位已切换为 lbs');
+  }
+
+  Future<void> _showRestPicker(
+    BuildContext context,
+    WidgetRef ref,
+    int defaultRestSeconds,
+  ) async {
+    var draftRestSeconds = defaultRestSeconds;
+    final saved = await showModalBottomSheet<bool>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) => StatefulBuilder(
+        builder: (sheetContext, setSheetState) => SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.md,
+              0,
+              AppSpacing.md,
+              AppSpacing.md,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '默认组间休息',
+                  style: Theme.of(
+                    sheetContext,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+                ),
+                const SizedBox(height: AppSpacing.xs),
+                Text(
+                  '$draftRestSeconds 秒',
+                  style: Theme.of(sheetContext).textTheme.headlineSmall
+                      ?.copyWith(fontWeight: FontWeight.w700),
+                ),
+                Slider(
+                  min: 45,
+                  max: 300,
+                  divisions: 17,
+                  value: draftRestSeconds.toDouble(),
+                  onChanged: (value) {
+                    setSheetState(() => draftRestSeconds = value.round());
+                  },
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton(
+                    onPressed: () => Navigator.of(sheetContext).pop(true),
+                    child: const Text('保存设置'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    if (saved != true || draftRestSeconds == defaultRestSeconds) {
+      return;
+    }
+
+    await ref
+        .read(settingsProvider.notifier)
+        .updateRestSeconds(draftRestSeconds);
+    if (!context.mounted) return;
+    _showFeedback(context, '默认休息已更新为 $draftRestSeconds 秒');
   }
 
   Future<void> _confirmAndSignOut(
@@ -89,7 +217,9 @@ class ProfilePage extends ConsumerWidget {
         await ref.read(settingsProvider.notifier).loadPersonalInfo();
       } catch (_) {}
       ref.invalidate(currentUserIsAdminProvider);
-      await ref.read(currentUserIsAdminProvider.future).catchError((_) => false);
+      await ref
+          .read(currentUserIsAdminProvider.future)
+          .catchError((_) => false);
     }
 
     return SafeArea(
@@ -100,202 +230,266 @@ class ProfilePage extends ConsumerWidget {
           child: ListView(
             physics: const AlwaysScrollableScrollPhysics(),
             children: [
-            _ProfileHeaderCard(
-              colors: colors,
-              settings: settings,
-              authStatus: authStatus,
-              onOpenPersonalInfo: () {
-                Navigator.of(context).pushNamed(PersonalInfoPage.routeName);
-              },
-              onOpenAuth: () {
-                Navigator.of(context).pushNamed(AuthPage.routeName);
-              },
-              onUpgradeGuest: () {
-                Navigator.of(context).pushNamed(
-                  AuthPage.routeName,
-                  arguments: const AuthPageArgs(preferUpgrade: true),
-                );
-              },
-            ),
-            const SizedBox(height: AppSpacing.md),
-            SectionCard(
-              title: '数据与回顾',
-              child: ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.insights_outlined),
-                title: const Text('训练统计'),
-                subtitle: const Text('查看近 30 天训练频率、训练量与 PR 趋势'),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => const AnalyticsPage(),
-                    ),
+              _ProfileHeaderCard(
+                colors: colors,
+                settings: settings,
+                authStatus: authStatus,
+                userId: ref.watch(authServiceProvider).currentSession?.user.id,
+                onOpenPersonalInfo: () {
+                  Navigator.of(context).pushNamed(PersonalInfoPage.routeName);
+                },
+                onOpenAuth: () {
+                  Navigator.of(context).pushNamed(AuthPage.routeName);
+                },
+                onUpgradeGuest: () {
+                  Navigator.of(context).pushNamed(
+                    AuthPage.routeName,
+                    arguments: const AuthPageArgs(preferUpgrade: true),
                   );
                 },
               ),
-            ),
-            SectionCard(
-              title: '主题设置',
-              child: SwitchListTile(
-                contentPadding: EdgeInsets.zero,
-                title: const Text('黑暗模式'),
-                subtitle: const Text('开启后切换为深色主题'),
-                value: settings.isDarkMode,
-                onChanged: (value) async {
-                  await ref
-                      .read(settingsProvider.notifier)
-                      .toggleDarkMode(value);
-                  if (!context.mounted) return;
-                  _showFeedback(context, value ? '已切换为黑暗模式' : '已切换为白蓝主题');
-                },
-              ),
-            ),
-            SectionCard(
-              title: '单位设置',
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              const SizedBox(height: AppSpacing.md),
+              _ProfileMenuSection(
                 children: [
-                  Text(
-                    '影响重量相关内容的展示与输入单位',
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodySmall?.copyWith(color: colors.textMuted),
-                  ),
-                  const SizedBox(height: AppSpacing.sm),
-                  SegmentedButton<bool>(
-                    showSelectedIcon: false,
-                    style: ButtonStyle(
-                      textStyle: WidgetStatePropertyAll(
-                        Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
+                  _ProfileMenuTile(
+                    icon: Icons.insights_outlined,
+                    iconColor: colors.accent,
+                    title: '训练统计',
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => const AnalyticsPage(),
                         ),
-                      ),
-                    ),
-                    segments: const [
-                      ButtonSegment<bool>(value: true, label: Text('kg')),
-                      ButtonSegment<bool>(value: false, label: Text('lbs')),
-                    ],
-                    selected: {settings.useKilogram},
-                    onSelectionChanged: (value) async {
-                      await ref
-                          .read(settingsProvider.notifier)
-                          .toggleUnit(value.first);
-                      if (!context.mounted) return;
-                      _showFeedback(
-                        context,
-                        value.first ? '单位已切换为 kg' : '单位已切换为 lbs',
                       );
                     },
                   ),
-                ],
-              ),
-            ),
-            SectionCard(
-              title: '默认组间休息',
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '同步到训练编辑页，作为计时器重置时的默认休息时长',
-                    style: Theme.of(
+                  _ProfileMenuTile(
+                    icon: Icons.badge_outlined,
+                    iconColor: colors.success,
+                    title: '个人信息',
+                    onTap: () {
+                      Navigator.of(
+                        context,
+                      ).pushNamed(PersonalInfoPage.routeName);
+                    },
+                  ),
+                  _ProfileMenuTile(
+                    icon: Icons.straighten,
+                    iconColor: colors.warning,
+                    title: '单位设置',
+                    trailingText: settings.useKilogram ? 'kg' : 'lbs',
+                    onTap: () =>
+                        _showUnitPicker(context, ref, settings.useKilogram),
+                  ),
+                  _ProfileMenuTile(
+                    icon: Icons.timer_outlined,
+                    iconColor: const Color(0xFF8B5CF6),
+                    title: '默认组间休息',
+                    trailingText: '${settings.defaultRestSeconds} 秒',
+                    onTap: () => _showRestPicker(
                       context,
-                    ).textTheme.bodySmall?.copyWith(color: colors.textMuted),
-                  ),
-                  const SizedBox(height: AppSpacing.sm),
-                  Text('${settings.defaultRestSeconds} 秒'),
-                  Slider(
-                    min: 45,
-                    max: 300,
-                    divisions: 17,
-                    value: settings.defaultRestSeconds.toDouble(),
-                    onChanged: (value) => ref
-                        .read(settingsProvider.notifier)
-                        .updateRestSeconds(value.round()),
+                      ref,
+                      settings.defaultRestSeconds,
+                    ),
                   ),
                 ],
               ),
-            ),
-            if (authStatus.isSignedIn)
-              ...isAdminAsync.when(
-                data: (isAdmin) {
-                  if (!isAdmin) {
-                    return const <Widget>[];
-                  }
-                  return [
-                    SectionCard(
-                      title: '管理员入口',
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          FilledButton.tonalIcon(
-                            onPressed: () {
-                              Navigator.of(
-                                context,
-                              ).pushNamed(AdminExerciseCatalogPage.routeName);
-                            },
-                            icon: const Icon(
-                              Icons.admin_panel_settings_outlined,
-                            ),
-                            label: const Text('动作库管理'),
-                          ),
-                          const SizedBox(height: AppSpacing.sm),
-                          FilledButton.tonalIcon(
-                            onPressed: () {
-                              Navigator.of(
-                                context,
-                              ).pushNamed(AdminFoodCatalogPage.routeName);
-                            },
-                            icon: const Icon(Icons.restaurant_menu_outlined),
-                            label: const Text('食物库管理'),
-                          ),
-                          const SizedBox(height: AppSpacing.sm),
-                          Text(
-                            '可维护动作库、食物库展示内容与排序。',
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(color: colors.textMuted),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ];
-                },
-                loading: () => const <Widget>[],
-                error: (_, _) => const <Widget>[],
-              ),
-            if (authStatus.isSignedIn)
-              SectionCard(
-                title: '账户',
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    OutlinedButton.icon(
-                      onPressed: () => _confirmAndSignOut(
+              _ProfileMenuSection(
+                children: [
+                  _ProfileMenuTile(
+                    icon: settings.isDarkMode
+                        ? Icons.dark_mode_outlined
+                        : Icons.light_mode_outlined,
+                    iconColor: const Color(0xFF0EA5E9),
+                    title: '主题设置',
+                    trailingText: settings.isDarkMode ? '深色' : '浅色',
+                    onTap: () async {
+                      final nextValue = !settings.isDarkMode;
+                      await ref
+                          .read(settingsProvider.notifier)
+                          .toggleDarkMode(nextValue);
+                      if (!context.mounted) return;
+                      _showFeedback(
+                        context,
+                        nextValue ? '已切换为黑暗模式' : '已切换为白蓝主题',
+                      );
+                    },
+                  ),
+                  _ProfileMenuTile(
+                    icon: Icons.chat_bubble_outline,
+                    iconColor: colors.success,
+                    title: '联系作者',
+                    onTap: () {
+                      Navigator.of(
+                        context,
+                      ).pushNamed(ContactAuthorPage.routeName);
+                    },
+                  ),
+                  if (authStatus.isSignedIn)
+                    _ProfileMenuTile(
+                      icon: Icons.logout,
+                      iconColor: const Color(0xFFEF4444),
+                      title: '退出登录',
+                      onTap: () => _confirmAndSignOut(
                         context,
                         ref,
                         month,
                         selectedDietDate,
                       ),
-                      icon: const Icon(Icons.logout),
-                      label: const Text('退出登录'),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: colors.textPrimary,
-                        side: BorderSide(
-                          color: colors.textMuted.withValues(alpha: 0.35),
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 14,
-                          vertical: 12,
-                        ),
-                      ),
                     ),
-                  ],
-                ),
+                ],
               ),
+              if (authStatus.isSignedIn)
+                ...isAdminAsync.when(
+                  data: (isAdmin) {
+                    if (!isAdmin) {
+                      return const <Widget>[];
+                    }
+                    return [
+                      _ProfileMenuSection(
+                        children: [
+                          _ProfileMenuTile(
+                            icon: Icons.admin_panel_settings_outlined,
+                            iconColor: colors.accent,
+                            title: '动作库管理',
+                            onTap: () {
+                              Navigator.of(
+                                context,
+                              ).pushNamed(AdminExerciseCatalogPage.routeName);
+                            },
+                          ),
+                          _ProfileMenuTile(
+                            icon: Icons.restaurant_menu_outlined,
+                            iconColor: colors.warning,
+                            title: '食物库管理',
+                            onTap: () {
+                              Navigator.of(
+                                context,
+                              ).pushNamed(AdminFoodCatalogPage.routeName);
+                            },
+                          ),
+                        ],
+                      ),
+                    ];
+                  },
+                  loading: () => const <Widget>[],
+                  error: (_, _) => const <Widget>[],
+                ),
             ],
           ),
         ),
       ),
+    );
+  }
+}
+
+class _UnitOptionTile extends StatelessWidget {
+  const _UnitOptionTile({
+    required this.contentPadding,
+    required this.value,
+    required this.selectedValue,
+    required this.title,
+    required this.subtitle,
+    required this.selectedColor,
+    required this.onTap,
+  });
+
+  final EdgeInsetsGeometry contentPadding;
+  final bool value;
+  final bool selectedValue;
+  final Widget title;
+  final Widget subtitle;
+  final Color selectedColor;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final selected = value == selectedValue;
+    return ListTile(
+      contentPadding: contentPadding,
+      title: title,
+      subtitle: subtitle,
+      trailing: selected ? Icon(Icons.check, color: selectedColor) : null,
+      onTap: onTap,
+    );
+  }
+}
+
+class _ProfileMenuSection extends StatelessWidget {
+  const _ProfileMenuSection({required this.children});
+
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
+    return Card(
+      margin: const EdgeInsets.only(bottom: AppSpacing.md),
+      child: ClipRRect(
+        borderRadius: AppRadius.card,
+        child: Column(
+          children: [
+            for (var index = 0; index < children.length; index++) ...[
+              if (index > 0)
+                Divider(
+                  height: 1,
+                  indent: 64,
+                  color: colors.textMuted.withValues(alpha: 0.12),
+                ),
+              children[index],
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ProfileMenuTile extends StatelessWidget {
+  const _ProfileMenuTile({
+    required this.icon,
+    required this.iconColor,
+    required this.title,
+    required this.onTap,
+    this.trailingText,
+  });
+
+  final IconData icon;
+  final Color iconColor;
+  final String title;
+  final String? trailingText;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
+    return ListTile(
+      contentPadding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.sm,
+      ),
+      leading: Icon(icon, color: iconColor),
+      title: Text(
+        title,
+        style: Theme.of(
+          context,
+        ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+      ),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (trailingText != null)
+            Text(
+              trailingText!,
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: colors.textMuted),
+            ),
+          const SizedBox(width: AppSpacing.xs),
+          Icon(Icons.chevron_right, color: colors.textMuted),
+        ],
+      ),
+      onTap: onTap,
     );
   }
 }
@@ -305,6 +499,7 @@ class _ProfileHeaderCard extends StatelessWidget {
     required this.colors,
     required this.settings,
     required this.authStatus,
+    required this.userId,
     required this.onOpenPersonalInfo,
     required this.onOpenAuth,
     required this.onUpgradeGuest,
@@ -313,21 +508,41 @@ class _ProfileHeaderCard extends StatelessWidget {
   final AppPalette colors;
   final AppSettings settings;
   final AuthStatus authStatus;
+  final String? userId;
   final VoidCallback onOpenPersonalInfo;
   final VoidCallback onOpenAuth;
   final VoidCallback onUpgradeGuest;
+
+  String get _shortUserId {
+    final normalized = userId?.replaceAll('-', '').trim() ?? '';
+    if (normalized.isEmpty) {
+      return '0000';
+    }
+    final start = normalized.length > 4 ? normalized.length - 4 : 0;
+    return normalized.substring(start).toUpperCase();
+  }
 
   @override
   Widget build(BuildContext context) {
     final isGuest = authStatus.isGuest;
     final isSignedIn = authStatus.isSignedIn;
+    final shortUserId = _shortUserId;
+    final displayName = isGuest
+        ? '匿名用户 $shortUserId'
+        : settings.profileName.trim().isEmpty
+        ? '未设置昵称'
+        : settings.profileName.trim();
 
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.md),
         child: Row(
           children: [
-            _ProfileAvatar(colors: colors, settings: settings),
+            _ProfileAvatar(
+              colors: colors,
+              settings: settings,
+              isGuest: isGuest,
+            ),
             const SizedBox(width: AppSpacing.md),
             Expanded(
               child: Column(
@@ -338,7 +553,7 @@ class _ProfileHeaderCard extends StatelessWidget {
                       children: [
                         Expanded(
                           child: Text(
-                            settings.profileName,
+                            displayName,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: Theme.of(context).textTheme.titleLarge
@@ -386,8 +601,8 @@ class _ProfileHeaderCard extends StatelessWidget {
                     !isSignedIn
                         ? '登录后可同步训练数据'
                         : isGuest
-                        ? '当前为游客模式，可升级为邮箱账号'
-                        : '训练目标 · ${settings.trainingGoal ?? '未设置'}',
+                        ? '即训 ID: $shortUserId · 当前为游客模式，可升级为邮箱账号'
+                        : '即训 ID: $shortUserId · 训练目标 · ${settings.trainingGoal ?? '未设置'}',
                     style: Theme.of(
                       context,
                     ).textTheme.bodySmall?.copyWith(color: colors.textMuted),
@@ -427,10 +642,15 @@ class _ProfileHeaderCard extends StatelessWidget {
 }
 
 class _ProfileAvatar extends StatelessWidget {
-  const _ProfileAvatar({required this.colors, required this.settings});
+  const _ProfileAvatar({
+    required this.colors,
+    required this.settings,
+    required this.isGuest,
+  });
 
   final AppPalette colors;
   final AppSettings settings;
+  final bool isGuest;
 
   @override
   Widget build(BuildContext context) {
@@ -440,8 +660,12 @@ class _ProfileAvatar extends StatelessWidget {
     return CircleAvatar(
       radius: 28,
       backgroundColor: colors.accent.withValues(alpha: 0.2),
-      backgroundImage: hasAvatar ? NetworkImage(avatarUrl) : null,
-      child: hasAvatar
+      backgroundImage: isGuest
+          ? const AssetImage('assets/branding/app_icon_source.png')
+          : hasAvatar
+          ? NetworkImage(avatarUrl)
+          : null,
+      child: isGuest || hasAvatar
           ? null
           : Text(
               settings.profileName.trim().isEmpty

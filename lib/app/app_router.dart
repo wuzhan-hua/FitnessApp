@@ -5,6 +5,7 @@ import '../domain/entities/workout_models.dart';
 import '../presentation/pages/auth_page.dart';
 import '../presentation/pages/admin_exercise_catalog_page.dart';
 import '../presentation/pages/admin_food_catalog_page.dart';
+import '../presentation/pages/contact_author_page.dart';
 import '../presentation/pages/food_entry_page.dart';
 import '../presentation/pages/food_library_page.dart';
 import '../presentation/pages/meal_analysis_page.dart';
@@ -111,6 +112,12 @@ class AppRouter {
       final preferUpgrade = args is AuthPageArgs ? args.preferUpgrade : false;
       return MaterialPageRoute<void>(
         builder: (_) => AuthPage(preferUpgrade: preferUpgrade),
+        settings: settings,
+      );
+    }
+    if (settings.name == ContactAuthorPage.routeName) {
+      return MaterialPageRoute<void>(
+        builder: (_) => const ContactAuthorPage(),
         settings: settings,
       );
     }

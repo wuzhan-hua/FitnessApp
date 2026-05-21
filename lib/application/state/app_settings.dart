@@ -83,6 +83,6 @@ class AppSettings {
     defaultRestSeconds: 120,
     favoriteMuscleFocus: '胸',
     isDarkMode: false,
-    profileName: '林泽宇',
+    profileName: '',
   );
 }

@@ -40,7 +40,7 @@ class FitnessApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(settingsProvider);
     return MaterialApp(
-      title: 'ForgeLog',
+      title: '即训',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,

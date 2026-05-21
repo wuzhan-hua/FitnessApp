@@ -315,7 +315,7 @@ class _AuthPageState extends ConsumerState<AuthPage> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Text(
-                        'ForgeLog',
+                        '即训',
                         style: Theme.of(context).textTheme.headlineMedium
                             ?.copyWith(
                               fontWeight: FontWeight.w800,

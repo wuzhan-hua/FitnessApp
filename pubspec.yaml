@@ -67,6 +67,8 @@ flutter:
   uses-material-design: true
 
   assets:
+    - assets/branding/app_icon_source.png
+    - assets/weixin/weixin_image.JPG
     - assets/datasets/china-food-composition/merged_AnimalFat.json
     - assets/datasets/china-food-composition/merged_CerealsAndCerealProducts.json
     - assets/datasets/china-food-composition/merged_DriedLegumesAndLegumeProducts.json
