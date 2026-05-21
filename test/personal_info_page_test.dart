@@ -71,8 +71,13 @@ void main() {
           settingsProvider.overrideWith(
             (ref) => _TestSettingsController(authService, userProfileService),
           ),
-          authStatusProvider.overrideWith(
-            (ref) => Stream.value(AuthStatus.authenticated),
+          authSessionProvider.overrideWith(
+            (ref) => Stream.value(
+              const AuthSessionSnapshot(
+                status: AuthStatus.authenticated,
+                userId: 'user-1',
+              ),
+            ),
           ),
         ],
         child: MaterialApp(

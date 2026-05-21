@@ -33,6 +33,21 @@ final workoutServiceProvider = Provider<WorkoutService>((ref) {
   return WorkoutService(repository);
 });
 
+final scopedWorkoutServiceProvider = Provider.family<WorkoutService, String>((
+  ref,
+  userId,
+) {
+  final baseRepository = ref.watch(workoutRepositoryProvider);
+  if (baseRepository is! SupabaseWorkoutRepository) {
+    return WorkoutService(baseRepository);
+  }
+  final repository = SupabaseWorkoutRepository(
+    Supabase.instance.client,
+    scopedUserId: userId,
+  );
+  return WorkoutService(repository);
+});
+
 final authServiceProvider = Provider<AuthService>((ref) {
   return AuthService(Supabase.instance.client);
 });
@@ -78,43 +93,52 @@ final guestSoftSignedOutProvider = FutureProvider<bool>((ref) async {
   return service.isGuestSoftSignedOut();
 });
 
-final authStatusProvider = StreamProvider<AuthStatus>((ref) async* {
+final authSessionProvider = StreamProvider<AuthSessionSnapshot>((ref) async* {
   final service = ref.watch(authServiceProvider);
-  yield service.resolveStatus(service.currentSession);
-  await for (final event in service.onAuthStateChange) {
-    yield service.resolveStatus(event.session);
+  AuthSessionSnapshot fromSession(Session? session) {
+    final status = service.resolveStatus(session);
+    return AuthSessionSnapshot(status: status, userId: session?.user.id);
   }
+
+  yield fromSession(service.currentSession);
+  await for (final event in service.onAuthStateChange) {
+    yield fromSession(event.session);
+  }
+});
+
+final authStatusProvider = Provider<AsyncValue<AuthStatus>>((ref) {
+  return ref.watch(authSessionProvider).whenData((snapshot) => snapshot.status);
 });
 
 final currentAuthUserIdProvider = FutureProvider<String?>((ref) async {
-  final status = await ref.watch(authStatusProvider.future);
-  if (status == AuthStatus.signedOut) {
-    return null;
-  }
-  final service = ref.watch(authServiceProvider);
-  final currentUserId = service.currentSession?.user.id;
-  if (currentUserId != null && currentUserId.isNotEmpty) {
-    return currentUserId;
-  }
-  await Future<void>.delayed(Duration.zero);
-  return service.currentSession?.user.id;
+  return ref.watch(
+    authSessionProvider.selectAsync((snapshot) => snapshot.userId),
+  );
 });
 
 final currentUserIsAdminProvider = FutureProvider<bool>((ref) async {
-  final status = await ref.watch(authStatusProvider.future);
-  final userId = await ref.watch(currentAuthUserIdProvider.future);
-  if (status != AuthStatus.authenticated || userId == null || userId.isEmpty) {
+  final snapshot = await ref.watch(
+    authSessionProvider.selectAsync((snapshot) => snapshot),
+  );
+  final userId = snapshot.userId;
+  if (snapshot.status != AuthStatus.authenticated ||
+      userId == null ||
+      userId.isEmpty) {
     return false;
   }
   final service = ref.watch(userProfileServiceProvider);
   return service.fetchCurrentUserIsAdmin();
 });
 
-Future<void> _ensureSignedInForWorkoutData(Ref ref) async {
-  final userId = await ref.watch(currentAuthUserIdProvider.future);
-  if (userId == null || userId.isEmpty) {
+Future<String> _requireUserIdForWorkoutData(Ref ref) async {
+  final snapshot = await ref.watch(
+    authSessionProvider.selectAsync((snapshot) => snapshot),
+  );
+  final userId = snapshot.userId;
+  if (!snapshot.status.isSignedIn || userId == null || userId.isEmpty) {
     throw const AppError(message: '未登录，无法访问训练数据。', code: 'auth_required');
   }
+  return userId;
 }
 
 final settingsProvider = StateNotifierProvider<SettingsController, AppSettings>(
@@ -126,8 +150,8 @@ final settingsProvider = StateNotifierProvider<SettingsController, AppSettings>(
 );
 
 final homeSnapshotProvider = FutureProvider<HomeSnapshot>((ref) async {
-  await _ensureSignedInForWorkoutData(ref);
-  final service = ref.watch(workoutServiceProvider);
+  final userId = await _requireUserIdForWorkoutData(ref);
+  final service = ref.watch(scopedWorkoutServiceProvider(userId));
   return service.getHomeSnapshot(DateTime.now());
 });
 
@@ -146,8 +170,8 @@ DateTime monthKey(DateTime date) => DateTime(date.year, date.month, 1);
 
 final workoutSessionByIdProvider =
     FutureProvider.family<WorkoutSession?, String>((ref, sessionId) async {
-      await _ensureSignedInForWorkoutData(ref);
-      final service = ref.watch(workoutServiceProvider);
+      final userId = await _requireUserIdForWorkoutData(ref);
+      final service = ref.watch(scopedWorkoutServiceProvider(userId));
       return service.getSessionById(sessionId);
     });
 
@@ -157,8 +181,8 @@ final calendarMonthProvider = StateProvider<DateTime>(
 
 final sessionsByCalendarGridProvider =
     FutureProvider.family<List<WorkoutSession>, DateTime>((ref, month) async {
-      await _ensureSignedInForWorkoutData(ref);
-      final service = ref.watch(workoutServiceProvider);
+      final userId = await _requireUserIdForWorkoutData(ref);
+      final service = ref.watch(scopedWorkoutServiceProvider(userId));
       final startDay = calendarGridStartDay(month);
       final endExclusive = startDay.add(const Duration(days: 42));
       return service.getSessionsInRange(
@@ -169,16 +193,16 @@ final sessionsByCalendarGridProvider =
 
 final sessionsByMonthProvider =
     FutureProvider.family<List<WorkoutSession>, DateTime>((ref, month) async {
-      await _ensureSignedInForWorkoutData(ref);
-      final service = ref.watch(workoutServiceProvider);
+      final userId = await _requireUserIdForWorkoutData(ref);
+      final service = ref.watch(scopedWorkoutServiceProvider(userId));
       return service.getSessionsByMonth(month);
     });
 
 final analyticsSnapshotProvider = FutureProvider<AnalyticsSnapshot>((
   ref,
 ) async {
-  await _ensureSignedInForWorkoutData(ref);
-  final service = ref.watch(workoutServiceProvider);
+  final userId = await _requireUserIdForWorkoutData(ref);
+  final service = ref.watch(scopedWorkoutServiceProvider(userId));
   final now = DateTime.now();
   return service.getAnalyticsSnapshot(
     from: now.subtract(const Duration(days: 30)),
@@ -197,6 +221,7 @@ void invalidateUserScopedMainPageProviders(
     dietDate.month,
     dietDate.day,
   );
+  ref.invalidate(authSessionProvider);
   ref.invalidate(authStatusProvider);
   ref.invalidate(currentAuthUserIdProvider);
   ref.invalidate(homeSnapshotProvider);
@@ -210,6 +235,43 @@ void invalidateUserScopedMainPageProviders(
   ref.invalidate(dailyDietSummaryProvider(resolvedDietDate));
 }
 
+void invalidateUserScopedProvidersAfterSignIn(
+  WidgetRef ref, {
+  required DateTime calendarMonth,
+  required DateTime dietDate,
+}) {
+  final resolvedMonth = monthKey(calendarMonth);
+  final resolvedDietDate = DateTime(
+    dietDate.year,
+    dietDate.month,
+    dietDate.day,
+  );
+  ref.invalidate(authSessionProvider);
+  ref.invalidate(authStatusProvider);
+  ref.invalidate(currentAuthUserIdProvider);
+  ref.invalidate(currentUserIsAdminProvider);
+  ref.invalidate(settingsProvider);
+  ref.invalidate(monthlyDietSummariesProvider(resolvedMonth));
+  ref.invalidate(dietRecordsByDateProvider(resolvedDietDate));
+  ref.invalidate(dailyDietSummaryProvider(resolvedDietDate));
+}
+
+Future<void> prewarmWorkoutDataForCurrentUser(
+  WidgetRef ref, {
+  required DateTime calendarMonth,
+}) async {
+  final snapshot = await ref.read(authSessionProvider.future);
+  final userId = snapshot.userId;
+  if (!snapshot.status.isSignedIn || userId == null || userId.isEmpty) {
+    return;
+  }
+  ref.read(scopedWorkoutServiceProvider(userId));
+  ref.read(homeSnapshotProvider);
+  final resolvedMonth = monthKey(calendarMonth);
+  ref.read(sessionsByCalendarGridProvider(resolvedMonth));
+  ref.read(analyticsSnapshotProvider);
+}
+
 void invalidateAuthScopedProvidersOnSignOut(
   WidgetRef ref, {
   required DateTime dietDate,
@@ -219,6 +281,7 @@ void invalidateAuthScopedProvidersOnSignOut(
     dietDate.month,
     dietDate.day,
   );
+  ref.invalidate(authSessionProvider);
   ref.invalidate(currentAuthUserIdProvider);
   ref.invalidate(currentUserIsAdminProvider);
   ref.invalidate(settingsProvider);

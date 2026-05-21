@@ -57,8 +57,13 @@ void main() {
           workoutRepositoryProvider.overrideWithValue(MockWorkoutRepository()),
           currentUserIsAdminProvider.overrideWith((ref) async => false),
           guestSoftSignedOutProvider.overrideWith((ref) async => false),
-          authStatusProvider.overrideWith((ref) {
-            return Stream.value(AuthStatus.authenticated);
+          authSessionProvider.overrideWith((ref) {
+            return Stream.value(
+              const AuthSessionSnapshot(
+                status: AuthStatus.authenticated,
+                userId: 'test-user',
+              ),
+            );
           }),
         ],
         child: const FitnessApp(),
@@ -85,8 +90,13 @@ void main() {
           workoutRepositoryProvider.overrideWithValue(MockWorkoutRepository()),
           currentUserIsAdminProvider.overrideWith((ref) async => false),
           guestSoftSignedOutProvider.overrideWith((ref) async => false),
-          authStatusProvider.overrideWith((ref) {
-            return Stream.value(AuthStatus.authenticated);
+          authSessionProvider.overrideWith((ref) {
+            return Stream.value(
+              const AuthSessionSnapshot(
+                status: AuthStatus.authenticated,
+                userId: 'test-user',
+              ),
+            );
           }),
         ],
         child: const FitnessApp(),
@@ -108,8 +118,13 @@ void main() {
           settingsProvider.overrideWith((ref) => _TestSettingsController()),
           currentUserIsAdminProvider.overrideWith((ref) async => false),
           guestSoftSignedOutProvider.overrideWith((ref) async => false),
-          authStatusProvider.overrideWith((ref) {
-            return Stream.value(AuthStatus.signedOut);
+          authSessionProvider.overrideWith((ref) {
+            return Stream.value(
+              const AuthSessionSnapshot(
+                status: AuthStatus.signedOut,
+                userId: null,
+              ),
+            );
           }),
         ],
         child: const FitnessApp(),

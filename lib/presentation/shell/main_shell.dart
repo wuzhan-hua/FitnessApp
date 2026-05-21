@@ -34,13 +34,11 @@ class _MainShellState extends ConsumerState<MainShell> {
     Future<void>(() async {
       ref.read(foodLibraryProvider);
       ref.read(dailyDietSummaryProvider(DateTime.now()));
-      final userId = await ref.read(currentAuthUserIdProvider.future);
-      if (!mounted || userId == null || userId.isEmpty) {
+      if (!mounted) {
         return;
       }
-      ref.read(homeSnapshotProvider);
       final month = ref.read(calendarMonthProvider);
-      ref.read(sessionsByCalendarGridProvider(month));
+      await prewarmWorkoutDataForCurrentUser(ref, calendarMonth: month);
     });
   }
 

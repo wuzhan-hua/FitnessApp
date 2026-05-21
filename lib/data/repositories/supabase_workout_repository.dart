@@ -9,9 +9,11 @@ import '../../utils/app_time.dart';
 import 'workout_repository.dart';
 
 class SupabaseWorkoutRepository implements WorkoutRepository {
-  SupabaseWorkoutRepository(this._client);
+  SupabaseWorkoutRepository(this._client, {String? scopedUserId})
+    : _scopedUserId = scopedUserId;
 
   final SupabaseClient _client;
+  final String? _scopedUserId;
 
   bool _profileEnsured = false;
   String? _profileEnsuredForUserId;
@@ -682,6 +684,10 @@ class SupabaseWorkoutRepository implements WorkoutRepository {
   }
 
   Future<String> _requireUserId() async {
+    final scopedUserId = _scopedUserId?.trim();
+    if (scopedUserId != null && scopedUserId.isNotEmpty) {
+      return scopedUserId;
+    }
     final user = _client.auth.currentUser;
     if (user == null) {
       throw const AppError(message: '未登录，无法访问训练数据。', code: 'auth_required');

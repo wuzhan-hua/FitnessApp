@@ -184,6 +184,7 @@ class ProfilePage extends ConsumerWidget {
     try {
       await ref.read(authServiceProvider).signOut();
       ref.invalidate(guestSoftSignedOutProvider);
+      ref.invalidate(authSessionProvider);
       ref.invalidate(authStatusProvider);
       invalidateAuthScopedProvidersOnSignOut(ref, dietDate: selectedDietDate);
       if (!context.mounted) return;
@@ -200,8 +201,11 @@ class ProfilePage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(settingsProvider);
+    final authSession = ref.watch(authSessionProvider).valueOrNull;
     final authStatus =
-        ref.watch(authStatusProvider).valueOrNull ?? AuthStatus.signedOut;
+        authSession?.status ??
+        ref.watch(authStatusProvider).valueOrNull ??
+        AuthStatus.signedOut;
     final isAdminAsync = authStatus.isSignedIn
         ? ref.watch(currentUserIsAdminProvider)
         : const AsyncData(false);
@@ -231,7 +235,7 @@ class ProfilePage extends ConsumerWidget {
                 colors: colors,
                 settings: settings,
                 authStatus: authStatus,
-                userId: ref.watch(authServiceProvider).currentSession?.user.id,
+                userId: authSession?.userId,
                 onOpenPersonalInfo: () {
                   Navigator.of(context).pushNamed(PersonalInfoPage.routeName);
                 },

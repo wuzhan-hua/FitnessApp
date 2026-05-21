@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../theme/app_theme.dart';
+import '../../utils/app_error.dart';
 import '../../utils/snackbar_helper.dart';
 
 class AsyncTabContent<T> extends StatefulWidget {
@@ -36,12 +37,16 @@ class _AsyncTabContentState<T> extends State<AsyncTabContent<T>> {
     final hasCache = _lastData != null;
     final hasError = widget.asyncValue.hasError;
     final isLoading = widget.asyncValue.isLoading;
+    final isAuthRequiredError =
+        widget.asyncValue.error is AppError &&
+        (widget.asyncValue.error as AppError).code == 'auth_required';
     final errorText = hasError
         ? '${widget.errorPrefix}: ${widget.asyncValue.error}'
         : null;
 
     if (hasError &&
         hasCache &&
+        !isAuthRequiredError &&
         errorText != null &&
         errorText != _lastErrorMessage) {
       _lastErrorMessage = errorText;

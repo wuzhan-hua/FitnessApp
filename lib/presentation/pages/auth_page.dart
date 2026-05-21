@@ -181,13 +181,13 @@ class _AuthPageState extends ConsumerState<AuthPage> {
       }
 
       ref.invalidate(guestSoftSignedOut);
-      ref.invalidate(authStatusProvider);
-      ref.invalidate(currentAuthUserIdProvider);
-      invalidateUserScopedMainPageProviders(
+      invalidateUserScopedProvidersAfterSignIn(
         ref,
         calendarMonth: calendarMonth,
         dietDate: selectedDietDate,
       );
+      await prewarmWorkoutDataForCurrentUser(ref, calendarMonth: calendarMonth);
+      if (!mounted) return;
 
       if (Navigator.of(context).canPop()) {
         Navigator.of(context).pop();
@@ -215,13 +215,14 @@ class _AuthPageState extends ConsumerState<AuthPage> {
       await authService.signInAsGuest();
       if (!mounted) return;
       ref.invalidate(guestSoftSignedOutProvider);
-      ref.invalidate(authStatusProvider);
-      ref.invalidate(currentAuthUserIdProvider);
-      invalidateUserScopedMainPageProviders(
+      final calendarMonth = ref.read(calendarMonthProvider);
+      invalidateUserScopedProvidersAfterSignIn(
         ref,
-        calendarMonth: ref.read(calendarMonthProvider),
+        calendarMonth: calendarMonth,
         dietDate: ref.read(selectedDietDateProvider),
       );
+      await prewarmWorkoutDataForCurrentUser(ref, calendarMonth: calendarMonth);
+      if (!mounted) return;
       showLatestSnackBar(context, '游客登录成功');
       if (Navigator.of(context).canPop()) {
         Navigator.of(context).pop();
