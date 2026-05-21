@@ -32,6 +32,133 @@ flutter run \
 
 如果已经配置了正确的 Supabase 参数，使用上述命令启动后，Web 页面应从本地 `canvaskit` 路径加载资源，不再依赖 `gstatic` 的 CanvasKit 资源。
 
+## Vercel 部署（推荐）
+
+本项目已经补充了 `Vercel` 所需的仓库配置文件：
+
+- `vercel.json`
+- `tool/vercel_prepare.sh`
+- `tool/vercel_build.sh`
+
+这些文件的作用：
+
+- 在 Vercel 构建机中准备 Flutter Web 构建环境
+- 自动执行 `flutter pub get`
+- 将 `SUPABASE_URL`、`SUPABASE_ANON_KEY` 注入到 `flutter build web`
+- 产出 `build/web`
+- 对单页应用路由做 `index.html` 回退，避免刷新子路径时出现 `404`
+
+### 一、准备工作
+
+1. 确保代码已经推送到 GitHub 仓库
+2. 准备好 Supabase 的两个公开配置：
+   - `SUPABASE_URL`
+   - `SUPABASE_ANON_KEY`
+3. 购买一个自己的域名（可选，但如果你要给朋友长期访问，建议购买）
+
+### 二、导入到 Vercel
+
+1. 打开 [Vercel](https://vercel.com/)
+2. 使用 GitHub 账号登录
+3. 点击 `Add New...` -> `Project`
+4. 选择仓库 `wuzhan-hua/FitnessApp`
+5. 导入项目
+
+### 三、Vercel 项目配置
+
+由于仓库里已经有 `vercel.json`，大部分配置会自动生效。
+
+如果 Vercel 后台仍要求手动确认，请按以下内容填写：
+
+- Framework Preset: `Other`
+- Install Command: `bash tool/vercel_prepare.sh`
+- Build Command: `bash tool/vercel_build.sh`
+- Output Directory: `build/web`
+
+### 四、配置环境变量
+
+在 Vercel 项目后台打开：
+
+`Settings` -> `Environment Variables`
+
+新增以下两个变量：
+
+- `SUPABASE_URL` = 你的 Supabase 项目地址
+- `SUPABASE_ANON_KEY` = 你的 Supabase 匿名公钥
+
+注意：
+
+- 这两个值不是运行时动态读取，而是构建 Flutter Web 时通过 `--dart-define` 注入
+- 如果漏配，部署会直接失败，并提示缺少环境变量
+
+### 五、首次部署
+
+完成上述配置后点击部署。
+
+部署成功后，Vercel 会先分配一个临时访问地址，例如：
+
+`https://xxx.vercel.app`
+
+你可以先把这个地址发给朋友预览。
+
+### 六、绑定自定义域名
+
+如果你已经购买域名：
+
+1. 打开 Vercel 项目
+2. 进入 `Settings` -> `Domains`
+3. 输入你的域名，例如：
+   - `fitness.yourdomain.com`
+   - `www.yourdomain.com`
+4. 按照 Vercel 页面提示，在域名服务商后台配置 DNS
+
+常见情况：
+
+- 子域名通常配置 `CNAME`
+- 根域名通常按 Vercel 提示配置 `A` 记录或 nameserver
+
+DNS 生效后，Vercel 会自动签发 HTTPS 证书。
+
+### 七、后续更新
+
+后续只要你继续往 GitHub 仓库 push：
+
+- Vercel 会自动重新构建
+- 新版本会自动上线
+- 不需要重复手动上传静态文件
+
+### 八、上线前检查清单
+
+建议你在正式发给朋友前检查以下内容：
+
+- 首页能正常打开
+- 登录流程正常
+- 训练记录页面能正常加载
+- 刷新页面不会出现 `404`
+- 手机浏览器可以正常访问
+- 域名地址为 `https`
+
+## GitHub Pages 说明（备选）
+
+GitHub 可以免费提供：
+
+- `你的用户名.github.io`
+
+这只是 GitHub 的二级域名，不是可注册、可独占的独立域名。
+
+如果你想用自己的域名，例如 `yourapp.com`，仍然需要：
+
+1. 自己购买域名
+2. 再把域名绑定到 GitHub Pages
+
+对于本项目，不优先推荐 GitHub Pages，原因是 Flutter Web 单页应用在以下方面更容易额外处理：
+
+- `base href`
+- 静态资源路径
+- 子路径刷新 `404`
+
+如果你只是想尽快稳定给朋友访问，优先使用 `Vercel`。
+
 ## 动作库导入
 
 如需将 `free-exercise-db` 导入到当前 Supabase 项目，先执行对应 migration，再运行导入脚本：
