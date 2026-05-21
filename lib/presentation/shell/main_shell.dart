@@ -36,7 +36,7 @@ class _MainShellState extends ConsumerState<MainShell> {
       ref.read(foodLibraryProvider);
       ref.read(dailyDietSummaryProvider(DateTime.now()));
       final month = ref.read(calendarMonthProvider);
-      ref.read(sessionsByMonthProvider(month));
+      ref.read(sessionsByCalendarGridProvider(month));
     });
   }
 

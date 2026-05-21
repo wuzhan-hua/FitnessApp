@@ -90,6 +90,14 @@ final authStatusProvider = StreamProvider<AuthStatus>((ref) async* {
   }
 });
 
+final currentAuthUserIdProvider = Provider<String?>((ref) {
+  final status = ref.watch(authStatusProvider).valueOrNull;
+  if (status == null || status == AuthStatus.signedOut) {
+    return null;
+  }
+  return ref.watch(authServiceProvider).currentSession?.user.id;
+});
+
 final settingsProvider = StateNotifierProvider<SettingsController, AppSettings>(
   (ref) {
     final authService = ref.watch(authServiceProvider);
@@ -99,6 +107,7 @@ final settingsProvider = StateNotifierProvider<SettingsController, AppSettings>(
 );
 
 final homeSnapshotProvider = FutureProvider<HomeSnapshot>((ref) async {
+  ref.watch(currentAuthUserIdProvider);
   final service = ref.watch(workoutServiceProvider);
   return service.getHomeSnapshot(DateTime.now());
 });
@@ -118,6 +127,7 @@ DateTime monthKey(DateTime date) => DateTime(date.year, date.month, 1);
 
 final workoutSessionByIdProvider =
     FutureProvider.family<WorkoutSession?, String>((ref, sessionId) async {
+      ref.watch(currentAuthUserIdProvider);
       final service = ref.watch(workoutServiceProvider);
       return service.getSessionById(sessionId);
     });
@@ -128,6 +138,7 @@ final calendarMonthProvider = StateProvider<DateTime>(
 
 final sessionsByCalendarGridProvider =
     FutureProvider.family<List<WorkoutSession>, DateTime>((ref, month) async {
+      ref.watch(currentAuthUserIdProvider);
       final service = ref.watch(workoutServiceProvider);
       final startDay = calendarGridStartDay(month);
       final endExclusive = startDay.add(const Duration(days: 42));
@@ -139,6 +150,7 @@ final sessionsByCalendarGridProvider =
 
 final sessionsByMonthProvider =
     FutureProvider.family<List<WorkoutSession>, DateTime>((ref, month) async {
+      ref.watch(currentAuthUserIdProvider);
       final service = ref.watch(workoutServiceProvider);
       return service.getSessionsByMonth(month);
     });
@@ -146,6 +158,7 @@ final sessionsByMonthProvider =
 final analyticsSnapshotProvider = FutureProvider<AnalyticsSnapshot>((
   ref,
 ) async {
+  ref.watch(currentAuthUserIdProvider);
   final service = ref.watch(workoutServiceProvider);
   final now = DateTime.now();
   return service.getAnalyticsSnapshot(
