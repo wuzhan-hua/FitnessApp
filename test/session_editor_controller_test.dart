@@ -109,6 +109,13 @@ class _CountingWorkoutRepository implements WorkoutRepository {
   }
 
   @override
+  Future<WorkoutSession?> getLatestCompletedSessionByMuscleGroup(
+    String muscleGroup,
+  ) async {
+    return null;
+  }
+
+  @override
   Future<WorkoutSession?> getSessionByDate(DateTime date) {
     throw UnimplementedError();
   }

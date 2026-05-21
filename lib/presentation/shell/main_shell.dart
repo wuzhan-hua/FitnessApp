@@ -31,10 +31,14 @@ class _MainShellState extends ConsumerState<MainShell> {
   @override
   void initState() {
     super.initState();
-    Future<void>(() {
-      ref.read(homeSnapshotProvider);
+    Future<void>(() async {
       ref.read(foodLibraryProvider);
       ref.read(dailyDietSummaryProvider(DateTime.now()));
+      final userId = await ref.read(currentAuthUserIdProvider.future);
+      if (!mounted || userId == null || userId.isEmpty) {
+        return;
+      }
+      ref.read(homeSnapshotProvider);
       final month = ref.read(calendarMonthProvider);
       ref.read(sessionsByCalendarGridProvider(month));
     });

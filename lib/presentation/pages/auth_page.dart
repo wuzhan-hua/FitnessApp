@@ -181,6 +181,8 @@ class _AuthPageState extends ConsumerState<AuthPage> {
       }
 
       ref.invalidate(guestSoftSignedOut);
+      ref.invalidate(authStatusProvider);
+      ref.invalidate(currentAuthUserIdProvider);
       invalidateUserScopedMainPageProviders(
         ref,
         calendarMonth: calendarMonth,
@@ -213,6 +215,8 @@ class _AuthPageState extends ConsumerState<AuthPage> {
       await authService.signInAsGuest();
       if (!mounted) return;
       ref.invalidate(guestSoftSignedOutProvider);
+      ref.invalidate(authStatusProvider);
+      ref.invalidate(currentAuthUserIdProvider);
       invalidateUserScopedMainPageProviders(
         ref,
         calendarMonth: ref.read(calendarMonthProvider),

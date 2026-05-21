@@ -16,7 +16,12 @@ class SettingsController extends StateNotifier<AppSettings> {
     _loadFuture = _load();
     _authSubscription = _authService.onAuthStateChange.listen((event) async {
       final user = event.session?.user;
-      if (user == null || user.isAnonymous) {
+      if (user == null) {
+        _clearPersonalInfoInMemory();
+        return;
+      }
+      if (user.isAnonymous) {
+        await _loadCachedPersonalInfoForUser(user.id);
         return;
       }
       try {
@@ -49,6 +54,17 @@ class SettingsController extends StateNotifier<AppSettings> {
   static const _goalKey = 'profile_training_goal';
   static const _trainingYearsKey = 'profile_training_years';
   static const _activityLevelKey = 'profile_activity_level';
+  static const _legacyPersonalInfoKeys = [
+    _profileNameKey,
+    _avatarUrlKey,
+    _genderKey,
+    _birthDateKey,
+    _heightCmKey,
+    _weightKgKey,
+    _goalKey,
+    _trainingYearsKey,
+    _activityLevelKey,
+  ];
 
   Future<AppSettings> loadPersonalInfo() async {
     await _loadFuture;
@@ -63,19 +79,13 @@ class SettingsController extends StateNotifier<AppSettings> {
     }
 
     final prefs = await SharedPreferences.getInstance();
-    final hasSavedProfileName = prefs.containsKey(_profileNameKey);
-    final savedProfileName = prefs.getString(_profileNameKey)?.trim() ?? '';
+    final cached = _readCachedPersonalInfo(prefs, user.id);
     final remoteProfileName = profile.profileName.trim();
-    final shouldUseRemoteProfileName = _shouldUseRemoteProfileName(
-      hasSavedProfileName: hasSavedProfileName,
-      savedProfileName: savedProfileName,
-      remoteProfileName: remoteProfileName,
-    );
     await _applyPersonalInfo(
-      profileName: shouldUseRemoteProfileName
+      profileName: remoteProfileName.isNotEmpty
           ? remoteProfileName
-          : savedProfileName,
-      avatarUrl: _preferNonEmptyString(state.avatarUrl, profile.avatarUrl),
+          : cached.profileName,
+      avatarUrl: _preferNonEmptyString(profile.avatarUrl, cached.avatarUrl),
       gender: profile.gender,
       birthDate: profile.birthDate,
       heightCm: profile.heightCm,
@@ -89,68 +99,38 @@ class SettingsController extends StateNotifier<AppSettings> {
 
   Future<void> _load() async {
     final prefs = await SharedPreferences.getInstance();
-    final savedProfileName = prefs.getString(_profileNameKey);
     state = state.copyWith(
       useKilogram: prefs.getBool(_unitKey) ?? state.useKilogram,
       defaultRestSeconds: prefs.getInt(_restKey) ?? state.defaultRestSeconds,
       favoriteMuscleFocus:
           prefs.getString(_focusKey) ?? state.favoriteMuscleFocus,
       isDarkMode: prefs.getBool(_darkModeKey) ?? state.isDarkMode,
-      profileName: savedProfileName ?? '',
-      avatarUrl: prefs.getString(_avatarUrlKey),
-      clearAvatarUrl: prefs.getString(_avatarUrlKey) == null,
-      gender: prefs.getString(_genderKey),
-      clearGender: prefs.getString(_genderKey) == null,
-      birthDate: _parseDate(prefs.getString(_birthDateKey)),
-      clearBirthDate: _parseDate(prefs.getString(_birthDateKey)) == null,
-      heightCm: prefs.getDouble(_heightCmKey),
-      clearHeightCm: prefs.getDouble(_heightCmKey) == null,
-      weightKg: prefs.getDouble(_weightKgKey),
-      clearWeightKg: prefs.getDouble(_weightKgKey) == null,
-      trainingGoal: prefs.getString(_goalKey),
-      clearTrainingGoal: prefs.getString(_goalKey) == null,
-      trainingYears: prefs.getString(_trainingYearsKey),
-      clearTrainingYears: prefs.getString(_trainingYearsKey) == null,
-      activityLevel: prefs.getString(_activityLevelKey),
-      clearActivityLevel: prefs.getString(_activityLevelKey) == null,
     );
+    _clearPersonalInfoInMemory();
 
     final user = _authService.currentSession?.user;
-    if (user == null || user.isAnonymous) {
-      if (!prefs.containsKey(_profileNameKey) &&
-          state.profileName.trim().isEmpty) {
-        state = state.copyWith(profileName: AppSettings.defaults.profileName);
-      }
+    if (user == null) {
+      return;
+    }
+    if (user.isAnonymous) {
+      await _loadCachedPersonalInfoForUser(user.id);
       return;
     }
 
     try {
       final profile = await _userProfileService.fetchCurrentUserProfile();
       if (profile == null) {
-        if (!prefs.containsKey(_profileNameKey) &&
-            state.profileName.trim().isEmpty) {
-          state = state.copyWith(profileName: AppSettings.defaults.profileName);
-        }
+        await _loadCachedPersonalInfoForUser(user.id);
         return;
       }
 
+      final cached = _readCachedPersonalInfo(prefs, user.id);
       final remoteProfileName = profile.profileName.trim();
-      final shouldUseRemoteProfileName = _shouldUseRemoteProfileName(
-        hasSavedProfileName: savedProfileName != null,
-        savedProfileName: savedProfileName?.trim() ?? '',
-        remoteProfileName: remoteProfileName,
-      );
-      final resolvedProfileName = shouldUseRemoteProfileName
-          ? remoteProfileName
-          : savedProfileName!.trim();
       await _applyPersonalInfo(
-        profileName: resolvedProfileName.isEmpty
-            ? AppSettings.defaults.profileName
-            : resolvedProfileName,
-        avatarUrl: _preferNonEmptyString(
-          prefs.getString(_avatarUrlKey),
-          profile.avatarUrl,
-        ),
+        profileName: remoteProfileName.isNotEmpty
+            ? remoteProfileName
+            : cached.profileName,
+        avatarUrl: _preferNonEmptyString(profile.avatarUrl, cached.avatarUrl),
         gender: profile.gender,
         birthDate: profile.birthDate,
         heightCm: profile.heightCm,
@@ -162,10 +142,7 @@ class SettingsController extends StateNotifier<AppSettings> {
     } catch (error, stackTrace) {
       AppLogger.warn('初始化个人资料同步失败，保留本地设置继续运行');
       AppLogger.error('初始化个人资料同步失败', error: error, stackTrace: stackTrace);
-      if (!prefs.containsKey(_profileNameKey) &&
-          state.profileName.trim().isEmpty) {
-        state = state.copyWith(profileName: AppSettings.defaults.profileName);
-      }
+      await _loadCachedPersonalInfoForUser(user.id);
     }
   }
 
@@ -271,6 +248,64 @@ class SettingsController extends StateNotifier<AppSettings> {
     await prefs.setDouble(key, value);
   }
 
+  String _userScopedKey(String userId, String key) => 'user:$userId:$key';
+
+  _CachedPersonalInfo _readCachedPersonalInfo(
+    SharedPreferences prefs,
+    String userId,
+  ) {
+    String scoped(String key) => _userScopedKey(userId, key);
+    return _CachedPersonalInfo(
+      profileName: prefs.getString(scoped(_profileNameKey))?.trim() ?? '',
+      avatarUrl: prefs.getString(scoped(_avatarUrlKey)),
+      gender: prefs.getString(scoped(_genderKey)),
+      birthDate: _parseDate(prefs.getString(scoped(_birthDateKey))),
+      heightCm: prefs.getDouble(scoped(_heightCmKey)),
+      weightKg: prefs.getDouble(scoped(_weightKgKey)),
+      trainingGoal: prefs.getString(scoped(_goalKey)),
+      trainingYears: prefs.getString(scoped(_trainingYearsKey)),
+      activityLevel: prefs.getString(scoped(_activityLevelKey)),
+    );
+  }
+
+  Future<void> _loadCachedPersonalInfoForUser(String userId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final cached = _readCachedPersonalInfo(prefs, userId);
+    state = state.copyWith(
+      profileName: cached.profileName,
+      avatarUrl: cached.avatarUrl,
+      clearAvatarUrl: cached.avatarUrl == null,
+      gender: cached.gender,
+      clearGender: cached.gender == null,
+      birthDate: cached.birthDate,
+      clearBirthDate: cached.birthDate == null,
+      heightCm: cached.heightCm,
+      clearHeightCm: cached.heightCm == null,
+      weightKg: cached.weightKg,
+      clearWeightKg: cached.weightKg == null,
+      trainingGoal: cached.trainingGoal,
+      clearTrainingGoal: cached.trainingGoal == null,
+      trainingYears: cached.trainingYears,
+      clearTrainingYears: cached.trainingYears == null,
+      activityLevel: cached.activityLevel,
+      clearActivityLevel: cached.activityLevel == null,
+    );
+  }
+
+  void _clearPersonalInfoInMemory() {
+    state = state.copyWith(
+      profileName: AppSettings.defaults.profileName,
+      clearAvatarUrl: true,
+      clearGender: true,
+      clearBirthDate: true,
+      clearHeightCm: true,
+      clearWeightKg: true,
+      clearTrainingGoal: true,
+      clearTrainingYears: true,
+      clearActivityLevel: true,
+    );
+  }
+
   String? _preferNonEmptyString(String? primary, String? fallback) {
     final normalizedPrimary = primary?.trim();
     if (normalizedPrimary != null && normalizedPrimary.isNotEmpty) {
@@ -283,24 +318,6 @@ class SettingsController extends StateNotifier<AppSettings> {
     }
 
     return null;
-  }
-
-  bool _shouldUseRemoteProfileName({
-    required bool hasSavedProfileName,
-    required String savedProfileName,
-    required String remoteProfileName,
-  }) {
-    if (remoteProfileName.isEmpty) {
-      return false;
-    }
-    if (!hasSavedProfileName || savedProfileName.isEmpty) {
-      return true;
-    }
-    if (savedProfileName == AppSettings.defaults.profileName &&
-        remoteProfileName != savedProfileName) {
-      return true;
-    }
-    return false;
   }
 
   Future<String> uploadAvatar({
@@ -320,7 +337,7 @@ class SettingsController extends StateNotifier<AppSettings> {
     );
     state = state.copyWith(avatarUrl: avatarUrl, clearAvatarUrl: false);
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_avatarUrlKey, avatarUrl);
+    await prefs.setString(_userScopedKey(user.id, _avatarUrlKey), avatarUrl);
     AppLogger.info('头像上传成功，已同步到本地设置状态');
     return avatarUrl;
   }
@@ -356,20 +373,55 @@ class SettingsController extends StateNotifier<AppSettings> {
       clearActivityLevel: activityLevel == null,
     );
 
+    final userId = _authService.currentSession?.user.id;
+    if (userId == null) {
+      return;
+    }
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_profileNameKey, profileName);
-    await _setOrRemoveString(prefs, _avatarUrlKey, avatarUrl);
-    await _setOrRemoveString(prefs, _genderKey, gender);
+    await _clearLegacyPersonalInfoCache(prefs);
+    await prefs.setString(_userScopedKey(userId, _profileNameKey), profileName);
     await _setOrRemoveString(
       prefs,
-      _birthDateKey,
+      _userScopedKey(userId, _avatarUrlKey),
+      avatarUrl,
+    );
+    await _setOrRemoveString(prefs, _userScopedKey(userId, _genderKey), gender);
+    await _setOrRemoveString(
+      prefs,
+      _userScopedKey(userId, _birthDateKey),
       birthDate?.toIso8601String(),
     );
-    await _setOrRemoveDouble(prefs, _heightCmKey, heightCm);
-    await _setOrRemoveDouble(prefs, _weightKgKey, weightKg);
-    await _setOrRemoveString(prefs, _goalKey, trainingGoal);
-    await _setOrRemoveString(prefs, _trainingYearsKey, trainingYears);
-    await _setOrRemoveString(prefs, _activityLevelKey, activityLevel);
+    await _setOrRemoveDouble(
+      prefs,
+      _userScopedKey(userId, _heightCmKey),
+      heightCm,
+    );
+    await _setOrRemoveDouble(
+      prefs,
+      _userScopedKey(userId, _weightKgKey),
+      weightKg,
+    );
+    await _setOrRemoveString(
+      prefs,
+      _userScopedKey(userId, _goalKey),
+      trainingGoal,
+    );
+    await _setOrRemoveString(
+      prefs,
+      _userScopedKey(userId, _trainingYearsKey),
+      trainingYears,
+    );
+    await _setOrRemoveString(
+      prefs,
+      _userScopedKey(userId, _activityLevelKey),
+      activityLevel,
+    );
+  }
+
+  Future<void> _clearLegacyPersonalInfoCache(SharedPreferences prefs) async {
+    for (final key in _legacyPersonalInfoKeys) {
+      await prefs.remove(key);
+    }
   }
 
   @override
@@ -377,4 +429,28 @@ class SettingsController extends StateNotifier<AppSettings> {
     _authSubscription.cancel();
     super.dispose();
   }
+}
+
+class _CachedPersonalInfo {
+  const _CachedPersonalInfo({
+    required this.profileName,
+    this.avatarUrl,
+    this.gender,
+    this.birthDate,
+    this.heightCm,
+    this.weightKg,
+    this.trainingGoal,
+    this.trainingYears,
+    this.activityLevel,
+  });
+
+  final String profileName;
+  final String? avatarUrl;
+  final String? gender;
+  final DateTime? birthDate;
+  final double? heightCm;
+  final double? weightKg;
+  final String? trainingGoal;
+  final String? trainingYears;
+  final String? activityLevel;
 }

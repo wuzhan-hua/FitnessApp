@@ -184,11 +184,8 @@ class ProfilePage extends ConsumerWidget {
     try {
       await ref.read(authServiceProvider).signOut();
       ref.invalidate(guestSoftSignedOutProvider);
-      invalidateUserScopedMainPageProviders(
-        ref,
-        calendarMonth: currentMonth,
-        dietDate: selectedDietDate,
-      );
+      ref.invalidate(authStatusProvider);
+      invalidateAuthScopedProvidersOnSignOut(ref, dietDate: selectedDietDate);
       if (!context.mounted) return;
       final currentStatus =
           ref.read(authStatusProvider).valueOrNull ?? AuthStatus.signedOut;
@@ -373,7 +370,19 @@ class ProfilePage extends ConsumerWidget {
                     ];
                   },
                   loading: () => const <Widget>[],
-                  error: (_, _) => const <Widget>[],
+                  error: (_, _) => [
+                    _ProfileMenuSection(
+                      children: [
+                        _ProfileMenuTile(
+                          icon: Icons.admin_panel_settings_outlined,
+                          iconColor: colors.warning,
+                          title: '管理员权限加载失败，点击重试',
+                          onTap: () =>
+                              ref.invalidate(currentUserIsAdminProvider),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
             ],
           ),
@@ -662,7 +671,11 @@ class _ProfileAvatar extends StatelessWidget {
     return CircleAvatar(
       radius: 28,
       backgroundColor: colors.accent.withValues(alpha: 0.2),
-      backgroundImage: isGuest ? appIcon : hasAvatar ? NetworkImage(avatarUrl) : appIcon,
+      backgroundImage: isGuest
+          ? appIcon
+          : hasAvatar
+          ? NetworkImage(avatarUrl)
+          : appIcon,
       child: null,
     );
   }

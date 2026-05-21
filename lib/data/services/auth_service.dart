@@ -33,7 +33,6 @@ class AuthService {
     try {
       await _client.auth.signInWithPassword(email: email, password: password);
       await setGuestSoftSignedOut(false);
-      await _syncPublicUserProfileFromAuth(userType: _UserTypes.email);
     } catch (error, stackTrace) {
       AppLogger.error('邮箱登录失败', error: error, stackTrace: stackTrace);
       if (error is AppError) {
@@ -41,6 +40,10 @@ class AuthService {
       }
       throw AppError.from(error, fallbackMessage: '邮箱登录失败，请检查账号或稍后重试。');
     }
+    await _syncPublicUserProfileFromAuthBestEffort(
+      userType: _UserTypes.email,
+      logMessage: '登录成功后同步业务用户资料失败',
+    );
   }
 
   Future<void> completeEmailSignUp({
@@ -88,9 +91,10 @@ class AuthService {
 
       await _client.auth.signInAnonymously();
       await setGuestSoftSignedOut(false);
-      await _syncPublicUserProfileFromAuth(
+      await _syncPublicUserProfileFromAuthBestEffort(
         includeEmailFields: false,
         userType: _UserTypes.guest,
+        logMessage: '游客登录成功后同步业务用户资料失败',
       );
     } catch (error, stackTrace) {
       AppLogger.error('游客登录失败', error: error, stackTrace: stackTrace);
@@ -190,6 +194,21 @@ class AuthService {
       emailVerifiedAt: includeEmailFields ? user?.emailConfirmedAt : null,
       phone: includeEmailFields ? user?.phone : null,
     );
+  }
+
+  Future<void> _syncPublicUserProfileFromAuthBestEffort({
+    bool includeEmailFields = true,
+    required int userType,
+    required String logMessage,
+  }) async {
+    try {
+      await _syncPublicUserProfileFromAuth(
+        includeEmailFields: includeEmailFields,
+        userType: userType,
+      );
+    } catch (error, stackTrace) {
+      AppLogger.error(logMessage, error: error, stackTrace: stackTrace);
+    }
   }
 
   Future<void> _syncPublicUserProfile({
