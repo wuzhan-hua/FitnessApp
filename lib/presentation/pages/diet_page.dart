@@ -152,6 +152,7 @@ class DietPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedDate = ref.watch(selectedDietDateProvider);
     final summaryAsync = ref.watch(dailyDietSummaryProvider(selectedDate));
+    final userId = ref.watch(currentAuthUserIdProvider).valueOrNull ?? 'none';
     final settings = ref.watch(settingsProvider);
     final weekDays = _weekDays(selectedDate);
     final targets = _DietTargets.fromSettings(settings);
@@ -214,6 +215,8 @@ class DietPage extends ConsumerWidget {
                 child: RefreshIndicator(
                   onRefresh: () => _refreshDiet(ref, selectedDate),
                   child: AsyncTabContent<DailyDietSummary>(
+                    cacheKey:
+                        '$userId-${selectedDate.toIso8601String()}-diet',
                     asyncValue: summaryAsync,
                     errorPrefix: '饮食数据加载失败',
                     builder: (context, summary) {

@@ -186,6 +186,7 @@ class _AuthPageState extends ConsumerState<AuthPage> {
         calendarMonth: calendarMonth,
         dietDate: selectedDietDate,
       );
+      resetMainPageDateStateForCurrentDay(ref);
       await prewarmWorkoutDataForCurrentUser(ref, calendarMonth: calendarMonth);
       if (!mounted) return;
 
@@ -221,6 +222,7 @@ class _AuthPageState extends ConsumerState<AuthPage> {
         calendarMonth: calendarMonth,
         dietDate: ref.read(selectedDietDateProvider),
       );
+      resetMainPageDateStateForCurrentDay(ref);
       await prewarmWorkoutDataForCurrentUser(ref, calendarMonth: calendarMonth);
       if (!mounted) return;
       showLatestSnackBar(context, '游客登录成功');

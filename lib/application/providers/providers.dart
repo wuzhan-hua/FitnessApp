@@ -166,6 +166,8 @@ DateTime dietCalendarGridStartDay(DateTime month) {
   return firstDay.subtract(Duration(days: firstDay.weekday % 7));
 }
 
+DateTime dayKey(DateTime date) => DateTime(date.year, date.month, date.day);
+
 DateTime monthKey(DateTime date) => DateTime(date.year, date.month, 1);
 
 final workoutSessionByIdProvider =
@@ -216,11 +218,14 @@ void invalidateUserScopedMainPageProviders(
   required DateTime dietDate,
 }) {
   final resolvedMonth = monthKey(calendarMonth);
-  final resolvedDietDate = DateTime(
-    dietDate.year,
-    dietDate.month,
-    dietDate.day,
-  );
+  final resolvedDietDate = dayKey(dietDate);
+  final today = dayKey(DateTime.now());
+  final monthsToInvalidate = {
+    resolvedMonth,
+    monthKey(resolvedDietDate),
+    monthKey(today),
+    monthKey(today.subtract(const Duration(days: 1))),
+  };
   ref.invalidate(authSessionProvider);
   ref.invalidate(authStatusProvider);
   ref.invalidate(currentAuthUserIdProvider);
@@ -228,11 +233,15 @@ void invalidateUserScopedMainPageProviders(
   ref.invalidate(analyticsSnapshotProvider);
   ref.invalidate(currentUserIsAdminProvider);
   ref.invalidate(settingsProvider);
-  ref.invalidate(sessionsByMonthProvider(resolvedMonth));
-  ref.invalidate(sessionsByCalendarGridProvider(resolvedMonth));
-  ref.invalidate(monthlyDietSummariesProvider(resolvedMonth));
+  for (final month in monthsToInvalidate) {
+    ref.invalidate(sessionsByMonthProvider(month));
+    ref.invalidate(sessionsByCalendarGridProvider(month));
+    ref.invalidate(monthlyDietSummariesProvider(month));
+  }
   ref.invalidate(dietRecordsByDateProvider(resolvedDietDate));
   ref.invalidate(dailyDietSummaryProvider(resolvedDietDate));
+  ref.invalidate(dietRecordsByDateProvider(today));
+  ref.invalidate(dailyDietSummaryProvider(today));
 }
 
 void invalidateUserScopedProvidersAfterSignIn(
@@ -241,19 +250,36 @@ void invalidateUserScopedProvidersAfterSignIn(
   required DateTime dietDate,
 }) {
   final resolvedMonth = monthKey(calendarMonth);
-  final resolvedDietDate = DateTime(
-    dietDate.year,
-    dietDate.month,
-    dietDate.day,
-  );
+  final resolvedDietDate = dayKey(dietDate);
+  final today = dayKey(DateTime.now());
+  final monthsToInvalidate = {
+    resolvedMonth,
+    monthKey(resolvedDietDate),
+    monthKey(today),
+    monthKey(today.subtract(const Duration(days: 1))),
+  };
   ref.invalidate(authSessionProvider);
   ref.invalidate(authStatusProvider);
   ref.invalidate(currentAuthUserIdProvider);
   ref.invalidate(currentUserIsAdminProvider);
   ref.invalidate(settingsProvider);
-  ref.invalidate(monthlyDietSummariesProvider(resolvedMonth));
+  ref.invalidate(homeSnapshotProvider);
+  ref.invalidate(analyticsSnapshotProvider);
+  for (final month in monthsToInvalidate) {
+    ref.invalidate(sessionsByMonthProvider(month));
+    ref.invalidate(sessionsByCalendarGridProvider(month));
+    ref.invalidate(monthlyDietSummariesProvider(month));
+  }
   ref.invalidate(dietRecordsByDateProvider(resolvedDietDate));
   ref.invalidate(dailyDietSummaryProvider(resolvedDietDate));
+  ref.invalidate(dietRecordsByDateProvider(today));
+  ref.invalidate(dailyDietSummaryProvider(today));
+}
+
+void resetMainPageDateStateForCurrentDay(WidgetRef ref) {
+  final today = dayKey(DateTime.now());
+  ref.read(selectedDietDateProvider.notifier).state = today;
+  ref.read(calendarMonthProvider.notifier).state = monthKey(today);
 }
 
 Future<void> prewarmWorkoutDataForCurrentUser(
@@ -276,22 +302,33 @@ void invalidateAuthScopedProvidersOnSignOut(
   WidgetRef ref, {
   required DateTime dietDate,
 }) {
-  final resolvedDietDate = DateTime(
-    dietDate.year,
-    dietDate.month,
-    dietDate.day,
-  );
+  final resolvedDietDate = dayKey(dietDate);
+  final today = dayKey(DateTime.now());
+  final monthsToInvalidate = {
+    monthKey(resolvedDietDate),
+    monthKey(today),
+    monthKey(today.subtract(const Duration(days: 1))),
+  };
   ref.invalidate(authSessionProvider);
+  ref.invalidate(authStatusProvider);
   ref.invalidate(currentAuthUserIdProvider);
   ref.invalidate(currentUserIsAdminProvider);
   ref.invalidate(settingsProvider);
+  ref.invalidate(homeSnapshotProvider);
+  ref.invalidate(analyticsSnapshotProvider);
+  for (final month in monthsToInvalidate) {
+    ref.invalidate(sessionsByMonthProvider(month));
+    ref.invalidate(sessionsByCalendarGridProvider(month));
+    ref.invalidate(monthlyDietSummariesProvider(month));
+  }
   ref.invalidate(dietRecordsByDateProvider(resolvedDietDate));
   ref.invalidate(dailyDietSummaryProvider(resolvedDietDate));
+  ref.invalidate(dietRecordsByDateProvider(today));
+  ref.invalidate(dailyDietSummaryProvider(today));
 }
 
 final selectedDietDateProvider = StateProvider<DateTime>((ref) {
-  final now = DateTime.now();
-  return DateTime(now.year, now.month, now.day);
+  return dayKey(DateTime.now());
 });
 
 final foodSearchKeywordProvider = StateProvider.autoDispose<String>(
@@ -332,14 +369,23 @@ final adminFoodCatalogItemsProvider = FutureProvider.autoDispose
 
 final dietRecordsByDateProvider =
     FutureProvider.family<List<DietRecord>, DateTime>((ref, date) async {
+      final userId = await ref.watch(currentAuthUserIdProvider.future);
+      if (userId == null || userId.isEmpty) {
+        return const [];
+      }
       final service = ref.watch(dietRecordServiceProvider);
-      return service.getDietRecordsByDate(date);
+      return service.getDietRecordsByDate(dayKey(date));
     });
 
 final dailyDietSummaryProvider =
     FutureProvider.family<DailyDietSummary, DateTime>((ref, date) async {
+      final userId = await ref.watch(currentAuthUserIdProvider.future);
+      final resolvedDate = dayKey(date);
+      if (userId == null || userId.isEmpty) {
+        return DailyDietSummary.fromRecords(resolvedDate, const []);
+      }
       final service = ref.watch(dietRecordServiceProvider);
-      return service.getDailyDietSummary(date);
+      return service.getDailyDietSummary(resolvedDate);
     });
 
 final monthlyDietSummariesProvider =
@@ -347,6 +393,10 @@ final monthlyDietSummariesProvider =
       ref,
       month,
     ) async {
+      final userId = await ref.watch(currentAuthUserIdProvider.future);
+      if (userId == null || userId.isEmpty) {
+        return const {};
+      }
       final service = ref.watch(dietRecordServiceProvider);
       final gridStart = dietCalendarGridStartDay(monthKey(month));
       final gridEnd = gridStart.add(const Duration(days: 42));
@@ -371,6 +421,7 @@ final monthlyDietSummariesProvider =
 
 final foodEntryControllerProvider = StateNotifierProvider.autoDispose
     .family<FoodEntryController, FoodEntryState, FoodItem>((ref, food) {
+      ref.watch(currentAuthUserIdProvider);
       final service = ref.watch(dietRecordServiceProvider);
       return FoodEntryController(service, food);
     });
@@ -380,6 +431,7 @@ final foodSelectionControllerProvider = StateNotifierProvider.autoDispose
       ref,
       mealType,
     ) {
+      ref.watch(currentAuthUserIdProvider);
       final service = ref.watch(dietRecordServiceProvider);
       return FoodSelectionController(service, mealType);
     });

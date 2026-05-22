@@ -27,7 +27,10 @@ class AuthGate extends ConsumerWidget {
             if (status == AuthStatus.authenticated && emailSignUpPending) {
               return const AuthPage();
             }
-            return const MainShell();
+            final userId = ref.watch(currentAuthUserIdProvider).valueOrNull;
+            return MainShell(
+              key: ValueKey('main-shell-${status.name}-${userId ?? 'none'}'),
+            );
           },
           loading: () =>
               const Scaffold(body: Center(child: CircularProgressIndicator())),

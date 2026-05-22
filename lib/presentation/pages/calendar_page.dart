@@ -94,6 +94,7 @@ class CalendarPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final month = monthKey(ref.watch(calendarMonthProvider));
+    final userId = ref.watch(currentAuthUserIdProvider).valueOrNull ?? 'none';
     final sessionsAsync = ref.watch(sessionsByCalendarGridProvider(month));
     final dietSummariesAsync = ref.watch(monthlyDietSummariesProvider(month));
     final calendarDataAsync = _mergeCalendarData(
@@ -143,6 +144,7 @@ class CalendarPage extends ConsumerWidget {
               child: RefreshIndicator(
                 onRefresh: refreshCalendar,
                 child: AsyncTabContent<_CalendarPageData>(
+                  cacheKey: '$userId-${month.toIso8601String()}-calendar',
                   asyncValue: calendarDataAsync,
                   errorPrefix: '日历加载失败',
                   builder: (context, data) => ListView(

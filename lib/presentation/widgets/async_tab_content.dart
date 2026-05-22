@@ -11,11 +11,13 @@ class AsyncTabContent<T> extends StatefulWidget {
     required this.asyncValue,
     required this.builder,
     this.errorPrefix = '加载失败',
+    this.cacheKey,
   });
 
   final AsyncValue<T> asyncValue;
   final Widget Function(BuildContext context, T data) builder;
   final String errorPrefix;
+  final Object? cacheKey;
 
   @override
   State<AsyncTabContent<T>> createState() => _AsyncTabContentState<T>();
@@ -23,12 +25,28 @@ class AsyncTabContent<T> extends StatefulWidget {
 
 class _AsyncTabContentState<T> extends State<AsyncTabContent<T>> {
   T? _lastData;
+  Object? _lastCacheKey;
   String? _lastErrorMessage;
+
+  @override
+  void didUpdateWidget(covariant AsyncTabContent<T> oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.cacheKey != widget.cacheKey) {
+      _lastData = null;
+      _lastCacheKey = widget.cacheKey;
+      _lastErrorMessage = null;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final colors = AppColors.of(context);
     final currentData = widget.asyncValue.valueOrNull;
+    if (_lastCacheKey != widget.cacheKey) {
+      _lastData = null;
+      _lastCacheKey = widget.cacheKey;
+      _lastErrorMessage = null;
+    }
     if (currentData != null) {
       _lastData = currentData;
       _lastErrorMessage = null;

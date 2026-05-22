@@ -33,7 +33,8 @@ class _MainShellState extends ConsumerState<MainShell> {
     super.initState();
     Future<void>(() async {
       ref.read(foodLibraryProvider);
-      ref.read(dailyDietSummaryProvider(DateTime.now()));
+      final today = dayKey(DateTime.now());
+      ref.read(dailyDietSummaryProvider(today));
       if (!mounted) {
         return;
       }
