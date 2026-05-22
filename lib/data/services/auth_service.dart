@@ -172,6 +172,21 @@ class AuthService {
     }
   }
 
+  Future<void> deleteCurrentAccount() async {
+    final user = _client.auth.currentUser;
+    if (user == null) {
+      throw const AppError(message: '请先登录后再操作。', code: 'auth_required');
+    }
+
+    try {
+      await _client.functions.invoke('delete-account');
+      await setGuestSoftSignedOut(false);
+    } catch (error, stackTrace) {
+      AppLogger.error('删除账号失败', error: error, stackTrace: stackTrace);
+      throw AppError.from(error, fallbackMessage: '删除账号失败，请稍后重试。');
+    }
+  }
+
   Future<bool> isGuestSoftSignedOut() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getBool(_guestSoftSignedOutKey) ?? false;

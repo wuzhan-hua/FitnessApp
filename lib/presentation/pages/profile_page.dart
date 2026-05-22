@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../application/providers/providers.dart';
 import '../../application/state/auth_status.dart';
 import '../../application/state/app_settings.dart';
+import '../../constants/legal_constants.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/app_error.dart';
 import '../../utils/snackbar_helper.dart';
@@ -19,6 +21,32 @@ class ProfilePage extends ConsumerWidget {
 
   void _showFeedback(BuildContext context, String message) {
     showLatestSnackBar(context, message);
+  }
+
+  Future<void> _openLegalDocument(
+    BuildContext context, {
+    required String url,
+    required String documentName,
+  }) async {
+    final normalizedUrl = url.trim();
+    if (normalizedUrl.isEmpty) {
+      _showFeedback(context, '请先配置$documentName地址后再使用。');
+      return;
+    }
+
+    final uri = Uri.tryParse(normalizedUrl);
+    if (uri == null) {
+      _showFeedback(context, '$documentName地址格式无效，请检查配置。');
+      return;
+    }
+
+    final launched = await launchUrl(
+      uri,
+      mode: LaunchMode.externalApplication,
+    );
+    if (!launched && context.mounted) {
+      _showFeedback(context, '打开$documentName失败，请稍后重试。');
+    }
   }
 
   Future<void> _showUnitPicker(
@@ -198,6 +226,85 @@ class ProfilePage extends ConsumerWidget {
     }
   }
 
+  Future<void> _confirmAndDeleteAccount(
+    BuildContext context,
+    WidgetRef ref,
+    DateTime selectedDietDate,
+  ) async {
+    final authStatus =
+        ref.read(authStatusProvider).valueOrNull ?? AuthStatus.signedOut;
+    if (!authStatus.isSignedIn) {
+      _showFeedback(context, '请先登录后再操作');
+      return;
+    }
+
+    final firstConfirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('删除账号'),
+        content: Text(
+          authStatus.isGuest
+              ? '删除后将彻底清除当前游客账号及其训练记录、饮食记录、头像资料，且无法恢复。'
+              : '删除后将彻底清除当前账号及其训练记录、饮食记录、头像资料，且无法恢复。',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('取消'),
+          ),
+          FilledButton.tonal(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('继续删除'),
+          ),
+        ],
+      ),
+    );
+    if (firstConfirmed != true || !context.mounted) {
+      return;
+    }
+
+    final secondConfirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('最终确认'),
+        content: const Text('此操作不可恢复。确认后将立即删除账号及所有关联数据。'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('返回'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: const Color(0xFFDC2626),
+            ),
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('确认删除'),
+          ),
+        ],
+      ),
+    );
+    if (secondConfirmed != true || !context.mounted) {
+      return;
+    }
+
+    try {
+      await ref.read(authServiceProvider).deleteCurrentAccount();
+      ref.invalidate(guestSoftSignedOutProvider);
+      ref.invalidate(authSessionProvider);
+      ref.invalidate(authStatusProvider);
+      invalidateAuthScopedProvidersOnSignOut(ref, dietDate: selectedDietDate);
+      if (!context.mounted) return;
+      _showFeedback(context, '账号已删除');
+      if (Navigator.of(context).canPop()) {
+        Navigator.of(context).pop();
+      }
+    } catch (error) {
+      if (!context.mounted) return;
+      final appError = AppError.from(error, fallbackMessage: '删除账号失败，请稍后重试。');
+      _showFeedback(context, appError.message);
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(settingsProvider);
@@ -326,6 +433,26 @@ class ProfilePage extends ConsumerWidget {
                       ).pushNamed(ContactAuthorPage.routeName);
                     },
                   ),
+                  _ProfileMenuTile(
+                    icon: Icons.privacy_tip_outlined,
+                    iconColor: const Color(0xFF0EA5E9),
+                    title: '隐私政策',
+                    onTap: () => _openLegalDocument(
+                      context,
+                      url: LegalConstants.privacyPolicyUrl,
+                      documentName: '隐私政策',
+                    ),
+                  ),
+                  _ProfileMenuTile(
+                    icon: Icons.description_outlined,
+                    iconColor: colors.accent,
+                    title: '用户协议',
+                    onTap: () => _openLegalDocument(
+                      context,
+                      url: LegalConstants.termsOfServiceUrl,
+                      documentName: '用户协议',
+                    ),
+                  ),
                   if (authStatus.isSignedIn)
                     _ProfileMenuTile(
                       icon: Icons.logout,
@@ -335,6 +462,17 @@ class ProfilePage extends ConsumerWidget {
                         context,
                         ref,
                         month,
+                        selectedDietDate,
+                      ),
+                    ),
+                  if (authStatus.isSignedIn)
+                    _ProfileMenuTile(
+                      icon: Icons.delete_forever_outlined,
+                      iconColor: const Color(0xFFDC2626),
+                      title: '删除账号',
+                      onTap: () => _confirmAndDeleteAccount(
+                        context,
+                        ref,
                         selectedDietDate,
                       ),
                     ),
