@@ -116,6 +116,14 @@ class _CountingWorkoutRepository implements WorkoutRepository {
   }
 
   @override
+  Future<List<WorkoutSession>> getCompletedSessionsForCopy({
+    String? muscleGroup,
+    int limit = 20,
+  }) async {
+    return const [];
+  }
+
+  @override
   Future<WorkoutSession?> getSessionByDate(DateTime date) {
     throw UnimplementedError();
   }

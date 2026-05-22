@@ -203,7 +203,7 @@ class SessionEditorController extends StateNotifier<SessionEditorState> {
     );
   }
 
-  void replaceExercisesFromTemplate(WorkoutSession templateSession) {
+  void replaceExercisesFromSession(WorkoutSession sourceSession) {
     if (_isReadOnly) {
       return;
     }
@@ -212,9 +212,9 @@ class SessionEditorController extends StateNotifier<SessionEditorState> {
       return;
     }
     final copiedExercises = List<SessionExercise>.generate(
-      templateSession.exercises.length,
+      sourceSession.exercises.length,
       (index) {
-        final exercise = templateSession.exercises[index];
+        final exercise = sourceSession.exercises[index];
         final exerciseSeed = DateTime.now().microsecondsSinceEpoch + index;
         return SessionExercise(
           id: 'copy-$exerciseSeed',
@@ -232,6 +232,10 @@ class SessionEditorController extends StateNotifier<SessionEditorState> {
     _updateSession(
       _promoteDraftIfNeeded(session.copyWith(exercises: copiedExercises)),
     );
+  }
+
+  void replaceExercisesFromTemplate(WorkoutSession templateSession) {
+    replaceExercisesFromSession(templateSession);
   }
 
   void addSet({required String exerciseId}) {

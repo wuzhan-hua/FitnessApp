@@ -439,6 +439,28 @@ class MockWorkoutRepository implements WorkoutRepository {
   }
 
   @override
+  Future<List<WorkoutSession>> getCompletedSessionsForCopy({
+    String? muscleGroup,
+    int limit = 20,
+  }) async {
+    final normalizedGroup = muscleGroup?.trim();
+    final copied = [..._sessions]..sort((a, b) => b.date.compareTo(a.date));
+    return copied
+        .where((session) => session.status == SessionStatus.completed)
+        .where((session) {
+          if (normalizedGroup == null || normalizedGroup.isEmpty) {
+            return true;
+          }
+          return ExerciseCatalogConstants.inferSessionGroupFromTitle(
+                session.title,
+              ) ==
+              normalizedGroup;
+        })
+        .take(limit)
+        .toList();
+  }
+
+  @override
   Future<WorkoutSession> saveSession(WorkoutSession session) async {
     final persisted = session.id.startsWith('draft-')
         ? session.copyWith(

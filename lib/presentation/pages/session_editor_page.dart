@@ -24,6 +24,8 @@ enum SessionEditorExitResult {
 
 enum _LeavePageAction { save, discard, cancel }
 
+enum _HistoryCopyScope { currentGroup, all }
+
 class SessionEditorPage extends ConsumerStatefulWidget {
   const SessionEditorPage({super.key, required this.args});
 
@@ -47,6 +49,7 @@ class _SessionEditorPageState extends ConsumerState<SessionEditorPage> {
   int _restSeconds = 120;
   bool _timerRunning = false;
   final TextEditingController _restNoteController = TextEditingController();
+  NavigatorState? _navigator;
   String? _selectedTrainingType;
   String? _activeExerciseId;
   String? _newlyAddedExerciseId;
@@ -69,6 +72,12 @@ class _SessionEditorPageState extends ConsumerState<SessionEditorPage> {
   void initState() {
     super.initState();
     _restSeconds = ref.read(settingsProvider).defaultRestSeconds;
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _navigator = Navigator.of(context);
   }
 
   @override
@@ -348,11 +357,15 @@ class _SessionEditorPageState extends ConsumerState<SessionEditorPage> {
   }
 
   Future<void> _closeWithResult([SessionEditorExitResult? result]) async {
-    if (_isClosing || !mounted) {
+    if (_isClosing) {
       return;
     }
     _isClosing = true;
-    Navigator.of(context).pop(result);
+    final navigator = _navigator;
+    if (navigator == null || !navigator.mounted || !navigator.canPop()) {
+      return;
+    }
+    navigator.pop(result);
   }
 
   Future<void> _handleSave({
@@ -498,6 +511,245 @@ class _SessionEditorPageState extends ConsumerState<SessionEditorPage> {
     return result ?? false;
   }
 
+  Future<bool> _showOverwriteExercisesDialog(WorkoutSession session) async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('复制历史训练？'),
+        content: Text(
+          '复制后会替换当前动作列表。\n\n'
+          '来源：${_formatSessionDate(session.date)}「${session.title}」',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('取消'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('确认复制'),
+          ),
+        ],
+      ),
+    );
+    return result ?? false;
+  }
+
+  Future<List<WorkoutSession>> _loadCompletedSessionsForCopy(
+    _HistoryCopyScope scope,
+  ) {
+    final currentGroup = _selectedTrainingType;
+    final useCurrentGroup =
+        scope == _HistoryCopyScope.currentGroup &&
+        currentGroup != null &&
+        currentGroup != '休息日';
+    return ref
+        .read(workoutServiceProvider)
+        .getCompletedSessionsForCopy(
+          muscleGroup: useCurrentGroup ? currentGroup : null,
+          limit: 20,
+        );
+  }
+
+  String _copySessionSummary(WorkoutSession session) {
+    final totalSets = session.totalSets;
+    final duration = session.durationMinutes;
+    return '${session.exercises.length} 个动作 · $totalSets 组 · $duration 分钟';
+  }
+
+  Future<WorkoutSession?> _showHistoryCopySheet() async {
+    var scope = _hasTrainingTypeSelected && !_isRestDay
+        ? _HistoryCopyScope.currentGroup
+        : _HistoryCopyScope.all;
+    var future = _loadCompletedSessionsForCopy(scope);
+
+    return showModalBottomSheet<WorkoutSession>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (sheetContext) {
+        final colors = AppColors.of(sheetContext);
+        final theme = Theme.of(sheetContext);
+        return StatefulBuilder(
+          builder: (context, setSheetState) {
+            void updateScope(_HistoryCopyScope nextScope) {
+              if (nextScope == scope) {
+                return;
+              }
+              setSheetState(() {
+                scope = nextScope;
+                future = _loadCompletedSessionsForCopy(scope);
+              });
+            }
+
+            return SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.md,
+                  AppSpacing.sm,
+                  AppSpacing.md,
+                  AppSpacing.md,
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Center(
+                      child: Container(
+                        width: 36,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: colors.textMuted.withValues(alpha: 0.24),
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            '复制历史训练',
+                            style: theme.textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: () => Navigator.of(sheetContext).pop(),
+                          icon: const Icon(Icons.close),
+                          tooltip: '关闭',
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    SegmentedButton<_HistoryCopyScope>(
+                      segments: [
+                        ButtonSegment(
+                          value: _HistoryCopyScope.currentGroup,
+                          enabled: _hasTrainingTypeSelected && !_isRestDay,
+                          label: const Text('当前肌群'),
+                        ),
+                        const ButtonSegment(
+                          value: _HistoryCopyScope.all,
+                          label: Text('全部历史'),
+                        ),
+                      ],
+                      selected: {scope},
+                      onSelectionChanged: (values) {
+                        updateScope(values.first);
+                      },
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    Flexible(
+                      child: FutureBuilder<List<WorkoutSession>>(
+                        future: future,
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const SizedBox(
+                              height: 180,
+                              child: Center(child: CircularProgressIndicator()),
+                            );
+                          }
+                          if (snapshot.hasError) {
+                            return SizedBox(
+                              height: 160,
+                              child: Center(
+                                child: Text(
+                                  '历史训练加载失败，请稍后重试',
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    color: colors.textMuted,
+                                  ),
+                                ),
+                              ),
+                            );
+                          }
+                          final sessions = snapshot.data ?? const [];
+                          if (sessions.isEmpty) {
+                            final emptyText =
+                                scope == _HistoryCopyScope.currentGroup
+                                ? '暂无当前肌群的已完成训练'
+                                : '暂无可复制的已完成训练';
+                            return SizedBox(
+                              height: 160,
+                              child: Center(
+                                child: Text(
+                                  emptyText,
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    color: colors.textMuted,
+                                  ),
+                                ),
+                              ),
+                            );
+                          }
+                          return ConstrainedBox(
+                            constraints: const BoxConstraints(maxHeight: 420),
+                            child: ListView.separated(
+                              shrinkWrap: true,
+                              itemCount: sessions.length,
+                              separatorBuilder: (_, _) =>
+                                  const SizedBox(height: AppSpacing.xs),
+                              itemBuilder: (context, index) {
+                                final session = sessions[index];
+                                return Card(
+                                  margin: EdgeInsets.zero,
+                                  child: ListTile(
+                                    title: Text(session.title),
+                                    subtitle: Text(
+                                      '${_formatSessionDate(session.date)} · ${_copySessionSummary(session)}',
+                                    ),
+                                    trailing: const Icon(
+                                      Icons.content_copy_outlined,
+                                    ),
+                                    onTap: () =>
+                                        Navigator.of(sheetContext).pop(session),
+                                  ),
+                                );
+                              },
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future<void> _openHistoryCopy(
+    SessionEditorController controller,
+    WorkoutSession? session,
+  ) async {
+    if (_isReadOnly || session == null) {
+      return;
+    }
+    if (_isRestDay) {
+      showLatestSnackBar(context, '休息日不支持复制训练动作，请先更换训练肌群');
+      return;
+    }
+    final selected = await _showHistoryCopySheet();
+    if (!mounted || selected == null) {
+      return;
+    }
+    if (session.exercises.isNotEmpty) {
+      final confirmed = await _showOverwriteExercisesDialog(selected);
+      if (!mounted || !confirmed) {
+        return;
+      }
+    }
+    controller.replaceExercisesFromSession(selected);
+    setState(() {
+      _newlyAddedExerciseId = null;
+    });
+    showLatestSnackBar(context, '已复制历史训练动作');
+  }
+
   Future<void> _showTrainingTypeDialog(
     SessionEditorController controller,
     WorkoutSession? session,
@@ -579,7 +831,7 @@ class _SessionEditorPageState extends ConsumerState<SessionEditorPage> {
     if (!mounted || !shouldCopy) {
       return;
     }
-    controller.replaceExercisesFromTemplate(latest);
+    controller.replaceExercisesFromSession(latest);
   }
 
   bool _isCardioExercise(SessionExercise exercise) {
@@ -1064,13 +1316,27 @@ class _SessionEditorPageState extends ConsumerState<SessionEditorPage> {
                                   label: const Text('新增动作'),
                                 ),
                               ),
+                              const SizedBox(height: AppSpacing.sm),
+                              SizedBox(
+                                width: double.infinity,
+                                child: OutlinedButton.icon(
+                                  onPressed: state.session == null
+                                      ? null
+                                      : () => _openHistoryCopy(
+                                          controller,
+                                          state.session,
+                                        ),
+                                  icon: const Icon(Icons.content_copy_outlined),
+                                  label: const Text('复制历史训练'),
+                                ),
+                              ),
                               const SizedBox(height: AppSpacing.xs),
                               Text(
                                 _isRestDay
-                                    ? '休息日不支持新增训练动作'
+                                    ? '休息日不支持新增或复制训练动作'
                                     : (_hasTrainingTypeSelected
-                                          ? '可切换肌群后添加力量或有氧动作'
-                                          : '请先选择训练肌群后再新增动作'),
+                                          ? '可新增单个动作，也可复制已完成训练的动作组合'
+                                          : '请先选择训练肌群，或直接从全部历史中复制训练'),
                                 style: Theme.of(context).textTheme.bodySmall
                                     ?.copyWith(color: colors.textMuted),
                               ),

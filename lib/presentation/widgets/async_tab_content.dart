@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../theme/app_theme.dart';
 import '../../utils/app_error.dart';
-import '../../utils/snackbar_helper.dart';
 
 class AsyncTabContent<T> extends StatefulWidget {
   const AsyncTabContent({
@@ -27,6 +26,13 @@ class _AsyncTabContentState<T> extends State<AsyncTabContent<T>> {
   T? _lastData;
   Object? _lastCacheKey;
   String? _lastErrorMessage;
+  ScaffoldMessengerState? _messenger;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _messenger = ScaffoldMessenger.maybeOf(context);
+  }
 
   @override
   void didUpdateWidget(covariant AsyncTabContent<T> oldWidget) {
@@ -69,10 +75,12 @@ class _AsyncTabContentState<T> extends State<AsyncTabContent<T>> {
         errorText != _lastErrorMessage) {
       _lastErrorMessage = errorText;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) {
+        final messenger = _messenger;
+        if (!mounted || messenger == null || !messenger.mounted) {
           return;
         }
-        showLatestSnackBar(context, errorText);
+        messenger.clearSnackBars();
+        messenger.showSnackBar(SnackBar(content: Text(errorText)));
       });
     }
 

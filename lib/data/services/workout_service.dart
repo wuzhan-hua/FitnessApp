@@ -35,11 +35,22 @@ class WorkoutService {
         muscleGroup,
       );
     } catch (error, stackTrace) {
-      AppLogger.error(
-        '加载最近同肌群训练失败',
-        error: error,
-        stackTrace: stackTrace,
+      AppLogger.error('加载最近同肌群训练失败', error: error, stackTrace: stackTrace);
+      throw AppError.from(error, fallbackMessage: '加载历史训练失败，请稍后重试。');
+    }
+  }
+
+  Future<List<WorkoutSession>> getCompletedSessionsForCopy({
+    String? muscleGroup,
+    int limit = 20,
+  }) async {
+    try {
+      return await _repository.getCompletedSessionsForCopy(
+        muscleGroup: muscleGroup,
+        limit: limit,
       );
+    } catch (error, stackTrace) {
+      AppLogger.error('加载可复制历史训练失败', error: error, stackTrace: stackTrace);
       throw AppError.from(error, fallbackMessage: '加载历史训练失败，请稍后重试。');
     }
   }

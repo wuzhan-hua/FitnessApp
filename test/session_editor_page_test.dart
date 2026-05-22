@@ -125,61 +125,63 @@ void main() {
     expect(find.text('训练时长'), findsNothing);
   });
 
-  testWidgets('new draft selecting muscle group can prompt copying last completed session', (
-    tester,
-  ) async {
-    final past = DateTime.now().subtract(const Duration(days: 2));
+  testWidgets(
+    'new draft selecting muscle group can prompt copying last completed session',
+    (tester) async {
+      final past = DateTime.now().subtract(const Duration(days: 2));
 
-    await tester.pumpWidget(
-      _buildSessionEditorApp(
-        repository: MockWorkoutRepository(),
-        args: SessionEditorArgs(
-          date: past,
-          mode: SessionMode.backfill,
-          createOnSaveOnly: true,
+      await tester.pumpWidget(
+        _buildSessionEditorApp(
+          repository: MockWorkoutRepository(),
+          args: SessionEditorArgs(
+            date: past,
+            mode: SessionMode.backfill,
+            createOnSaveOnly: true,
+          ),
         ),
-      ),
-    );
-    await tester.pumpAndSettle();
+      );
+      await tester.pumpAndSettle();
 
-    await tester.tap(find.text('选择训练肌群'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(ChoiceChip, '胸部'));
-    await tester.pumpAndSettle();
+      await tester.tap(find.text('选择训练肌群'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(ChoiceChip, '胸部'));
+      await tester.pumpAndSettle();
 
-    expect(find.text('复制上次训练动作？'), findsOneWidget);
-    expect(find.text('胸部训练日'), findsOneWidget);
-    expect(find.textContaining('共 1 个动作'), findsOneWidget);
-  });
+      expect(find.text('复制上次训练动作？'), findsOneWidget);
+      expect(find.text('胸部训练日'), findsOneWidget);
+      expect(find.textContaining('共 1 个动作'), findsOneWidget);
+    },
+  );
 
-  testWidgets('cancel copy keeps selected muscle group but does not fill exercises', (
-    tester,
-  ) async {
-    final past = DateTime.now().subtract(const Duration(days: 2));
+  testWidgets(
+    'cancel copy keeps selected muscle group but does not fill exercises',
+    (tester) async {
+      final past = DateTime.now().subtract(const Duration(days: 2));
 
-    await tester.pumpWidget(
-      _buildSessionEditorApp(
-        repository: MockWorkoutRepository(),
-        args: SessionEditorArgs(
-          date: past,
-          mode: SessionMode.backfill,
-          createOnSaveOnly: true,
+      await tester.pumpWidget(
+        _buildSessionEditorApp(
+          repository: MockWorkoutRepository(),
+          args: SessionEditorArgs(
+            date: past,
+            mode: SessionMode.backfill,
+            createOnSaveOnly: true,
+          ),
         ),
-      ),
-    );
-    await tester.pumpAndSettle();
+      );
+      await tester.pumpAndSettle();
 
-    await tester.tap(find.text('选择训练肌群'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(ChoiceChip, '胸部'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('取消'));
-    await tester.pumpAndSettle();
+      await tester.tap(find.text('选择训练肌群'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(ChoiceChip, '胸部'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('取消'));
+      await tester.pumpAndSettle();
 
-    expect(find.text('胸部训练日'), findsOneWidget);
-    expect(find.text('训练肌群：胸部'), findsOneWidget);
-    expect(find.text('站姿推举'), findsNothing);
-  });
+      expect(find.text('胸部训练日'), findsOneWidget);
+      expect(find.text('训练肌群：胸部'), findsOneWidget);
+      expect(find.text('站姿推举'), findsNothing);
+    },
+  );
 
   testWidgets('confirm copy fills exercises from last completed session', (
     tester,
@@ -208,6 +210,134 @@ void main() {
     expect(find.text('胸部训练日'), findsOneWidget);
     expect(find.text('站姿推举'), findsOneWidget);
     expect(find.text('共 2 组 · 平均重量 46.3 kg'), findsOneWidget);
+  });
+
+  testWidgets('history copy sheet lists current group completed sessions', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _buildSessionEditorApp(
+        repository: MockWorkoutRepository(),
+        args: SessionEditorArgs(
+          date: DateTime.now(),
+          mode: SessionMode.continueSession,
+          sessionId: 'session-ongoing',
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('复制历史训练'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('复制历史训练'), findsNWidgets(2));
+    expect(find.text('胸部训练日'), findsOneWidget);
+    expect(find.text('腿部训练日'), findsNothing);
+    expect(find.textContaining('1 个动作 · 2 组 · 61 分钟'), findsOneWidget);
+  });
+
+  testWidgets('history copy sheet can switch to all completed sessions', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _buildSessionEditorApp(
+        repository: MockWorkoutRepository(),
+        args: SessionEditorArgs(
+          date: DateTime.now(),
+          mode: SessionMode.continueSession,
+          sessionId: 'session-ongoing',
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('复制历史训练'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('全部历史'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('胸部训练日'), findsOneWidget);
+    expect(find.text('腿部训练日'), findsOneWidget);
+    expect(find.text('背部训练日'), findsOneWidget);
+    expect(find.text('推训练日 · 力量'), findsOneWidget);
+  });
+
+  testWidgets('history copy replaces existing exercises after confirmation', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _buildSessionEditorApp(
+        repository: MockWorkoutRepository(),
+        args: SessionEditorArgs(
+          date: DateTime.now(),
+          mode: SessionMode.continueSession,
+          sessionId: 'session-ongoing',
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.scrollUntilVisible(
+      find.text('杠铃卧推'),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(find.text('杠铃卧推'), findsOneWidget);
+
+    await tester.scrollUntilVisible(
+      find.text('复制历史训练'),
+      -200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.tap(find.text('复制历史训练'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('胸部训练日'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('复制历史训练？'), findsOneWidget);
+    expect(find.textContaining('复制后会替换当前动作列表'), findsOneWidget);
+
+    await tester.tap(find.text('确认复制'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('站姿推举'), findsOneWidget);
+    expect(find.text('杠铃卧推'), findsNothing);
+    expect(find.text('胸部训练日'), findsNothing);
+    await tester.scrollUntilVisible(
+      find.text('训练肌群：胸部'),
+      -400,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(find.text('训练肌群：胸部'), findsOneWidget);
+  });
+
+  testWidgets('history copy cancel keeps current exercises', (tester) async {
+    await tester.pumpWidget(
+      _buildSessionEditorApp(
+        repository: MockWorkoutRepository(),
+        args: SessionEditorArgs(
+          date: DateTime.now(),
+          mode: SessionMode.continueSession,
+          sessionId: 'session-ongoing',
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.scrollUntilVisible(
+      find.text('复制历史训练'),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.tap(find.text('复制历史训练'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('胸部训练日'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('取消'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('杠铃卧推'), findsOneWidget);
+    expect(find.text('站姿推举'), findsNothing);
   });
 
   testWidgets('back with unsaved changes shows leave confirmation dialog', (
@@ -304,6 +434,11 @@ void main() {
     expect(find.text('请先选择训练肌群'), findsNothing);
     expect(find.text('训练肌群：胸部'), findsOneWidget);
     expect(find.text('第1组'), findsNothing);
+    await tester.scrollUntilVisible(
+      find.text('杠铃卧推'),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
     expect(find.text('共 3 组 · 平均重量 77.5 kg'), findsOneWidget);
     await tester.scrollUntilVisible(
       find.text('负重双杠臂屈伸'),
@@ -331,92 +466,97 @@ void main() {
 
     expect(find.byType(FloatingActionButton), findsNothing);
     expect(find.text('新增动作'), findsAtLeastNWidgets(1));
-    expect(find.text('可切换肌群后添加力量或有氧动作'), findsOneWidget);
+    expect(find.text('可新增单个动作，也可复制已完成训练的动作组合'), findsOneWidget);
   });
 
-  testWidgets('adding cardio exercise from non-cardio session uses cardio rows', (
-    tester,
-  ) async {
-    await tester.pumpWidget(
-      _buildSessionEditorAppWithRoutes(
-        repository: MockWorkoutRepository(),
-        args: SessionEditorArgs(
-          date: DateTime.now(),
-          mode: SessionMode.continueSession,
-          sessionId: 'session-ongoing',
+  testWidgets(
+    'adding cardio exercise from non-cardio session uses cardio rows',
+    (tester) async {
+      await tester.pumpWidget(
+        _buildSessionEditorAppWithRoutes(
+          repository: MockWorkoutRepository(),
+          args: SessionEditorArgs(
+            date: DateTime.now(),
+            mode: SessionMode.continueSession,
+            sessionId: 'session-ongoing',
+          ),
         ),
-      ),
-    );
-    await tester.pumpAndSettle();
+      );
+      await tester.pumpAndSettle();
 
-    await tester.tap(find.text('新增动作').last);
-    await tester.pumpAndSettle();
-    await tester.ensureVisible(find.text('有氧').last);
-    await tester.tap(find.text('有氧').last, warnIfMissed: false);
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('跑步机慢跑'));
-    await tester.pumpAndSettle();
-    final addedCard = find.ancestor(
-      of: find.text('跑步机慢跑'),
-      matching: find.byType(Card),
-    ).first;
-    await tester.tap(addedCard, warnIfMissed: false);
-    await tester.pumpAndSettle();
+      await tester.tap(find.text('新增动作').last);
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('有氧').last);
+      await tester.tap(find.text('有氧').last, warnIfMissed: false);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('跑步机慢跑'));
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(
+        find.text('跑步机慢跑'),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      final addedCard = find
+          .ancestor(of: find.text('跑步机慢跑'), matching: find.byType(Card))
+          .first;
+      await tester.tap(addedCard, warnIfMissed: false);
+      await tester.pumpAndSettle();
 
-    expect(find.textContaining('训练日'), findsOneWidget);
-    expect(find.textContaining('训练肌群：'), findsOneWidget);
-    expect(find.text('跑步机慢跑'), findsOneWidget);
-    expect(find.textContaining('共 1 条'), findsOneWidget);
-    expect(find.textContaining('20 分钟'), findsOneWidget);
+      expect(find.text('跑步机慢跑'), findsAtLeastNWidgets(1));
+      expect(find.textContaining('共 1 条'), findsAtLeastNWidgets(1));
+      expect(find.textContaining('20 分钟'), findsAtLeastNWidgets(1));
 
-    await tester.tap(find.byTooltip('编辑动作').first);
-    await tester.pumpAndSettle();
+      expect(find.text('时长(分钟)'), findsOneWidget);
+      expect(find.text('距离(公里)'), findsOneWidget);
+      expect(find.text('重量'), findsNothing);
+      expect(find.text('次数'), findsNothing);
+    },
+  );
 
-    expect(find.text('时长(分钟)'), findsOneWidget);
-    expect(find.text('距离(公里)'), findsOneWidget);
-    expect(find.text('重量'), findsNothing);
-    expect(find.text('次数'), findsNothing);
-  });
-
-  testWidgets('newly added exercise is highlighted without auto opening sheet', (
-    tester,
-  ) async {
-    await tester.pumpWidget(
-      _buildSessionEditorAppWithRoutes(
-        repository: MockWorkoutRepository(),
-        args: SessionEditorArgs(
-          date: DateTime.now(),
-          mode: SessionMode.continueSession,
-          sessionId: 'session-ongoing',
+  testWidgets(
+    'newly added exercise is highlighted without auto opening sheet',
+    (tester) async {
+      await tester.pumpWidget(
+        _buildSessionEditorAppWithRoutes(
+          repository: MockWorkoutRepository(),
+          args: SessionEditorArgs(
+            date: DateTime.now(),
+            mode: SessionMode.continueSession,
+            sessionId: 'session-ongoing',
+          ),
         ),
-      ),
-    );
-    await tester.pumpAndSettle();
+      );
+      await tester.pumpAndSettle();
 
-    await tester.tap(find.text('新增动作').last);
-    await tester.pumpAndSettle();
-    await tester.ensureVisible(find.text('有氧').last);
-    await tester.tap(find.text('有氧').last, warnIfMissed: false);
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('跑步机慢跑'));
-    await tester.pumpAndSettle();
+      await tester.tap(find.text('新增动作').last);
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('有氧').last);
+      await tester.tap(find.text('有氧').last, warnIfMissed: false);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('跑步机慢跑'));
+      await tester.pumpAndSettle();
 
-    expect(find.text('时长'), findsNothing);
-    expect(find.text('距离'), findsNothing);
+      expect(find.text('时长'), findsNothing);
+      expect(find.text('距离'), findsNothing);
 
-    final cardioCard = find.ancestor(
-      of: find.text('跑步机慢跑'),
-      matching: find.byType(Card),
-    ).first;
-    final highlightedCard = tester.widget<Card>(cardioCard);
-    expect(highlightedCard.color, isNotNull);
+      await tester.scrollUntilVisible(
+        find.text('跑步机慢跑'),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      final cardioCard = find
+          .ancestor(of: find.text('跑步机慢跑'), matching: find.byType(Card))
+          .first;
+      final highlightedCard = tester.widget<Card>(cardioCard);
+      expect(highlightedCard.color, isNotNull);
 
-    await tester.tap(cardioCard, warnIfMissed: false);
-    await tester.pumpAndSettle();
+      await tester.tap(cardioCard, warnIfMissed: false);
+      await tester.pumpAndSettle();
 
-    expect(find.text('时长(分钟)'), findsOneWidget);
-    expect(find.text('距离(公里)'), findsOneWidget);
-  });
+      expect(find.text('时长(分钟)'), findsOneWidget);
+      expect(find.text('距离(公里)'), findsOneWidget);
+    },
+  );
 
   testWidgets('exercise detail editor opens from summary actions', (
     tester,
@@ -433,10 +573,14 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    final benchCard = find.ancestor(
-      of: find.text('杠铃卧推'),
-      matching: find.byType(Card),
-    ).first;
+    await tester.scrollUntilVisible(
+      find.text('杠铃卧推'),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    final benchCard = find
+        .ancestor(of: find.text('杠铃卧推'), matching: find.byType(Card))
+        .first;
     await tester.tap(benchCard, warnIfMissed: false);
     await tester.pumpAndSettle();
 
@@ -458,10 +602,14 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    final benchCard = find.ancestor(
-      of: find.text('杠铃卧推'),
-      matching: find.byType(Card),
-    ).first;
+    await tester.scrollUntilVisible(
+      find.text('杠铃卧推'),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    final benchCard = find
+        .ancestor(of: find.text('杠铃卧推'), matching: find.byType(Card))
+        .first;
     await tester.tap(benchCard, warnIfMissed: false);
     await tester.pumpAndSettle();
     await tester.tap(find.text('+组'));
@@ -482,7 +630,9 @@ Widget _buildSessionEditorApp({
     overrides: [
       workoutRepositoryProvider.overrideWithValue(repository),
       authServiceProvider.overrideWithValue(_TestAuthService(client)),
-      userProfileServiceProvider.overrideWithValue(_TestUserProfileService(client)),
+      userProfileServiceProvider.overrideWithValue(
+        _TestUserProfileService(client),
+      ),
       settingsProvider.overrideWith(
         (ref) => SettingsController(
           ref.watch(authServiceProvider),
@@ -510,7 +660,9 @@ Widget _buildPushedSessionEditorApp({
     overrides: [
       workoutRepositoryProvider.overrideWithValue(repository),
       authServiceProvider.overrideWithValue(_TestAuthService(client)),
-      userProfileServiceProvider.overrideWithValue(_TestUserProfileService(client)),
+      userProfileServiceProvider.overrideWithValue(
+        _TestUserProfileService(client),
+      ),
       settingsProvider.overrideWith(
         (ref) => SettingsController(
           ref.watch(authServiceProvider),
@@ -554,7 +706,9 @@ Widget _buildSessionEditorAppWithRoutes({
     overrides: [
       workoutRepositoryProvider.overrideWithValue(repository),
       authServiceProvider.overrideWithValue(_TestAuthService(client)),
-      userProfileServiceProvider.overrideWithValue(_TestUserProfileService(client)),
+      userProfileServiceProvider.overrideWithValue(
+        _TestUserProfileService(client),
+      ),
       settingsProvider.overrideWith(
         (ref) => SettingsController(
           ref.watch(authServiceProvider),
@@ -632,7 +786,12 @@ class _RouteAwareExerciseCatalogService extends _TestExerciseCatalogService {
   _RouteAwareExerciseCatalogService(super.client);
 
   @override
-  Future<List<String>> getPrimaryMuscleGroups() async => ['胸部', '腿部', '手臂', '有氧'];
+  Future<List<String>> getPrimaryMuscleGroups() async => [
+    '胸部',
+    '腿部',
+    '手臂',
+    '有氧',
+  ];
 
   @override
   Future<List<String>> getEquipmentsByMuscleGroup(String muscleGroup) async =>

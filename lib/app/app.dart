@@ -11,6 +11,11 @@ import 'app_router.dart';
 class FitnessApp extends ConsumerWidget {
   const FitnessApp({super.key});
 
+  static const Set<String> _deepLinkRoutesHandledByShell = {
+    '/meal-analysis',
+    '/session-editor',
+  };
+
   List<Route<dynamic>> _handleInitialRoutes(String initialRoute) {
     debugPrint('[INFO] App initialRoute=$initialRoute');
     final defaultRoute = MaterialPageRoute<void>(
@@ -21,8 +26,8 @@ class FitnessApp extends ConsumerWidget {
       return [defaultRoute];
     }
 
-    if (initialRoute == '/meal-analysis') {
-      debugPrint('[INFO] meal-analysis 初始直达已回退到根页');
+    if (_deepLinkRoutesHandledByShell.contains(initialRoute)) {
+      debugPrint('[INFO] $initialRoute 初始直达已回退到根页');
       return [defaultRoute];
     }
 

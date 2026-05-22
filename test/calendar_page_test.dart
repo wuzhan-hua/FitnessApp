@@ -40,6 +40,14 @@ class _CalendarRangeRepo implements WorkoutRepository {
   }
 
   @override
+  Future<List<WorkoutSession>> getCompletedSessionsForCopy({
+    String? muscleGroup,
+    int limit = 20,
+  }) {
+    throw UnimplementedError();
+  }
+
+  @override
   Future<HomeSnapshot> getHomeSnapshot(DateTime date) {
     throw UnimplementedError();
   }

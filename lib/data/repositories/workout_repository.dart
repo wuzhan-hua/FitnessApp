@@ -16,6 +16,11 @@ abstract class WorkoutRepository {
     String muscleGroup,
   );
 
+  Future<List<WorkoutSession>> getCompletedSessionsForCopy({
+    String? muscleGroup,
+    int limit = 20,
+  });
+
   Future<WorkoutSession?> getSessionById(String id);
 
   Future<WorkoutSession?> getSessionByDate(DateTime date);

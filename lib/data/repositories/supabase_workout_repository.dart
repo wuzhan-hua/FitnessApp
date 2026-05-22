@@ -147,6 +147,31 @@ class SupabaseWorkoutRepository implements WorkoutRepository {
   }
 
   @override
+  Future<List<WorkoutSession>> getCompletedSessionsForCopy({
+    String? muscleGroup,
+    int limit = 20,
+  }) async {
+    final normalizedGroup = muscleGroup?.trim();
+    final fetchLimit = normalizedGroup == null || normalizedGroup.isEmpty
+        ? limit
+        : max(limit * 3, 50);
+    final recentSessions = await getRecentSessions(limit: fetchLimit);
+    return recentSessions
+        .where((session) => session.status == SessionStatus.completed)
+        .where((session) {
+          if (normalizedGroup == null || normalizedGroup.isEmpty) {
+            return true;
+          }
+          return ExerciseCatalogConstants.inferSessionGroupFromTitle(
+                session.title,
+              ) ==
+              normalizedGroup;
+        })
+        .take(limit)
+        .toList();
+  }
+
+  @override
   Future<WorkoutSession?> getSessionById(String id) async {
     if (!_isUuid(id)) {
       return null;

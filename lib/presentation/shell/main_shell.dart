@@ -32,6 +32,9 @@ class _MainShellState extends ConsumerState<MainShell> {
   void initState() {
     super.initState();
     Future<void>(() async {
+      if (!mounted) {
+        return;
+      }
       ref.read(foodLibraryProvider);
       final today = dayKey(DateTime.now());
       ref.read(dailyDietSummaryProvider(today));
@@ -40,6 +43,9 @@ class _MainShellState extends ConsumerState<MainShell> {
       }
       final month = ref.read(calendarMonthProvider);
       await prewarmWorkoutDataForCurrentUser(ref, calendarMonth: month);
+      if (!mounted) {
+        return;
+      }
     });
   }
 
