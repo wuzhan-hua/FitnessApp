@@ -14,3 +14,7 @@ fi
 flutter build web --release \
   --dart-define=SUPABASE_URL="${SUPABASE_URL}" \
   --dart-define=SUPABASE_ANON_KEY="${SUPABASE_ANON_KEY}"
+
+mkdir -p build/web/privacy build/web/terms
+cp web-static/privacy/index.html build/web/privacy/index.html
+cp web-static/terms/index.html build/web/terms/index.html

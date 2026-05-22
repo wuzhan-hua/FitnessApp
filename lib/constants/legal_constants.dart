@@ -1,7 +1,8 @@
 class LegalConstants {
   const LegalConstants._();
 
-  // 上架前请替换为正式线上文档地址。
+  // 域名未定前保持为空，避免误跳转到伪正式地址。
+  // 正式上线时请替换为实际可访问的法律页面链接。
   static const String privacyPolicyUrl = '';
   static const String termsOfServiceUrl = '';
 
