@@ -436,18 +436,32 @@ class _ProfileMenuSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = AppColors.of(context);
-    return Card(
+    return Container(
       margin: const EdgeInsets.only(bottom: AppSpacing.md),
+      decoration: BoxDecoration(
+        color: colors.panel,
+        borderRadius: const BorderRadius.all(Radius.circular(24)),
+        boxShadow: [
+          BoxShadow(
+            color: colors.textMuted.withValues(alpha: 0.04),
+            blurRadius: 18,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
       child: ClipRRect(
-        borderRadius: AppRadius.card,
+        borderRadius: const BorderRadius.all(Radius.circular(24)),
         child: Column(
           children: [
             for (var index = 0; index < children.length; index++) ...[
               if (index > 0)
-                Divider(
-                  height: 1,
-                  indent: 64,
-                  color: colors.textMuted.withValues(alpha: 0.12),
+                Padding(
+                  padding: const EdgeInsets.only(left: 72),
+                  child: Divider(
+                    height: 1,
+                    thickness: 0.8,
+                    color: colors.textMuted.withValues(alpha: 0.10),
+                  ),
                 ),
               children[index],
             ],
@@ -476,33 +490,57 @@ class _ProfileMenuTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = AppColors.of(context);
-    return ListTile(
-      contentPadding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.md,
-        vertical: AppSpacing.sm,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+            vertical: 14,
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 32,
+                height: 32,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: iconColor.withValues(alpha: 0.10),
+                  borderRadius: const BorderRadius.all(Radius.circular(10)),
+                ),
+                child: Icon(icon, color: iconColor, size: 18),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Text(
+                  title,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 17,
+                  ),
+                ),
+              ),
+              if (trailingText != null) ...[
+                const SizedBox(width: AppSpacing.sm),
+                Text(
+                  trailingText!,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: colors.textMuted,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+              const SizedBox(width: 4),
+              Icon(
+                Icons.chevron_right_rounded,
+                color: colors.textMuted.withValues(alpha: 0.72),
+                size: 20,
+              ),
+            ],
+          ),
+        ),
       ),
-      leading: Icon(icon, color: iconColor),
-      title: Text(
-        title,
-        style: Theme.of(
-          context,
-        ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
-      ),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (trailingText != null)
-            Text(
-              trailingText!,
-              style: Theme.of(
-                context,
-              ).textTheme.bodySmall?.copyWith(color: colors.textMuted),
-            ),
-          const SizedBox(width: AppSpacing.xs),
-          Icon(Icons.chevron_right, color: colors.textMuted),
-        ],
-      ),
-      onTap: onTap,
     );
   }
 }
