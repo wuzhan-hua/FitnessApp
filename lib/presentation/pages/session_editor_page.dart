@@ -743,11 +743,27 @@ class _SessionEditorPageState extends ConsumerState<SessionEditorPage> {
         return;
       }
     }
-    controller.replaceExercisesFromSession(selected);
+    _syncSessionInfoFromCopiedSession(controller, selected);
+    if (_selectedTrainingType == '休息日') {
+      controller.clearExercises();
+    } else {
+      controller.replaceExercisesFromSession(selected);
+    }
     setState(() {
       _newlyAddedExerciseId = null;
     });
     showLatestSnackBar(context, '已复制历史训练动作');
+  }
+
+  void _syncSessionInfoFromCopiedSession(
+    SessionEditorController controller,
+    WorkoutSession sourceSession,
+  ) {
+    final inferredGroup = _inferTrainingTypeFromTitle(sourceSession.title);
+    controller.updateSessionTitle(sourceSession.title);
+    setState(() {
+      _selectedTrainingType = inferredGroup;
+    });
   }
 
   Future<void> _showTrainingTypeDialog(

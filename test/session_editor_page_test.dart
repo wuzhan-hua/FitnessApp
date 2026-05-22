@@ -302,7 +302,12 @@ void main() {
 
     expect(find.text('站姿推举'), findsOneWidget);
     expect(find.text('杠铃卧推'), findsNothing);
-    expect(find.text('胸部训练日'), findsNothing);
+    await tester.scrollUntilVisible(
+      find.text('胸部训练日'),
+      -400,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(find.text('胸部训练日'), findsOneWidget);
     await tester.scrollUntilVisible(
       find.text('训练肌群：胸部'),
       -400,
