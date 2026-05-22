@@ -5,6 +5,7 @@ import '../domain/entities/workout_models.dart';
 import '../presentation/pages/auth_page.dart';
 import '../presentation/pages/admin_exercise_catalog_page.dart';
 import '../presentation/pages/admin_food_catalog_page.dart';
+import '../presentation/pages/about_jixun_page.dart';
 import '../presentation/pages/contact_author_page.dart';
 import '../presentation/pages/food_entry_page.dart';
 import '../presentation/pages/food_library_page.dart';
@@ -118,6 +119,12 @@ class AppRouter {
     if (settings.name == ContactAuthorPage.routeName) {
       return MaterialPageRoute<void>(
         builder: (_) => const ContactAuthorPage(),
+        settings: settings,
+      );
+    }
+    if (settings.name == AboutJixunPage.routeName) {
+      return MaterialPageRoute<void>(
+        builder: (_) => const AboutJixunPage(),
         settings: settings,
       );
     }

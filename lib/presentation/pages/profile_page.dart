@@ -1,16 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../application/providers/providers.dart';
 import '../../application/state/auth_status.dart';
 import '../../application/state/app_settings.dart';
-import '../../constants/legal_constants.dart';
 import '../../theme/app_theme.dart';
-import '../../utils/app_error.dart';
 import '../../utils/snackbar_helper.dart';
-import 'admin_exercise_catalog_page.dart';
-import 'admin_food_catalog_page.dart';
+import 'about_jixun_page.dart';
 import 'analytics_page.dart';
 import 'auth_page.dart';
 import 'contact_author_page.dart';
@@ -21,32 +17,6 @@ class ProfilePage extends ConsumerWidget {
 
   void _showFeedback(BuildContext context, String message) {
     showLatestSnackBar(context, message);
-  }
-
-  Future<void> _openLegalDocument(
-    BuildContext context, {
-    required String url,
-    required String documentName,
-  }) async {
-    final normalizedUrl = url.trim();
-    if (normalizedUrl.isEmpty) {
-      _showFeedback(context, '请先配置$documentName地址后再使用。');
-      return;
-    }
-
-    final uri = Uri.tryParse(normalizedUrl);
-    if (uri == null) {
-      _showFeedback(context, '$documentName地址格式无效，请检查配置。');
-      return;
-    }
-
-    final launched = await launchUrl(
-      uri,
-      mode: LaunchMode.externalApplication,
-    );
-    if (!launched && context.mounted) {
-      _showFeedback(context, '打开$documentName失败，请稍后重试。');
-    }
   }
 
   Future<void> _showUnitPicker(
@@ -177,134 +147,6 @@ class ProfilePage extends ConsumerWidget {
     _showFeedback(context, '默认休息已更新为 $draftRestSeconds 秒');
   }
 
-  Future<void> _confirmAndSignOut(
-    BuildContext context,
-    WidgetRef ref,
-    DateTime currentMonth,
-    DateTime selectedDietDate,
-  ) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('确认退出登录'),
-        content: Text(
-          (ref.read(authStatusProvider).valueOrNull ?? AuthStatus.signedOut)
-                  .isGuest
-              ? '游客退出后将返回登录页，但会保留当前游客身份和训练数据，后续再次点击游客登录可继续使用。'
-              : '退出后将返回登录页，本地主题和偏好设置会保留。',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('取消'),
-          ),
-          FilledButton.tonal(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('确认退出'),
-          ),
-        ],
-      ),
-    );
-    if (confirmed != true || !context.mounted) {
-      return;
-    }
-
-    try {
-      await ref.read(authServiceProvider).signOut();
-      ref.invalidate(guestSoftSignedOutProvider);
-      ref.invalidate(authSessionProvider);
-      ref.invalidate(authStatusProvider);
-      invalidateAuthScopedProvidersOnSignOut(ref, dietDate: selectedDietDate);
-      if (!context.mounted) return;
-      final currentStatus =
-          ref.read(authStatusProvider).valueOrNull ?? AuthStatus.signedOut;
-      _showFeedback(context, currentStatus.isGuest ? '已退出游客模式' : '已退出登录');
-    } catch (error) {
-      if (!context.mounted) return;
-      final appError = AppError.from(error, fallbackMessage: '退出失败，请稍后重试。');
-      _showFeedback(context, appError.message);
-    }
-  }
-
-  Future<void> _confirmAndDeleteAccount(
-    BuildContext context,
-    WidgetRef ref,
-    DateTime selectedDietDate,
-  ) async {
-    final authStatus =
-        ref.read(authStatusProvider).valueOrNull ?? AuthStatus.signedOut;
-    if (!authStatus.isSignedIn) {
-      _showFeedback(context, '请先登录后再操作');
-      return;
-    }
-
-    final firstConfirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('删除账号'),
-        content: Text(
-          authStatus.isGuest
-              ? '删除后将彻底清除当前游客账号及其训练记录、饮食记录、头像资料，且无法恢复。'
-              : '删除后将彻底清除当前账号及其训练记录、饮食记录、头像资料，且无法恢复。',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('取消'),
-          ),
-          FilledButton.tonal(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('继续删除'),
-          ),
-        ],
-      ),
-    );
-    if (firstConfirmed != true || !context.mounted) {
-      return;
-    }
-
-    final secondConfirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('最终确认'),
-        content: const Text('此操作不可恢复。确认后将立即删除账号及所有关联数据。'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('返回'),
-          ),
-          FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: const Color(0xFFDC2626),
-            ),
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('确认删除'),
-          ),
-        ],
-      ),
-    );
-    if (secondConfirmed != true || !context.mounted) {
-      return;
-    }
-
-    try {
-      await ref.read(authServiceProvider).deleteCurrentAccount();
-      ref.invalidate(guestSoftSignedOutProvider);
-      ref.invalidate(authSessionProvider);
-      ref.invalidate(authStatusProvider);
-      invalidateAuthScopedProvidersOnSignOut(ref, dietDate: selectedDietDate);
-      if (!context.mounted) return;
-      _showFeedback(context, '账号已删除');
-      if (Navigator.of(context).canPop()) {
-        Navigator.of(context).pop();
-      }
-    } catch (error) {
-      if (!context.mounted) return;
-      final appError = AppError.from(error, fallbackMessage: '删除账号失败，请稍后重试。');
-      _showFeedback(context, appError.message);
-    }
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(settingsProvider);
@@ -313,12 +155,7 @@ class ProfilePage extends ConsumerWidget {
         authSession?.status ??
         ref.watch(authStatusProvider).valueOrNull ??
         AuthStatus.signedOut;
-    final isAdminAsync = authStatus.isSignedIn
-        ? ref.watch(currentUserIsAdminProvider)
-        : const AsyncData(false);
     final colors = AppColors.of(context);
-    final month = ref.watch(calendarMonthProvider);
-    final selectedDietDate = ref.watch(selectedDietDateProvider);
 
     Future<void> refreshProfile() async {
       try {
@@ -434,98 +271,15 @@ class ProfilePage extends ConsumerWidget {
                     },
                   ),
                   _ProfileMenuTile(
-                    icon: Icons.privacy_tip_outlined,
+                    icon: Icons.info_outline_rounded,
                     iconColor: const Color(0xFF0EA5E9),
-                    title: '隐私政策',
-                    onTap: () => _openLegalDocument(
+                    title: '关于即训',
+                    onTap: () => Navigator.of(
                       context,
-                      url: LegalConstants.privacyPolicyUrl,
-                      documentName: '隐私政策',
-                    ),
+                    ).pushNamed(AboutJixunPage.routeName),
                   ),
-                  _ProfileMenuTile(
-                    icon: Icons.description_outlined,
-                    iconColor: colors.accent,
-                    title: '用户协议',
-                    onTap: () => _openLegalDocument(
-                      context,
-                      url: LegalConstants.termsOfServiceUrl,
-                      documentName: '用户协议',
-                    ),
-                  ),
-                  if (authStatus.isSignedIn)
-                    _ProfileMenuTile(
-                      icon: Icons.logout,
-                      iconColor: const Color(0xFFEF4444),
-                      title: '退出登录',
-                      onTap: () => _confirmAndSignOut(
-                        context,
-                        ref,
-                        month,
-                        selectedDietDate,
-                      ),
-                    ),
-                  if (authStatus.isSignedIn)
-                    _ProfileMenuTile(
-                      icon: Icons.delete_forever_outlined,
-                      iconColor: const Color(0xFFDC2626),
-                      title: '删除账号',
-                      onTap: () => _confirmAndDeleteAccount(
-                        context,
-                        ref,
-                        selectedDietDate,
-                      ),
-                    ),
                 ],
               ),
-              if (authStatus.isSignedIn)
-                ...isAdminAsync.when(
-                  data: (isAdmin) {
-                    if (!isAdmin) {
-                      return const <Widget>[];
-                    }
-                    return [
-                      _ProfileMenuSection(
-                        children: [
-                          _ProfileMenuTile(
-                            icon: Icons.admin_panel_settings_outlined,
-                            iconColor: colors.accent,
-                            title: '动作库管理',
-                            onTap: () {
-                              Navigator.of(
-                                context,
-                              ).pushNamed(AdminExerciseCatalogPage.routeName);
-                            },
-                          ),
-                          _ProfileMenuTile(
-                            icon: Icons.restaurant_menu_outlined,
-                            iconColor: colors.warning,
-                            title: '食物库管理',
-                            onTap: () {
-                              Navigator.of(
-                                context,
-                              ).pushNamed(AdminFoodCatalogPage.routeName);
-                            },
-                          ),
-                        ],
-                      ),
-                    ];
-                  },
-                  loading: () => const <Widget>[],
-                  error: (_, _) => [
-                    _ProfileMenuSection(
-                      children: [
-                        _ProfileMenuTile(
-                          icon: Icons.admin_panel_settings_outlined,
-                          iconColor: colors.warning,
-                          title: '管理员权限加载失败，点击重试',
-                          onTap: () =>
-                              ref.invalidate(currentUserIsAdminProvider),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
             ],
           ),
         ),
