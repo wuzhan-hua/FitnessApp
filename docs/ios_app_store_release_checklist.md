@@ -96,8 +96,8 @@ supabase secrets set \
 上架前请替换为正式线上 URL：
 
 ```dart
-static const String privacyPolicyUrl = 'https://你的域名/privacy';
-static const String termsOfServiceUrl = 'https://你的域名/terms';
+static const String privacyPolicyUrl = 'https://wzhua.indevs.in/privacy';
+static const String termsOfServiceUrl = 'https://wzhua.indevs.in/terms';
 ```
 
 如果不替换，App 内入口会提示“请先配置地址后再使用”，不会直接崩溃，但不满足正式上架预期。
