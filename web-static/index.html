@@ -1,0 +1,1045 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta
+    name="description"
+    content="即训是一款面向有训练基础用户的轻量、高效、专业训练记录工具，支持训练记录、饮食记录、个人资料管理与游客/邮箱账号。"
+  >
+  <title>即训 | 专业训练记录工具</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6fbff;
+      --hero-start: #d9ecff;
+      --hero-end: #c6e2ff;
+      --card: rgba(255, 255, 255, 0.92);
+      --card-strong: #ffffff;
+      --text: #1f2430;
+      --muted: #5f6b7a;
+      --line: rgba(31, 36, 48, 0.1);
+      --blue: #2d6df6;
+      --blue-soft: rgba(45, 109, 246, 0.12);
+      --shadow: 0 24px 60px rgba(64, 110, 164, 0.14);
+      --radius-xl: 34px;
+      --radius-lg: 28px;
+      --radius-md: 22px;
+      --max: 1320px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC",
+        "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top center, rgba(45, 109, 246, 0.08), transparent 28%),
+        linear-gradient(180deg, #ffffff 0%, var(--bg) 100%);
+      line-height: 1.7;
+    }
+
+    a {
+      color: inherit;
+    }
+
+    .page {
+      min-height: 100vh;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(31, 36, 48, 0.06);
+    }
+
+    .topbar-inner {
+      width: min(calc(100% - 36px), var(--max));
+      margin: 0 auto;
+      min-height: 96px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 14px;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .brand-mark {
+      display: grid;
+      place-items: center;
+      width: 56px;
+      height: 56px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, #2d6df6 0%, #7aa8ff 100%);
+      color: #fff;
+      font-size: 24px;
+      font-weight: 800;
+      box-shadow: 0 16px 28px rgba(45, 109, 246, 0.22);
+    }
+
+    .brand-text {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .brand-title {
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: 0.01em;
+    }
+
+    .brand-subtitle {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .nav a {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 96px;
+      padding: 0 6px;
+      color: var(--text);
+      text-decoration: none;
+      font-size: 16px;
+      font-weight: 700;
+      transition: color 180ms ease;
+    }
+
+    .nav a:hover,
+    .nav a.active {
+      color: var(--blue);
+    }
+
+    .nav a.active::after,
+    .nav a:hover::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: 6px;
+      width: 76px;
+      height: 3px;
+      border-radius: 999px;
+      background: var(--blue);
+      transform: translateX(-50%);
+    }
+
+    .hero {
+      background:
+        radial-gradient(circle at 78% 16%, rgba(255, 255, 255, 0.62), transparent 26%),
+        radial-gradient(circle at 18% 80%, rgba(255, 255, 255, 0.48), transparent 24%),
+        linear-gradient(135deg, var(--hero-start) 0%, var(--hero-end) 100%);
+    }
+
+    .hero-inner,
+    .section-inner {
+      width: min(calc(100% - 36px), var(--max));
+      margin: 0 auto;
+    }
+
+    .hero-inner {
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(420px, 0.95fr);
+      gap: 34px;
+      padding: 48px 0 60px;
+      align-items: center;
+    }
+
+    .hero-copy {
+      padding-right: 8px;
+    }
+
+    .hero-kicker {
+      font-size: clamp(24px, 3vw, 34px);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+    }
+
+    .hero-title {
+      margin: 20px 0 26px;
+      font-size: clamp(54px, 6vw, 78px);
+      line-height: 1.08;
+      letter-spacing: -0.05em;
+      font-weight: 900;
+    }
+
+    .hero-tabs {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 12px;
+      margin: 0 0 28px;
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.34);
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.55);
+      max-width: 980px;
+    }
+
+    .hero-tab {
+      min-height: 58px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      font-size: 16px;
+      font-weight: 700;
+      color: #1f2430;
+      background: transparent;
+    }
+
+    .hero-tab.active {
+      color: #fff;
+      background: #0f1217;
+      box-shadow: 0 12px 24px rgba(15, 18, 23, 0.18);
+    }
+
+    .hero-lead,
+    .hero-note {
+      color: #3f4a5b;
+      font-size: 18px;
+    }
+
+    .hero-lead {
+      margin: 0 0 8px;
+    }
+
+    .hero-note {
+      margin: 0 0 28px;
+    }
+
+    .hero-points {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px 24px;
+      margin: 34px 0 34px;
+      padding: 0;
+      list-style: none;
+    }
+
+    .hero-points li {
+      position: relative;
+      padding-left: 32px;
+      font-size: 16px;
+      font-weight: 600;
+      color: #314050;
+    }
+
+    .hero-points li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 6px;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at center, #ffffff 24%, transparent 26%),
+        linear-gradient(135deg, #2d6df6, #8cb4ff);
+      box-shadow: 0 6px 12px rgba(45, 109, 246, 0.2);
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 18px;
+      flex-wrap: wrap;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 220px;
+      min-height: 86px;
+      padding: 0 34px;
+      border-radius: 999px;
+      text-decoration: none;
+      font-size: 20px;
+      font-weight: 800;
+      transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+    }
+
+    .button:hover {
+      transform: translateY(-2px);
+    }
+
+    .button.primary {
+      color: #fff;
+      background: linear-gradient(135deg, #2d6df6 0%, #1d5dec 100%);
+      box-shadow: 0 20px 36px rgba(45, 109, 246, 0.24);
+    }
+
+    .button.secondary {
+      color: var(--blue);
+      background: rgba(255, 255, 255, 0.36);
+      border: 2px solid rgba(45, 109, 246, 0.52);
+    }
+
+    .hero-visual {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+      align-items: stretch;
+      min-height: 760px;
+    }
+
+    .visual-column {
+      display: grid;
+      gap: 16px;
+      grid-auto-rows: minmax(120px, auto);
+    }
+
+    .visual-card {
+      position: relative;
+      overflow: hidden;
+      padding: 22px;
+      border-radius: var(--radius-lg);
+      background: rgba(255, 255, 255, 0.78);
+      border: 1px solid rgba(255, 255, 255, 0.58);
+      box-shadow: var(--shadow);
+      min-height: 148px;
+    }
+
+    .visual-card.tall {
+      min-height: 286px;
+    }
+
+    .visual-card.medium {
+      min-height: 220px;
+    }
+
+    .visual-card.soft-blue {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.88), rgba(234, 244, 255, 0.92));
+    }
+
+    .visual-card.soft-dark {
+      color: #edf4ff;
+      background: linear-gradient(180deg, rgba(35, 53, 88, 0.96), rgba(26, 42, 72, 0.94));
+    }
+
+    .visual-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      color: var(--blue);
+      background: var(--blue-soft);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .visual-card.soft-dark .visual-tag {
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.14);
+    }
+
+    .visual-title {
+      margin: 14px 0 10px;
+      font-size: 30px;
+      line-height: 1.12;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+    }
+
+    .visual-text {
+      margin: 0;
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    .soft-dark .visual-text {
+      color: rgba(237, 244, 255, 0.8);
+    }
+
+    .device {
+      position: absolute;
+      right: 18px;
+      bottom: 18px;
+      width: 148px;
+      height: 288px;
+      border-radius: 34px;
+      padding: 14px 10px;
+      background: linear-gradient(180deg, #12161c, #20252c);
+      box-shadow: 0 24px 40px rgba(22, 32, 46, 0.32);
+      transform: rotate(10deg);
+    }
+
+    .device-screen {
+      width: 100%;
+      height: 100%;
+      border-radius: 24px;
+      padding: 18px 14px;
+      background: linear-gradient(180deg, #fafcff, #dcecff);
+      overflow: hidden;
+    }
+
+    .device-notch {
+      width: 54px;
+      height: 14px;
+      margin: 0 auto 14px;
+      border-radius: 999px;
+      background: #101419;
+    }
+
+    .screen-line {
+      height: 12px;
+      border-radius: 999px;
+      background: rgba(45, 109, 246, 0.2);
+      margin-bottom: 10px;
+    }
+
+    .screen-line.short {
+      width: 72%;
+    }
+
+    .screen-line.tiny {
+      width: 44%;
+    }
+
+    .screen-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      margin: 12px 0;
+    }
+
+    .screen-box {
+      height: 58px;
+      border-radius: 16px;
+      background: rgba(45, 109, 246, 0.18);
+    }
+
+    .screen-chart {
+      height: 108px;
+      border-radius: 22px;
+      background:
+        linear-gradient(180deg, rgba(45, 109, 246, 0.18), rgba(45, 109, 246, 0.06)),
+        repeating-linear-gradient(90deg, rgba(45, 109, 246, 0.08), rgba(45, 109, 246, 0.08) 16px, transparent 16px, transparent 32px);
+    }
+
+    .panel-icon {
+      display: inline-grid;
+      place-items: center;
+      width: 64px;
+      height: 64px;
+      border-radius: 20px;
+      margin-bottom: 18px;
+      background: linear-gradient(135deg, #e8f1ff, #cfe3ff);
+      color: var(--blue);
+      font-size: 28px;
+      font-weight: 800;
+    }
+
+    .section {
+      padding: 82px 0;
+    }
+
+    .section h2 {
+      margin: 0;
+      font-size: clamp(30px, 4vw, 46px);
+      line-height: 1.16;
+      letter-spacing: -0.04em;
+    }
+
+    .section-header {
+      display: grid;
+      gap: 14px;
+      margin-bottom: 30px;
+    }
+
+    .section-kicker {
+      color: var(--muted);
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .section-desc {
+      max-width: 760px;
+      color: var(--muted);
+      font-size: 18px;
+    }
+
+    .feature-grid,
+    .scenario-grid,
+    .advantage-grid,
+    .record-grid {
+      display: grid;
+      gap: 22px;
+    }
+
+    .feature-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .scenario-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .advantage-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .record-grid {
+      grid-template-columns: 1.4fr 1fr 1fr;
+    }
+
+    .info-card {
+      padding: 28px;
+      border-radius: var(--radius-lg);
+      background: var(--card);
+      border: 1px solid rgba(255, 255, 255, 0.66);
+      box-shadow: var(--shadow);
+    }
+
+    .info-card h3 {
+      margin: 0 0 12px;
+      font-size: 24px;
+      line-height: 1.2;
+    }
+
+    .info-card p,
+    .info-card li {
+      color: var(--muted);
+      font-size: 16px;
+    }
+
+    .info-card ul {
+      margin: 0;
+      padding-left: 18px;
+    }
+
+    .feature-art {
+      margin-top: 18px;
+      height: 170px;
+      border-radius: 22px;
+      background:
+        radial-gradient(circle at 78% 24%, rgba(45, 109, 246, 0.16), transparent 20%),
+        linear-gradient(180deg, #f6fbff 0%, #e7f1ff 100%);
+      border: 1px solid rgba(45, 109, 246, 0.08);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .feature-art::before,
+    .feature-art::after {
+      content: "";
+      position: absolute;
+      border-radius: 26px;
+      background: linear-gradient(180deg, #ffffff, #dbe9ff);
+      box-shadow: 0 18px 30px rgba(45, 109, 246, 0.12);
+    }
+
+    .feature-art::before {
+      width: 86px;
+      height: 126px;
+      right: 26px;
+      top: 22px;
+    }
+
+    .feature-art::after {
+      width: 142px;
+      height: 84px;
+      left: 22px;
+      bottom: 20px;
+    }
+
+    .info-card.primary {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(244, 249, 255, 0.96));
+    }
+
+    .contact {
+      background:
+        radial-gradient(circle at 12% 10%, rgba(255, 255, 255, 0.46), transparent 24%),
+        linear-gradient(135deg, #d3e9ff 0%, #c5e2ff 100%);
+    }
+
+    .contact-shell {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 24px;
+      align-items: stretch;
+    }
+
+    .contact-card {
+      padding: 34px;
+      border-radius: var(--radius-xl);
+      background: rgba(255, 255, 255, 0.78);
+      border: 1px solid rgba(255, 255, 255, 0.64);
+      box-shadow: var(--shadow);
+    }
+
+    .contact-card h2 {
+      margin-bottom: 16px;
+    }
+
+    .contact-list {
+      display: grid;
+      gap: 14px;
+      margin-top: 24px;
+    }
+
+    .contact-item {
+      padding: 18px 20px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.72);
+      border: 1px solid rgba(45, 109, 246, 0.08);
+    }
+
+    .contact-label {
+      color: var(--muted);
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+
+    .contact-value {
+      font-size: 18px;
+      font-weight: 700;
+      word-break: break-word;
+    }
+
+    .footer {
+      padding: 26px 0 34px;
+      background: #ffffff;
+      border-top: 1px solid rgba(31, 36, 48, 0.06);
+    }
+
+    .footer-inner {
+      width: min(calc(100% - 36px), var(--max));
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    @media (max-width: 1180px) {
+      .hero-inner,
+      .contact-shell,
+      .record-grid,
+      .feature-grid,
+      .scenario-grid,
+      .advantage-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-visual {
+        min-height: 0;
+      }
+    }
+
+    @media (max-width: 900px) {
+      .topbar-inner {
+        min-height: auto;
+        padding: 20px 0;
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .nav {
+        gap: 14px 18px;
+        justify-content: flex-start;
+      }
+
+      .nav a {
+        min-height: auto;
+        padding: 6px 0 14px;
+      }
+
+      .hero-inner {
+        padding-top: 34px;
+      }
+
+      .hero-tabs,
+      .hero-points {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .hero-visual {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .topbar-inner,
+      .hero-inner,
+      .section-inner,
+      .footer-inner {
+        width: min(calc(100% - 22px), var(--max));
+      }
+
+      .hero-tabs,
+      .hero-points {
+        grid-template-columns: 1fr;
+      }
+
+      .button {
+        width: 100%;
+        min-width: 0;
+        min-height: 68px;
+        font-size: 18px;
+      }
+
+      .footer-inner {
+        flex-direction: column;
+      }
+
+      .hero-title {
+        font-size: 44px;
+      }
+
+      .section {
+        padding: 62px 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="topbar" id="home">
+      <div class="topbar-inner">
+        <a class="brand" href="#home">
+          <span class="brand-mark">即</span>
+          <span class="brand-text">
+            <span class="brand-title">即训</span>
+            <span class="brand-subtitle">Jixun Training Log</span>
+          </span>
+        </a>
+
+        <nav class="nav" aria-label="首页导航">
+          <a class="active" href="#home">首页</a>
+          <a href="#features">核心功能</a>
+          <a href="#scenarios">使用场景</a>
+          <a href="#advantages">产品优势</a>
+          <a href="#records">记录方式</a>
+          <a href="#contact">联系开发者</a>
+        </nav>
+      </div>
+    </header>
+
+    <section class="hero">
+      <div class="hero-inner">
+        <div class="hero-copy">
+          <div class="hero-tabs" aria-hidden="true">
+            <div class="hero-tab">训练记录</div>
+            <div class="hero-tab active">饮食记录</div>
+            <div class="hero-tab">个人资料</div>
+            <div class="hero-tab">游客登录</div>
+            <div class="hero-tab">邮箱账号</div>
+          </div>
+
+          <div class="hero-kicker">即训，面向训练基础用户的记录工具</div>
+          <h1 class="hero-title">把训练过程整理清楚，才能真正长期复盘。</h1>
+          <p class="hero-lead">
+            即训聚焦训练记录、饮食记录与个人资料管理，减少冗余功能干扰，
+            让记录更顺手、历史更清晰、复盘更直接。
+          </p>
+          <p class="hero-note">
+            适合已经在稳定训练、希望长期追踪进展，而不是被内容流打断节奏的用户。
+          </p>
+
+          <ul class="hero-points">
+            <li>训练历史可回看</li>
+            <li>饮食记录更清晰</li>
+            <li>个人资料集中管理</li>
+            <li>游客模式先开始</li>
+            <li>邮箱账号易长期使用</li>
+            <li>不构成医疗建议</li>
+          </ul>
+
+          <div class="hero-actions">
+            <a class="button primary" href="mailto:wzhua0924@gmail.com?subject=%E5%85%B3%E4%BA%8E%E5%8D%B3%E8%AE%AD%20App">联系开发者</a>
+            <a class="button secondary" href="#features">立即了解</a>
+          </div>
+        </div>
+
+        <div class="hero-visual" aria-hidden="true">
+          <div class="visual-column">
+            <article class="visual-card tall soft-blue">
+              <div class="visual-tag">Workout</div>
+              <h3 class="visual-title">训练记录更完整</h3>
+              <p class="visual-text">动作、组数、次数、重量与备注统一沉淀，减少零散记录带来的回看成本。</p>
+              <div class="device">
+                <div class="device-screen">
+                  <div class="device-notch"></div>
+                  <div class="screen-line"></div>
+                  <div class="screen-line short"></div>
+                  <div class="screen-grid">
+                    <div class="screen-box"></div>
+                    <div class="screen-box"></div>
+                  </div>
+                  <div class="screen-chart"></div>
+                </div>
+              </div>
+            </article>
+            <article class="visual-card">
+              <div class="visual-tag">Profile</div>
+              <h3 class="visual-title">资料上下文不缺失</h3>
+              <p class="visual-text">头像、身体信息、训练背景集中整理，避免记录脱离个人语境。</p>
+            </article>
+            <article class="visual-card medium soft-dark">
+              <div class="visual-tag">History</div>
+              <h3 class="visual-title">历史数据能复盘</h3>
+              <p class="visual-text">不是一次性输入，而是为长期追踪和回顾训练节奏服务。</p>
+            </article>
+          </div>
+
+          <div class="visual-column">
+            <article class="visual-card medium">
+              <div class="panel-icon">餐</div>
+              <div class="visual-tag">Nutrition</div>
+              <h3 class="visual-title">饮食记录更直观</h3>
+              <p class="visual-text">记录摄入时间、餐次与营养信息，帮助把训练和饮食放在同一条时间线上看。</p>
+            </article>
+            <article class="visual-card tall soft-blue">
+              <div class="panel-icon">游</div>
+              <div class="visual-tag">Access</div>
+              <h3 class="visual-title">游客先用，账号后补</h3>
+              <p class="visual-text">支持游客登录与邮箱账号，先开始记录，再决定是否长期保留和管理。</p>
+            </article>
+            <article class="visual-card">
+              <div class="visual-tag">Focus</div>
+              <h3 class="visual-title">轻量但不空洞</h3>
+              <p class="visual-text">不追求内容堆叠，而是把每一次记录做成有价值的历史切片。</p>
+            </article>
+          </div>
+
+          <div class="visual-column">
+            <article class="visual-card medium soft-dark">
+              <div class="visual-tag">Review</div>
+              <h3 class="visual-title">适合长期训练者</h3>
+              <p class="visual-text">更适合规律训练、重视追踪与复盘的人，而不是只看短期激励内容的用户。</p>
+            </article>
+            <article class="visual-card">
+              <div class="panel-icon">稳</div>
+              <div class="visual-tag">Boundary</div>
+              <h3 class="visual-title">记录工具，不替代专业建议</h3>
+              <p class="visual-text">即训仅用于训练与饮食信息记录，不构成医疗、营养或康复建议。</p>
+            </article>
+            <article class="visual-card tall soft-blue">
+              <div class="visual-tag">Jixun</div>
+              <h3 class="visual-title">从输入，到整理，再到回看</h3>
+              <p class="visual-text">在单个 App 里完成记录、查看与复盘，减少在多个工具之间切换的摩擦。</p>
+            </article>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="features">
+      <div class="section-inner">
+        <div class="section-header">
+          <div class="section-kicker">即训，核心功能</div>
+          <h2>围绕训练、饮食、资料与账号，搭建更清晰的记录闭环</h2>
+          <div class="section-desc">
+            页面结构参考企业官网，但功能表述只覆盖当前真实可用能力，不用虚构案例、合作方或夸张数字撑场面。
+          </div>
+        </div>
+
+        <div class="feature-grid">
+          <article class="info-card primary">
+            <h3>训练记录</h3>
+            <p>围绕动作名称、组数、次数、重量与备注完成训练记录，为后续回看和追踪保留完整上下文。</p>
+            <div class="feature-art"></div>
+          </article>
+          <article class="info-card">
+            <h3>饮食记录</h3>
+            <p>记录摄入时间、餐次与营养信息，让饮食与训练不再割裂，便于在同一时间线上观察变化。</p>
+            <div class="feature-art"></div>
+          </article>
+          <article class="info-card">
+            <h3>个人资料</h3>
+            <p>头像、基本资料、训练背景统一管理，帮助你在回顾数据时保留足够明确的个人语境。</p>
+            <div class="feature-art"></div>
+          </article>
+          <article class="info-card">
+            <h3>游客 / 邮箱账号</h3>
+            <p>可以先以游客身份开始记录，再根据需要切换到邮箱账号，降低初次使用时的阻力。</p>
+            <div class="feature-art"></div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="scenarios">
+      <div class="section-inner">
+        <div class="section-header">
+          <div class="section-kicker">即训，使用场景</div>
+          <h2>适合想认真记录训练过程，而不是被内容流分散注意力的人</h2>
+          <div class="section-desc">
+            如果你已经开始规律训练，想把过程沉淀成长期可追踪的个人数据，即训会比以内容消费为核心的产品更贴近需求。
+          </div>
+        </div>
+
+        <div class="scenario-grid">
+          <article class="info-card">
+            <h3>规律训练人群</h3>
+            <p>适合已经形成训练习惯，希望持续记录动作表现与训练节奏的人。</p>
+          </article>
+          <article class="info-card">
+            <h3>饮食配合训练</h3>
+            <p>适合不仅关注训练本身，也想把饮食输入与训练效果放在一起看的用户。</p>
+          </article>
+          <article class="info-card">
+            <h3>长期复盘导向</h3>
+            <p>适合重视历史回看、趋势观察和长期复盘，而不是只追求即时打卡感的人。</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="advantages">
+      <div class="section-inner">
+        <div class="section-header">
+          <div class="section-kicker">即训，产品优势</div>
+          <h2>轻量、高效、专业，保持真实边界，不靠堆叠概念制造复杂感</h2>
+        </div>
+
+        <div class="advantage-grid">
+          <article class="info-card">
+            <h3>轻量</h3>
+            <ul>
+              <li>减少与记录无关的噪音功能</li>
+              <li>聚焦真正需要长期保留的数据</li>
+              <li>首页、流程和入口尽量直接</li>
+            </ul>
+          </article>
+          <article class="info-card">
+            <h3>高效</h3>
+            <ul>
+              <li>训练与饮食都能快速输入和集中查看</li>
+              <li>游客可先使用，再决定是否转邮箱账号</li>
+              <li>减少在多个工具之间切换的摩擦</li>
+            </ul>
+          </article>
+          <article class="info-card">
+            <h3>专业</h3>
+            <ul>
+              <li>围绕训练记录而不是娱乐内容组织体验</li>
+              <li>重视历史回看和长期追踪</li>
+              <li>强调真实输入而不是虚假激励</li>
+            </ul>
+          </article>
+          <article class="info-card">
+            <h3>边界清晰</h3>
+            <ul>
+              <li>仅用于训练与饮食信息记录和管理</li>
+              <li>不构成医疗、营养或康复建议</li>
+              <li>不夸大产品能力，也不伪装企业规模</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="records">
+      <div class="section-inner">
+        <div class="section-header">
+          <div class="section-kicker">即训，记录方式</div>
+          <h2>用企业官网式的信息组织，展示真实的产品记录链路</h2>
+          <div class="section-desc">
+            这里不放虚假的客户 logo 或商业案例，而是用卡片矩阵呈现即训真正提供的记录方式和使用路径。
+          </div>
+        </div>
+
+        <div class="record-grid">
+          <article class="info-card primary">
+            <h3>训练记录链路</h3>
+            <p>
+              从输入动作、组数、次数、重量开始，到形成单次训练历史，再到后续回顾训练节奏，
+              即训更关注“记录是否持续有用”，而不是一次性录入是否好看。
+            </p>
+            <ul>
+              <li>动作与表现数据统一整理</li>
+              <li>训练过程可留备注和上下文</li>
+              <li>历史数据便于后续回看</li>
+            </ul>
+          </article>
+          <article class="info-card">
+            <h3>饮食记录链路</h3>
+            <p>记录摄入时间、餐次与营养信息，帮助你把训练之外的输入也纳入长期观察范围。</p>
+          </article>
+          <article class="info-card">
+            <h3>账号与资料链路</h3>
+            <p>支持游客模式快速开始，也支持邮箱账号长期管理，让使用门槛和长期沉淀兼顾。</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section contact" id="contact">
+      <div class="section-inner">
+        <div class="contact-shell">
+          <article class="contact-card">
+            <div class="section-kicker">即训，联系开发者</div>
+            <h2>如果你希望了解产品、提出建议，或反馈使用问题，可以直接联系我。</h2>
+            <div class="section-desc">
+              当前官网页主要用于产品说明与上架配套展示。页面内容会随着 App 持续迭代而更新，但整体仍保持真实、克制和可验证。
+            </div>
+            <div class="hero-actions" style="margin-top: 28px;">
+              <a class="button primary" href="mailto:wzhua0924@gmail.com?subject=%E5%85%B3%E4%BA%8E%E5%8D%B3%E8%AE%AD%20App">发送邮件</a>
+            </div>
+          </article>
+
+          <aside class="contact-card">
+            <div class="contact-list">
+              <div class="contact-item">
+                <div class="contact-label">开发者</div>
+                <div class="contact-value">吴展华</div>
+              </div>
+              <div class="contact-item">
+                <div class="contact-label">联系邮箱</div>
+                <div class="contact-value">wzhua0924@gmail.com</div>
+              </div>
+              <div class="contact-item">
+                <div class="contact-label">官网域名</div>
+                <div class="contact-value">wzhua.indevs.in</div>
+              </div>
+              <div class="contact-item">
+                <div class="contact-label">产品定位</div>
+                <div class="contact-value">训练记录、饮食记录与资料管理工具</div>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        <span>即训 · 面向有训练基础用户的训练记录工具</span>
+        <span>仅用于记录与管理，不构成医疗、营养或康复建议</span>
+      </div>
+    </footer>
+  </div>
+</body>
+</html>
