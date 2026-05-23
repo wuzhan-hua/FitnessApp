@@ -27,22 +27,18 @@
 - Build command：`mkdir -p dist/privacy dist/terms && cp web-static/privacy/index.html dist/privacy/index.html && cp web-static/terms/index.html dist/terms/index.html`
 - Build output directory：`dist`
 - Root directory：项目根目录
-- Deployment command：
-  - 如果当前界面强制必填，使用 `npx wrangler pages deploy dist --project-name=<你的 Pages 项目名>`
-  - `<你的 Pages 项目名>` 填 Cloudflare Pages 项目名，不是域名
+- Deployment command：留空或删除，不使用 `wrangler pages deploy`
 
 ## 3. Pages 环境变量
 
-如果当前界面要求通过 `wrangler pages deploy` 推送产物，在 `Settings -> Environment variables` 中配置以下变量：
-
-- `CLOUDFLARE_API_TOKEN`
-- `CLOUDFLARE_ACCOUNT_ID`
+本轮方案不需要额外配置 Cloudflare API 凭据。
 
 说明：
 
 - 本轮只发布法律静态页，不再构建 Flutter Web。
 - 因此不需要 `SUPABASE_URL` 与 `SUPABASE_ANON_KEY`。
-- `CLOUDFLARE_API_TOKEN` 建议使用 `Account / Cloudflare Pages / Edit` 权限。
+- 也不需要 `CLOUDFLARE_API_TOKEN` 与 `CLOUDFLARE_ACCOUNT_ID`。
+- `Cloudflare Pages` 直接读取 `dist` 目录作为发布产物。
 
 ## 4. 自定义域名绑定
 
