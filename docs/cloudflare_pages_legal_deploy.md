@@ -12,35 +12,64 @@
 - `web-static/privacy/index.html`
 - `web-static/terms/index.html`
 
-当前 `Cloudflare Pages` 发布不再依赖 Flutter Web 构建，而是直接复制法律静态页到专用产物目录：
+当前方案不再依赖 Flutter Web 构建，也不使用 `wrangler pages deploy`，而是本地生成专用产物目录后，通过 `Cloudflare Pages` 的 `Direct Upload` 直接上传：
 
 - `dist/privacy/index.html`
 - `dist/terms/index.html`
 
-因此，只要 `Cloudflare Pages` 发布目录指向 `dist`，即可直接得到 `/privacy` 与 `/terms` 两个页面路径。
+因此，只要上传 `dist` 目录，即可直接得到 `/privacy` 与 `/terms` 两个页面路径。
 
-## 2. Cloudflare Pages 项目配置
+## 2. 本地生成上传目录
 
-在 `Cloudflare Dashboard -> Workers & Pages -> Create application -> Pages -> Connect to Git` 中完成项目创建，并使用以下配置：
+在项目根目录执行：
 
-- Framework preset：`None`
-- Build command：`mkdir -p dist/privacy dist/terms && cp web-static/privacy/index.html dist/privacy/index.html && cp web-static/terms/index.html dist/terms/index.html`
-- Build output directory：`dist`
-- Root directory：项目根目录
-- Deployment command：留空或删除，不使用 `wrangler pages deploy`
+```bash
+bash tool/cloudflare_pages_legal_build.sh
+```
 
-## 3. Pages 环境变量
+脚本会生成以下产物：
+
+- `dist/privacy/index.html`
+- `dist/terms/index.html`
+
+如果你不想使用脚本，也可以直接执行等价命令：
+
+```bash
+mkdir -p dist/privacy dist/terms && cp web-static/privacy/index.html dist/privacy/index.html && cp web-static/terms/index.html dist/terms/index.html
+```
+
+## 3. Cloudflare Pages 项目配置
+
+在 `Cloudflare Dashboard -> Workers & Pages -> Create application -> Pages` 中，选择：
+
+- `Direct Upload`
+
+创建项目时建议使用：
+
+- Project name：`jixun-legal`
+- Upload folder：本地生成好的 `dist`
+
+说明：
+
+- 不要选择 `Connect to Git`
+- 不要使用 `Build command`
+- 不要使用 `Deployment command`
+- 不要填写“非生产分支部署命令”
+
+如果当前页面出现“构建命令 / 部署命令 / 非生产分支部署命令”，说明你进入的是 Git 构建流，不是本方案需要的入口。请返回并重新选择 `Direct Upload`。
+
+## 4. Pages 环境变量
 
 本轮方案不需要额外配置 Cloudflare API 凭据。
 
 说明：
 
-- 本轮只发布法律静态页，不再构建 Flutter Web。
+- 本轮只发布法律静态页，不构建 Flutter Web。
 - 因此不需要 `SUPABASE_URL` 与 `SUPABASE_ANON_KEY`。
 - 也不需要 `CLOUDFLARE_API_TOKEN` 与 `CLOUDFLARE_ACCOUNT_ID`。
-- `Cloudflare Pages` 直接读取 `dist` 目录作为发布产物。
+- `Cloudflare Pages` 直接托管你上传的 `dist` 目录。
 
-## 4. 自定义域名绑定
+## 5. 自定义域名绑定
 
 在 `Custom domains` 中添加：
 
@@ -61,7 +90,7 @@
 - `privacy.wzhua.indevs.in`
 - `terms.wzhua.indevs.in`
 
-## 5. 发布后项目内配置
+## 6. 发布后项目内配置
 
 当前 App 内法律链接常量应保持为正式地址：
 
@@ -74,12 +103,12 @@ static const String termsOfServiceUrl = 'https://wzhua.indevs.in/terms';
 
 - `lib/constants/legal_constants.dart`
 
-## 6. 发布前本地校验
+## 7. 发布前本地校验
 
 建议在本地先执行以下检查：
 
 ```bash
-mkdir -p dist/privacy dist/terms && cp web-static/privacy/index.html dist/privacy/index.html && cp web-static/terms/index.html dist/terms/index.html
+bash tool/cloudflare_pages_legal_build.sh
 ```
 
 然后确认产物存在：
@@ -87,7 +116,12 @@ mkdir -p dist/privacy dist/terms && cp web-static/privacy/index.html dist/privac
 - `dist/privacy/index.html`
 - `dist/terms/index.html`
 
-## 7. 发布后验收
+上传后，Cloudflare 会先给你一个默认域名，通常可先用类似以下地址预验收：
+
+- `https://jixun-legal.pages.dev/privacy`
+- `https://jixun-legal.pages.dev/terms`
+
+## 8. 发布后验收
 
 发布完成后至少验证以下项目：
 
@@ -98,7 +132,7 @@ mkdir -p dist/privacy dist/terms && cp web-static/privacy/index.html dist/privac
 - App 内“用户协议”入口能打开 `/terms`
 - App Store Connect 中填写的隐私政策 URL 可直接访问
 
-## 8. 当前仍待补字段
+## 9. 当前仍待补字段
 
 本轮已确定正式域名，但法律文档中以下字段仍需你后续补齐：
 

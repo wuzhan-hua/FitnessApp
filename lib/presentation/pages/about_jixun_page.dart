@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/foundation.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../application/providers/providers.dart';
@@ -10,6 +11,7 @@ import '../../utils/app_error.dart';
 import '../../utils/snackbar_helper.dart';
 import 'admin_exercise_catalog_page.dart';
 import 'admin_food_catalog_page.dart';
+import 'legal_document_page.dart';
 
 class AboutJixunPage extends ConsumerWidget {
   const AboutJixunPage({super.key});
@@ -34,6 +36,15 @@ class AboutJixunPage extends ConsumerWidget {
     final uri = Uri.tryParse(normalizedUrl);
     if (uri == null) {
       _showFeedback(context, '$documentName地址格式无效，请检查配置。');
+      return;
+    }
+
+    if (!kIsWeb) {
+      await Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => LegalDocumentPage(title: documentName, url: url),
+        ),
+      );
       return;
     }
 
