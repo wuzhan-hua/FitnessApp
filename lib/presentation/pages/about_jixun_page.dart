@@ -11,6 +11,7 @@ import '../../utils/app_error.dart';
 import '../../utils/snackbar_helper.dart';
 import 'admin_exercise_catalog_page.dart';
 import 'admin_food_catalog_page.dart';
+import 'cancel_account_page.dart';
 import 'legal_document_page.dart';
 
 class AboutJixunPage extends ConsumerWidget {
@@ -103,83 +104,6 @@ class AboutJixunPage extends ConsumerWidget {
     }
   }
 
-  Future<void> _confirmAndDeleteAccount(
-    BuildContext context,
-    WidgetRef ref,
-    DateTime selectedDietDate,
-  ) async {
-    final authStatus =
-        ref.read(authStatusProvider).valueOrNull ?? AuthStatus.signedOut;
-    if (!authStatus.isSignedIn) {
-      _showFeedback(context, '请先登录后再操作');
-      return;
-    }
-
-    final firstConfirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('注销账号'),
-        content: Text(
-          authStatus.isGuest
-              ? '注销后将彻底清除当前游客账号及其训练记录、饮食记录、头像资料，且无法恢复。'
-              : '注销后将彻底清除当前账号及其训练记录、饮食记录、头像资料，且无法恢复。',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('取消'),
-          ),
-          FilledButton.tonal(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('继续注销'),
-          ),
-        ],
-      ),
-    );
-    if (firstConfirmed != true || !context.mounted) {
-      return;
-    }
-
-    final secondConfirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('最终确认'),
-        content: const Text('此操作不可恢复。确认后将立即注销账号及所有关联数据。'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('返回'),
-          ),
-          FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: const Color(0xFFDC2626),
-            ),
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('确认注销'),
-          ),
-        ],
-      ),
-    );
-    if (secondConfirmed != true || !context.mounted) {
-      return;
-    }
-
-    try {
-      await ref.read(authServiceProvider).deleteCurrentAccount();
-      ref.invalidate(guestSoftSignedOutProvider);
-      ref.invalidate(authSessionProvider);
-      ref.invalidate(authStatusProvider);
-      invalidateAuthScopedProvidersOnSignOut(ref, dietDate: selectedDietDate);
-      if (!context.mounted) return;
-      _showFeedback(context, '账号已注销');
-      Navigator.of(context).pop();
-    } catch (error) {
-      if (!context.mounted) return;
-      final appError = AppError.from(error, fallbackMessage: '注销账号失败，请稍后重试。');
-      _showFeedback(context, appError.message);
-    }
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = AppColors.of(context);
@@ -226,18 +150,29 @@ class AboutJixunPage extends ConsumerWidget {
             _AboutMenuSection(
               children: [
                 _AboutMenuTile(
-                  icon: Icons.logout,
-                  iconColor: const Color(0xFFEF4444),
-                  title: '退出登录',
-                  onTap: () =>
-                      _confirmAndSignOut(context, ref, selectedDietDate),
-                ),
-                _AboutMenuTile(
                   icon: Icons.delete_forever_outlined,
                   iconColor: const Color(0xFFDC2626),
                   title: '注销账号',
+                  subtitle: '永久删除当前账号及关联数据，不可恢复',
                   onTap: () =>
-                      _confirmAndDeleteAccount(context, ref, selectedDietDate),
+                      Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => const CancelAccountPage(),
+                        ),
+                      ),
+                ),
+              ],
+            ),
+          if (authStatus.isSignedIn)
+            _AboutMenuSection(
+              children: [
+                _AboutMenuTile(
+                  icon: Icons.logout,
+                  iconColor: const Color(0xFFEF4444),
+                  title: '退出登录',
+                  subtitle: '退出当前账号，稍后可重新登录',
+                  onTap: () =>
+                      _confirmAndSignOut(context, ref, selectedDietDate),
                 ),
               ],
             ),
@@ -344,16 +279,19 @@ class _AboutMenuTile extends StatelessWidget {
     required this.iconColor,
     required this.title,
     required this.onTap,
+    this.subtitle,
   });
 
   final IconData icon;
   final Color iconColor;
   final String title;
+  final String? subtitle;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final colors = AppColors.of(context);
+    final textTheme = Theme.of(context).textTheme;
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -377,12 +315,28 @@ class _AboutMenuTile extends StatelessWidget {
               ),
               const SizedBox(width: 14),
               Expanded(
-                child: Text(
-                  title,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 17,
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      title,
+                      style: textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 17,
+                      ),
+                    ),
+                    if (subtitle != null) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        subtitle!,
+                        style: textTheme.bodySmall?.copyWith(
+                          color: colors.textMuted.withValues(alpha: 0.80),
+                          height: 1.25,
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ),
               Icon(
