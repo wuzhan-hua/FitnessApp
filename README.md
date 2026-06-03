@@ -60,41 +60,49 @@ A focused fitness tracking app built with Flutter and Supabase for structured wo
 
 展示今日训练概览、关键入口和整体信息密度。
 
-![首页-1](https://wzhua.indevs.in/screenshots/首页-1.png)
-![首页-2](https://wzhua.indevs.in/screenshots/首页-2.png)
+| 首页-1 | 首页-2 |
+| --- | --- |
+| ![首页-1](https://wzhua.indevs.in/screenshots/首页-1.png) | ![首页-2](https://wzhua.indevs.in/screenshots/首页-2.png) |
 
 ### 训练页
 
 展示训练会话编辑、动作编排与组数记录流程。
 
-![训练页-1](https://wzhua.indevs.in/screenshots/训练页-1.png)
-![训练页-2](https://wzhua.indevs.in/screenshots/训练页-2.png)
+| 训练页-1 | 训练页-2 |
+| --- | --- |
+| ![训练页-1](https://wzhua.indevs.in/screenshots/训练页-1.png) | ![训练页-2](https://wzhua.indevs.in/screenshots/训练页-2.png) |
 
 ### 饮食页
 
 展示饮食记录、营养汇总与食物录入体验。
 
-![饮食页-1](https://wzhua.indevs.in/screenshots/饮食页-1.png)
-![饮食页-2](https://wzhua.indevs.in/screenshots/饮食页-2.png)
+| 饮食页-1 | 饮食页-2 |
+| --- | --- |
+| ![饮食页-1](https://wzhua.indevs.in/screenshots/饮食页-1.png) | ![饮食页-2](https://wzhua.indevs.in/screenshots/饮食页-2.png) |
 
 ### 日历页
 
 展示训练与饮食在日期维度上的历史分布与回顾能力。
 
-![日历页-1](https://wzhua.indevs.in/screenshots/日历页-1.png)
+| 日历页-1 |  |
+| --- | --- |
+| ![日历页-1](https://wzhua.indevs.in/screenshots/日历页-1.png) |  |
 
 ### 动作库页
 
 展示动作检索、动作选择与目录管理基础能力。
 
-![动作库页-1](https://wzhua.indevs.in/screenshots/动作库页-1.png)
+| 动作库页-1 |  |
+| --- | --- |
+| ![动作库页-1](https://wzhua.indevs.in/screenshots/动作库页-1.png) |  |
 
 ### 我的
 
 展示账户、资料、偏好设置与个人入口聚合。
 
-![我的-1](https://wzhua.indevs.in/screenshots/我的-1.png)
-![我的-2](https://wzhua.indevs.in/screenshots/我的-2.png)
+| 我的-1 | 我的-2 |
+| --- | --- |
+| ![我的-1](https://wzhua.indevs.in/screenshots/我的-1.png) | ![我的-2](https://wzhua.indevs.in/screenshots/我的-2.png) |
 
 ## 技术架构图
 
