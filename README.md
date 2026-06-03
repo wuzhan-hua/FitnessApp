@@ -1,5 +1,7 @@
 # FitnessApp
 
+English README: [README.en.md](./README.en.md)
+
 [![CI](https://github.com/wuzhan-hua/FitnessApp/actions/workflows/ci.yml/badge.svg)](https://github.com/wuzhan-hua/FitnessApp/actions/workflows/ci.yml)
 [![Flutter](https://img.shields.io/badge/Flutter-3.x-02569B?logo=flutter&logoColor=white)](https://flutter.dev/)
 [![Supabase](https://img.shields.io/badge/Supabase-Backend-3ECF8E?logo=supabase&logoColor=white)](https://supabase.com/)
