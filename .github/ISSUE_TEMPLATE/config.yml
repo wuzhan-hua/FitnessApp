@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 使用与贡献说明
+    url: https://github.com/wuzhan-hua/FitnessApp/blob/main/CONTRIBUTING.md
+    about: 提交问题前，建议先阅读贡献指南与仓库说明。
+  - name: 安全问题反馈
+    url: https://github.com/wuzhan-hua/FitnessApp/blob/main/SECURITY.md
+    about: 如果是安全漏洞或敏感问题，请不要公开提交 Issue。
